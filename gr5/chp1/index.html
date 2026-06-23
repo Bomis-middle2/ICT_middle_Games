@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolution Engineer - ICT Grade 5</title>
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --accent: #f06449;
+            --success: #28a745;
+            --light-bg: #f8fafc;
+            --text: #2d3748;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #edf2f7; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+
+        #game-box {
+            width: 100%; max-width: 550px; background: white; padding: 25px;
+            border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center; position: relative; min-height: 550px;
+        }
+
+        /* Mandatory Branding Overlay */
+        #branding-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 2000; display: flex; justify-content: center;
+            align-items: center; border-radius: 20px; transition: opacity 0.5s;
+        }
+        #branding-overlay img { max-width: 250px; height: auto; }
+
+        .screen { display: none; }
+        .active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* UI Elements */
+        .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+        #bar-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
+        #score-tag { font-weight: bold; color: var(--primary); margin-bottom: 10px; font-size: 1.1rem; }
+
+        .item { 
+            background: var(--primary); color: white; padding: 12px 18px; margin: 6px;
+            border-radius: 12px; cursor: pointer; display: inline-block; font-size: 0.95rem;
+            font-weight: 500; transition: 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        .item.selected { background: var(--accent); transform: scale(1.05); outline: 3px solid #ffd700; }
+        
+        .zone { 
+            border: 2px dashed #cbd5e0; min-height: 100px; margin: 15px 0; 
+            padding: 15px; border-radius: 15px; background: var(--light-bg);
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;
+        }
+
+        .hint-text { color: var(--accent); font-weight: bold; font-size: 0.9rem; min-height: 40px; margin: 10px 0; padding: 0 10px; }
+
+        .btn-action {
+            background: var(--primary); color: white; border: none; width: 100%;
+            padding: 18px; border-radius: 12px; font-weight: bold; font-size: 1.1rem; 
+            margin-top: 15px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.98); }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .bin { border: 2px solid #e2e8f0; border-radius: 15px; padding: 10px; min-height: 120px; background: #fff; }
+        .bin h4 { font-size: 0.75rem; margin: 0 0 10px 0; color: #718096; text-transform: uppercase; }
+
+        #mute-btn { position: absolute; top: 15px; right: 15px; border: none; background: #f1f5f9; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<div id="game-box">
+    <div id="branding-overlay">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo">
+    </div>
+
+    <button id="mute-btn" onclick="toggleMute()">🔊</button>
+    <div id="score-tag">Score: <span id="score-val">0</span></div>
+    <div class="progress-bar"><div id="bar-fill"></div></div>
+
+    <div id="intro" class="screen">
+        <h1>Evolution Engineer</h1>
+        <p><b>Grade 5 | ICT</b><br>Chapter 1: History of Computers</p>
+        <p>Instructions: Tap an item, then tap the box to place it.</p>
+        <button class="btn-action" onclick="showLevel(1)">Start Game</button>
+    </div>
+
+    <div id="level1" class="screen">
+        <h3>Level 1: Historical Sequence</h3>
+        <p>Order from <strong>Oldest to Newest</strong>:</p>
+        <div id="l1-target" class="zone" onclick="placeItem('l1-target')"></div>
+        <div id="l1-source" class="zone" style="border:none; background:transparent;">
+            <div class="item" id="i1" onclick="selectItem('i1')">Abacus</div>
+            <div class="item" id="i2" onclick="selectItem('i2')">Pascaline</div>
+            <div class="item" id="i3" onclick="selectItem('i3')">Analytical Engine</div>
+            <div class="item" id="i4" onclick="selectItem('i4')">Tabulating Machine</div>
+        </div>
+        <div id="hint1" class="hint-text"></div>
+        <button class="btn-action" onclick="checkL1()">Verify Sequence</button>
+    </div>
+
+    <div id="level2" class="screen">
+        <h3>Level 2: Generation Classes</h3>
+        <div class="grid">
+            <div class="bin" onclick="placeItem('b1')"><h4>1st Gen</h4><div id="b1"></div></div>
+            <div class="bin" onclick="placeItem('b2')"><h4>2nd Gen</h4><div id="b2"></div></div>
+            <div class="bin" onclick="placeItem('b3')"><h4>3rd Gen</h4><div id="b3"></div></div>
+            <div class="bin" onclick="placeItem('b4')"><h4>4th Gen</h4><div id="b4"></div></div>
+        </div>
+        <div id="l2-source" class="zone" style="border:none; background:transparent; margin-top:20px;">
+            <div class="item" id="v1" onclick="selectItem('v1')">Vacuum Tubes</div>
+            <div class="item" id="v2" onclick="selectItem('v2')">Transistors</div>
+            <div class="item" id="v3" onclick="selectItem('v3')">ICs</div>
+            <div class="item" id="v4" onclick="selectItem('v4')">Microprocessors</div>
+        </div>
+        <div id="hint2" class="hint-text"></div>
+        <button class="btn-action" onclick="checkL2()">Final Verify</button>
+    </div>
+
+    <div id="result" class="screen">
+        <h2 id="res-msg"></h2>
+        <h1 id="res-score" style="font-size: 3.5rem; color: var(--primary);"></h1>
+        <button class="btn-action" onclick="location.reload()">Restart Mission</button>
+    </div>
+</div>
+
+<audio id="snd-ok" src="assets/correct.mp3"></audio>
+<audio id="snd-no" src="assets/wrong.mp3"></audio>
+
+<script>
+    let selectedId = null;
+    let score = 0;
+    let muted = false;
+    let attempts = { l1: 0, l2: 0 };
+
+    // Initial Branding Timer
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('branding-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('branding-overlay').style.display = 'none';
+                document.getElementById('intro').classList.add('active');
+            }, 500);
+        }, 5000);
+    };
+
+    function toggleMute() {
+        muted = !muted;
+        document.getElementById('mute-btn').innerText = muted ? "🔇" : "🔊";
+    }
+
+    function selectItem(id) {
+        if(selectedId) document.getElementById(selectedId).classList.remove('selected');
+        selectedId = id;
+        document.getElementById(id).classList.add('selected');
+    }
+
+    function placeItem(zoneId) {
+        if(!selectedId) return;
+        const item = document.getElementById(selectedId);
+        document.getElementById(zoneId).appendChild(item);
+        item.classList.remove('selected');
+        selectedId = null;
+    }
+
+    function resetLevel(lvl) {
+        const source = document.getElementById(`l${lvl}-source`);
+        const items = (lvl === 1) ? ['i1','i2','i3','i4'] : ['v1','v2','v3','v4'];
+        items.forEach(id => source.appendChild(document.getElementById(id)));
+    }
+
+    function showLevel(n) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('level'+n).classList.add('active');
+        document.getElementById('bar-fill').style.width = (n * 50 - 25) + "%";
+    }
+
+    function playSound(isRight) {
+        if (muted) return;
+        const s = document.getElementById(isRight ? 'snd-ok' : 'snd-no');
+        s.currentTime = 0;
+        s.play();
+    }
+
+    // LEVEL 1: Abacus -> Pascaline -> Analytical -> Tabulating
+    function checkL1() {
+        attempts.l1++;
+        const current = Array.from(document.getElementById('l1-target').children).map(c => c.id);
+        const correct = ['i1','i2','i3','i4'];
+
+        if(JSON.stringify(current) === JSON.stringify(correct)) {
+            score += 50;
+            playSound(true);
+            updateUI();
+            showLevel(2);
+        } else {
+            playSound(false);
+            if(attempts.l1 === 1) {
+                document.getElementById('hint1').innerText = "Wrong order! Restarting level... Hint: The Abacus came first (2000 years ago).";
+                setTimeout(() => {
+                    resetLevel(1);
+                    document.getElementById('hint1').innerText = "Try again! (Last Attempt)";
+                }, 1500);
+            } else {
+                document.getElementById('hint1').innerText = "Incorrect again. Showing correct answer...";
+                correct.forEach(id => document.getElementById('l1-target').appendChild(document.getElementById(id)));
+                setTimeout(() => showLevel(2), 2500);
+            }
+        }
+    }
+
+    // LEVEL 2: VT(1), TR(2), IC(3), MP(4)
+    function checkL2() {
+        attempts.l2++;
+        const c1 = document.getElementById('b1').contains(document.getElementById('v1'));
+        const c2 = document.getElementById('b2').contains(document.getElementById('v2'));
+        const c3 = document.getElementById('b3').contains(document.getElementById('v3'));
+        const c4 = document.getElementById('b4').contains(document.getElementById('v4'));
+
+        if(c1 && c2 && c3 && c4) {
+            score += 50;
+            playSound(true);
+            updateUI();
+            showResult();
+        } else {
+            playSound(false);
+            if(attempts.l2 === 1) {
+                document.getElementById('hint2').innerText = "Wrong classification! Restarting... Hint: 1st Gen used Vacuum Tubes.";
+                setTimeout(() => {
+                    resetLevel(2);
+                    document.getElementById('hint2').innerText = "Try again! (Last Attempt)";
+                }, 1500);
+            } else {
+                document.getElementById('hint2').innerText = "Incorrect. Moving to results...";
+                setTimeout(showResult, 2000);
+            }
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('score-val').innerText = score;
+    }
+
+    function showResult() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('result').classList.add('active');
+        document.getElementById('bar-fill').style.width = "100%";
+        document.getElementById('res-score').innerText = score + "%";
+        
+        let msg = "";
+        if(score >= 75) msg = "Good job!";
+        else if(score >= 40) msg = "Review this chapter and try again";
+        else msg = "Let's practise more";
+        document.getElementById('res-msg').innerText = msg;
+    }
+</script>
+</body>
+</html>
