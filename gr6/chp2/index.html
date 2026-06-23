@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 6 ICT - System Software Decoder</title>
+    <style>
+        :root {
+            /* Muted, subtle, and eye-strain free premium palette */
+            --bg-gradient-start: #f1f5f9; /* Soft Slate Blue/Gray */
+            --bg-gradient-end: #e2e8f0;   /* Muted Light Slate */
+            --primary-color: #1e293b;
+            --secondary-slate: #475569;
+            --accent-soft: #3b82f6;       /* Electric Blue accents for primary actions */
+            --success-muted: #10b981;
+            --error-muted: #ef4444;
+            --warning-amber: #f59e0b;
+            --text-main: #0f172a;
+            --card-base: #ffffff;
+            --tile-bg: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            /* Subtle, clean background gradient */
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-main);
+            line-height: 1.5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 680px;
+            background: var(--card-base);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            min-height: 540px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 5-Second Mandatory Brand Overlay */
+        #branding-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--card-base);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        #branding-overlay img {
+            width: 80%;
+            max-width: 280px;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* Top Navigation HUD Panels */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .hud-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hud-item {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--secondary-slate);
+            background: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .timer-highlight {
+            background: #fffaf0;
+            color: var(--warning-amber);
+            border: 1px solid #feebc8;
+            transition: all 0.3s ease;
+        }
+
+        .timer-critical {
+            background: #fff5f5;
+            color: var(--error-muted);
+            border: 1px solid #fed7d7;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .mute-btn {
+            background: none;
+            border: 1px solid #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--secondary-slate);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .mute-btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        h1 { font-size: 1.45rem; color: var(--primary-color); margin-bottom: 0.75rem; text-align: center; font-weight: 700; }
+        h2 { font-size: 1.1rem; margin-bottom: 1rem; text-align: center; color: var(--secondary-slate); font-weight: 600; }
+        
+        .meta-info { margin: 1.25rem 0; background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .meta-info p { margin-bottom: 0.6rem; font-size: 0.95rem; color: var(--secondary-slate); }
+        .meta-info p strong { color: var(--primary-color); }
+
+        /* Scramble Workspaces */
+        .scen-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--accent-soft);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .workspace-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #718096;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .answer-build-box {
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            min-height: 65px;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .answer-build-box:hover { background: #e2e8f0; }
+
+        .scramble-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin: 1rem 0 1.75rem 0;
+            min-height: 55px;
+        }
+
+        .letter-tile {
+            background: var(--tile-bg);
+            border: 1px solid #e2e8f0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: clamp(34px, 8vw, 42px);
+            height: clamp(34px, 8vw, 42px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .letter-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            border-color: #cbd5e1;
+        }
+        
+        .letter-tile.selected {
+            background: var(--accent-soft);
+            color: white;
+            border-color: var(--accent-soft);
+            box-shadow: none;
+        }
+
+        /* Action Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .btn:hover { background-color: #0f172a; transform: translateY(-1px); }
+        
+        .action-tier { display: flex; flex-direction: row; gap: 0.75rem; width: 100%; }
+        .btn-secondary { background-color: #e2e8f0; color: var(--secondary-slate); }
+        .btn-secondary:hover { background-color: #cbd5e1; color: var(--primary-color); }
+        .btn-accent { background-color: var(--accent-soft); }
+        .btn-accent:hover { background-color: #2563eb; }
+
+        /* Dynamic Feedback Panels */
+        .feedback-box {
+            margin-top: 1.25rem;
+            padding: 1.1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.5;
+            animation: slideUp 0.3s ease-out;
+        }
+        .feedback-box.correct { background-color: #edf7ed; color: #1e4620; border-left: 4px solid var(--success-muted); }
+        .feedback-box.wrong { background-color: #fdf2f2; color: #611a15; border-left: 4px solid var(--error-muted); }
+        .feedback-box.timeout { background-color: #fffaf0; color: #7b420e; border-left: 4px solid var(--warning-amber); }
+
+        #confetti-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.03); }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 580px) {
+            body { padding: 0.5rem; }
+            .game-container { padding: 1.25rem; min-height: auto; }
+            h1 { font-size: 1.2rem; }
+            h2 { font-size: 1rem; }
+            .header-controls { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+            .hud-wrapper { justify-content: space-between; }
+            .mute-btn { text-align: center; width: 100%; }
+            .action-tier { flex-direction: column; gap: 0; }
+            .letter-tile { font-size: 1rem; }
+            .answer-build-box { min-height: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <canvas id="confetti-canvas"></canvas>
+
+        <!-- 1. Enforced Splash Screen Overlay -->
+        <div id="branding-overlay">
+            <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('branding-overlay').innerHTML='<div style=\'font-size:22px; font-weight:600; color:var(--accent-soft); letter-spacing:2px; text-align:center;\'>INNOVINE MULTIMEDIA</div>';">
+        </div>
+
+        <!-- Global Control Bar -->
+        <div class="header-controls">
+            <div class="hud-wrapper">
+                <div id="hud-score" class="hud-item hidden">Correct Recalls: <span id="current-score">0</span></div>
+                <div id="hud-timer" class="hud-item hidden">⏳ <span id="timer-count">45</span>s</div>
+            </div>
+            <button class="mute-btn" id="mute-toggle" onclick="toggleMute()">🔊 Mute</button>
+        </div>
+
+        <!-- 2. Introduction Onboarding Screen -->
+        <div id="intro-screen" class="hidden">
+            <h1>System Software-Operating System,Utilities and Drivers</h1>
+            <div class="meta-info">
+                <p><strong>Grade Level:</strong> Grade 6</p>
+                <p><strong>Subject Matter:</strong> ICT</p>
+                <p><strong>Rules:</strong> Read the technical description, then tap the scrambled letters to build the target term. You have a strict **45-second limit** per puzzle card, or the system will automatically reveal the answer!</p>
+                <p><strong>Total Pool:</strong> 6 System Challenges</p>
+            </div>
+            <button class="btn btn-accent" onclick="startGame()">Start Challenge</button>
+        </div>
+
+        <!-- 3. Active Gameplay Board -->
+        <div id="quiz-screen" class="hidden">
+            <h2 id="puzzle-index">Puzzle 1 of 6</h2>
+            
+            <div class="scen-box" id="puzzle-prompt">
+                Loading system puzzle architecture...
+            </div>
+
+            <div class="workspace-title">Your Answer Construction:</div>
+            <div class="answer-build-box" id="answer-slots" onclick="popLastLetter()">
+                <!-- Letters append here sequentially -->
+            </div>
+
+            <div class="workspace-title" style="text-align: center;">Tap Letters to Unscramble:</div>
+            <div class="scramble-container" id="tile-pool">
+                <!-- Randomized Letter Tiles Loaded dynamically -->
+            </div>
+
+            <div class="action-tier" id="interactive-actions">
+                <button class="btn btn-secondary" onclick="clearCurrentAttempt()">Clear Letters</button>
+                <button id="submit-btn" class="btn btn-accent" onclick="verifyDecodedWord()">Check Code</button>
+            </div>
+
+            <div id="feedback-panel" class="feedback-box hidden"></div>
+            <button id="next-btn" class="btn hidden" onclick="advanceNextPuzzle()">Next Concept Card ➔</button>
+        </div>
+
+        <!-- 4. Final Evaluation Matrix Screen -->
+        <div id="result-screen" class="hidden">
+            <h2>Challenge Evaluation Completed!</h2>
+            <p style="text-align: center; font-size: 1.1rem; margin: 15px 0;">
+                You successfully solved <span id="final-score">0</span> out of <span id="total-questions">0</span> technical structures!
+            </p>
+            <h3 id="result-message" style="text-align: center; font-size: 1.2rem; font-weight: bold; margin-bottom: 25px;"></h3>
+            <button class="btn btn-accent" onclick="resetGame()">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Audio Pipelines for Sound Design -->
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        const puzzleDatabase = [
+            {
+                prompt: "I take care of the entire computer system, including its hardware and software. I can run independently of application software. What am I?",
+                solution: "SYSTEM SOFTWARE",
+                explain: "System software acts as the baseline infrastructure layer that coordinates physical hardware devices so application platforms can load and function safely."
+            },
+            {
+                prompt: "Before Kiran can install or run presentation application software on her laptop to make office files, what vital system software engine must be deployed first?",
+                solution: "OPERATING SYSTEM",
+                explain: "A computer is entirely non-functional without an operating system installed on it; it manages memory, loads application calls, and routes hardware configurations."
+            },
+            {
+                prompt: "What specific type of user interface requires an operator to manually learn, memorize, and type text lines to carry out basic tasks instead of tapping visual icons?",
+                solution: "COMMAND LINE INTERFACE",
+                explain: "A Command Line Interface (CLI) relies entirely on typing precise instructions textually, contrasting with modern visual Graphical User Interfaces (GUIs)."
+            },
+            {
+                prompt: "What class of technical system software is explicitly engineered to help analyze, maintain, optimize, and configure system components?",
+                solution: "UTILITY PROGRAM",
+                explain: "Utility programs perform precise technical troubleshooting and housekeeping tasks such as file management, disk performance tracking, and diagnostics."
+            },
+            {
+                prompt: "What maintenance optimization process gathers fragments of files scattered randomly across a storage drive and reorganizes them into neat, continuous memory stacks?",
+                solution: "DISK DEFRAGMENTATION",
+                explain: "Defragmentation groups loose blocks of storage sequentially, enabling the hard disk reader to sweep data lines and process executions significantly faster."
+            },
+            {
+                prompt: "Ram connects a newly purchased printer to his computer but can get no printouts. What group of interface communication files are missing and need to be loaded?",
+                solution: "DEVICE DRIVER",
+                explain: "Device drivers are operating-system specific software bundles that act as translators, enabling hardware devices to communicate seamlessly with the OS."
+            }
+        ];
+
+        let activeIndex = 0;
+        let scoreCounter = 0;
+        let soundMuted = false;
+        let constructedAnswer = [];
+        let sourcePoolMapping = []; 
+        
+        let gameTimer = null;
+        let timeRemaining = 45;
+        let isPuzzleActive = false;
+
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            setTimeout(() => {
+                const overlay = document.getElementById('branding-overlay');
+                overlay.style.opacity = 0;
+                overlay.style.pointerEvents = 'none'; 
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    document.getElementById('intro-screen').classList.remove('hidden');
+                }, 600);
+            }, 5000); 
+        });
+
+        function toggleMute() {
+            soundMuted = !soundMuted;
+            document.getElementById('mute-toggle').innerText = soundMuted ? "🔇 Muted" : "🔊 Mute";
+        }
+
+        function triggerAudioFeedback(status) {
+            if (soundMuted) return;
+            const target = document.getElementById(status === 'win' ? 'audio-correct' : 'audio-wrong');
+            if(target) {
+                target.currentTime = 0;
+                target.play().catch(() => {});
+            }
+        }
+
+        function startGame() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('hud-score').classList.remove('hidden');
+            document.getElementById('hud-timer').classList.remove('hidden');
+            activeIndex = 0;
+            scoreCounter = 0;
+            updateScoreHeader();
+            loadPuzzleChallenge();
+        }
+
+        function updateScoreHeader() {
+            document.getElementById('current-score').innerText = scoreCounter;
+        }
+
+        function runCountdown() {
+            if (!isPuzzleActive) return;
+            timeRemaining--;
+            
+            const timerDisplay = document.getElementById('timer-count');
+            const timerHud = document.getElementById('hud-timer');
+            timerDisplay.innerText = timeRemaining;
+
+            if (timeRemaining <= 10) {
+                timerHud.className = "hud-item timer-critical";
+            } else if (timeRemaining <= 20) {
+                timerHud.className = "hud-item timer-highlight";
+            } else {
+                timerHud.className = "hud-item";
+            }
+
+            if (timeRemaining <= 0) {
+                clearInterval(gameTimer);
+                handleTimeoutReveal();
+            }
+        }
+
+        function loadPuzzleChallenge() {
+            resizeCanvas();
+            particles = [];
+            constructedAnswer = [];
+            isPuzzleActive = true;
+            timeRemaining = 45;
+            
+            const timerHud = document.getElementById('hud-timer');
+            timerHud.className = "hud-item";
+            document.getElementById('timer-count').innerText = timeRemaining;
+
+            const currentItem = puzzleDatabase[activeIndex];
+            document.getElementById('puzzle-index').innerText = `Puzzle ${activeIndex + 1} of ${puzzleDatabase.length}`;
+            document.getElementById('puzzle-prompt').innerText = currentItem.prompt;
+            
+            document.getElementById('feedback-panel').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('interactive-actions').classList.remove('hidden');
+
+            let lettersArray = currentItem.solution.replace(/\s/g, '').split('');
+            
+            for (let i = lettersArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [lettersArray[i], lettersArray[j]] = [lettersArray[j], lettersArray[i]];
+            }
+
+            sourcePoolMapping = lettersArray.map((letter, idx) => ({
+                id: idx,
+                char: letter,
+                used: false
+            }));
+
+            renderInteractivePool();
+            renderTargetWorkspace();
+
+            clearInterval(gameTimer);
+            gameTimer = setInterval(runCountdown, 1000);
+        }
+
+        function renderInteractivePool() {
+            const container = document.getElementById('tile-pool');
+            container.innerHTML = '';
+
+            sourcePoolMapping.forEach(item => {
+                if (!item.used) {
+                    const tile = document.createElement('div');
+                    tile.className = 'letter-tile';
+                    tile.innerText = item.char;
+                    tile.onclick = () => { if(isPuzzleActive) pushLetterToWorkspace(item.id); };
+                    container.appendChild(tile);
+                }
+            });
+        }
+
+        function renderTargetWorkspace() {
+            const workspace = document.getElementById('answer-slots');
+            workspace.innerHTML = '';
+            
+            const solutionWord = puzzleDatabase[activeIndex].solution;
+            let spaceTracker = 0;
+            
+            for (let i = 0; i < solutionWord.length; i++) {
+                if (solutionWord[i] === ' ') {
+                    const spacer = document.createElement('div');
+                    spacer.style.width = '14px';
+                    workspace.appendChild(spacer);
+                } else {
+                    const letterObj = constructedAnswer[spaceTracker];
+                    const slot = document.createElement('div');
+                    slot.className = 'letter-tile selected';
+                    slot.innerText = letterObj ? letterObj.char : '';
+                    workspace.appendChild(slot);
+                    spaceTracker++;
+                }
+            }
+        }
+
+        function pushLetterToWorkspace(id) {
+            const match = sourcePoolMapping.find(item => item.id === id);
+            if (!match || match.used) return;
+
+            match.used = true;
+            constructedAnswer.push(match);
+            
+            renderInteractivePool();
+            renderTargetWorkspace();
+        }
+
+        function popLastLetter() {
+            if (!isPuzzleActive || constructedAnswer.length === 0) return;
+            
+            const removed = constructedAnswer.pop();
+            const match = sourcePoolMapping.find(item => item.id === removed.id);
+            if (match) match.used = false;
+
+            renderInteractivePool();
+            renderTargetWorkspace();
+        }
+
+        function clearCurrentAttempt() {
+            if (!isPuzzleActive) return;
+            constructedAnswer = [];
+            sourcePoolMapping.forEach(item => item.used = false);
+            renderInteractivePool();
+            renderTargetWorkspace();
+        }
+
+        function verifyDecodedWord() {
+            if (!isPuzzleActive) return;
+            const currentItem = puzzleDatabase[activeIndex];
+            
+            let strippedSolution = currentItem.solution.replace(/\s/g, '');
+            let userString = constructedAnswer.map(item => item.char).join('');
+
+            const fbPanel = document.getElementById('feedback-panel');
+            fbPanel.classList.remove('hidden');
+
+            if (userString === strippedSolution) {
+                clearInterval(gameTimer);
+                isPuzzleActive = false;
+                scoreCounter++;
+                updateScoreHeader();
+                triggerAudioFeedback('win');
+                triggerSparkles();
+                
+                fbPanel.className = "feedback-box correct";
+                fbPanel.innerHTML = `<strong>✨ Correct Answer!</strong><br>${currentItem.explain}`;
+                
+                document.getElementById('interactive-actions').classList.add('hidden');
+                document.getElementById('next-btn').classList.remove('hidden');
+            } else {
+                triggerAudioFeedback('fail');
+                fbPanel.className = "feedback-box wrong";
+                fbPanel.innerHTML = `<strong>Incorrect sequence.</strong> Hint: Review your textbook core definitions and try reordering the options!`;
+            }
+        }
+
+        function handleTimeoutReveal() {
+            isPuzzleActive = false;
+            const currentItem = puzzleDatabase[activeIndex];
+            const fbPanel = document.getElementById('feedback-panel');
+            
+            triggerAudioFeedback('fail');
+            
+            constructedAnswer = [];
+            currentItem.solution.replace(/\s/g, '').split('').forEach((c, idx) => {
+                constructedAnswer.push({id: idx, char: c});
+            });
+            renderTargetWorkspace();
+            document.getElementById('tile-pool').innerHTML = '';
+
+            fbPanel.className = "feedback-box timeout";
+            fbPanel.innerHTML = `<strong>⏰ Time Out!</strong> The correct term is: <strong>${currentItem.solution}</strong>.<br>${currentItem.explain}`;
+            fbPanel.classList.remove('hidden');
+
+            document.getElementById('interactive-actions').classList.add('hidden');
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function advanceNextPuzzle() {
+            activeIndex++;
+            if (activeIndex < puzzleDatabase.length) {
+                loadPuzzleChallenge();
+            } else {
+                displayEvaluationSummary();
+            }
+        }
+
+        function displayEvaluationSummary() {
+            clearInterval(gameTimer);
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('hud-score').classList.add('hidden');
+            document.getElementById('hud-timer').classList.add('hidden');
+            
+            const screen = document.getElementById('result-screen');
+            screen.classList.remove('hidden');
+            
+            document.getElementById('final-score').innerText = scoreCounter;
+            document.getElementById('total-questions').innerText = puzzleDatabase.length;
+
+            const percentage = (scoreCounter / puzzleDatabase.length) * 100;
+            const messageNode = document.getElementById('result-message');
+
+            if (percentage >= 75) {
+                messageNode.innerText = "Good job! 🎉";
+                messageNode.style.color = "var(--success-muted)";
+            } else if (percentage >= 40) {
+                messageNode.innerText = "Review this chapter and try again 📖";
+                messageNode.style.color = "var(--warning-amber)";
+            } else {
+                messageNode.innerText = "Let’s practise more 💪";
+                messageNode.style.color = "var(--error-muted)";
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('result-screen').classList.add('hidden');
+            startGame();
+        }
+
+        function triggerSparkles() {
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    radius: Math.random() * 3 + 2,
+                    color: `hsl(${Math.random() * 40 + 200}, 75%, 60%)`, 
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    alpha: 1
+                });
+            }
+            animateParticles();
+        }
+
+        function animateParticles() {
+            if (particles.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.025;
+                
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                ctx.restore();
+
+                if (p.alpha <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            if (particles.length > 0) {
+                requestAnimationFrame(animateParticles);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+    </script>
+</body>
+</html>
