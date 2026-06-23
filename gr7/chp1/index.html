@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>G7 ICT - Data Flow Factory</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --warning: #f1c40f;
+            --box-border: #cbd5e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 540px;
+            transition: all 0.5s ease;
+        }
+
+        /* Catchy Dynamic Background for Intro Screen */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .intro-active-bg {
+            background: linear-gradient(-45deg, #1e3c72, #2a5298, #134e5e, #71b280) !important;
+            background-size: 400% 400% !important;
+            animation: gradientBG 12s ease infinite !important;
+        }
+
+        /* Pure CSS Automatic Brand Screen Overlay */
+        @keyframes autoFadeOut {
+            0% { opacity: 1; visibility: visible; }
+            90% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; pointer-events: none; }
+        }
+
+        #brand-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            cursor: pointer;
+            animation: autoFadeOut 4.5s forwards;
+        }
+
+        #brand-screen img {
+            max-width: 60%;
+            max-height: 45%;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Typography Styles */
+        h1 { font-size: 26px; color: var(--primary); text-align: center; margin-bottom: 5px; }
+        h2 { font-size: 15px; color: #666; text-align: center; margin-bottom: 15px; }
+
+        .intro-title {
+            color: #ffffff !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-size: 32px !important;
+            font-weight: 800;
+        }
+
+        .intro-subtitle {
+            color: #e2e8f0 !important;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.2);
+            font-size: 16px !important;
+            margin-bottom: 25px !important;
+        }
+
+        .top-status {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #555;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .audio-toggle {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Factory Processing Pipeline Slots */
+        .pipeline-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 15px 0 20px 0;
+        }
+
+        .pipeline-slot {
+            aspect-ratio: 1 / 1;
+            border: 2px dashed var(--box-border);
+            border-radius: 10px;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #a0aec0;
+            text-align: center;
+            padding: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-slot.filled {
+            border-style: solid;
+            border-color: var(--accent);
+            background: #ebf8ff;
+            color: var(--primary);
+        }
+
+        .pipeline-slot.failed {
+            border-style: solid;
+            border-color: var(--error);
+            background: #fdf2f2;
+            color: var(--error);
+        }
+
+        .slot-num {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            font-size: 10px;
+            color: #cbd5e0;
+        }
+
+        .pipeline-slot.filled .slot-num { color: var(--accent); }
+        .pipeline-slot.failed .slot-num { color: var(--error); }
+
+        .slot-icon {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        /* Action Selection Blocks */
+        .blocks-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .action-block {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: transform 0.1s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 75px;
+        }
+
+        .action-block:active { transform: scale(0.97); }
+
+        .action-block.used {
+            opacity: 0.4;
+            pointer-events: none;
+            border-color: #e2e8f0;
+            background: #f1f5f9;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        #feedback {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            margin-top: auto;
+            min-height: 45px;
+            line-height: 1.4;
+        }
+        .fb-correct { background: #e6f4ea; color: #137333; border: 1px solid var(--success); }
+        .fb-wrong { background: #fce8e6; color: #c5221f; border: 1px solid var(--error); }
+        .fb-hint { background: #fffde7; color: #856404; border: 1px solid var(--warning); }
+
+        /* Enhanced Interactive Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn:active { transform: scale(0.98); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .btn-start {
+            background: #2ecc71 !important;
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4) !important;
+            font-size: 18px !important;
+            letter-spacing: 0.5px;
+            padding: 18px !important;
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 6px 30px rgba(46, 204, 113, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4); }
+        }
+
+        #canvas-sparks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 90;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Container starts with the catchy intro theme class applied -->
+    <div class="game-container intro-active-bg" id="main-box">
+        <canvas id="canvas-sparks"></canvas>
+
+        <!-- Brand screen layer -->
+        <div id="brand-screen" onclick="clearBrandOverlay();" ontouchend="clearBrandOverlay();">
+            <img id="logo-img" src="assets/innovine-logo.png" alt="Innovine" 
+                 onload="document.getElementById('brand-placeholder').style.display='none';"
+                 onerror="this.style.display='none'; document.getElementById('brand-placeholder').style.display='block';">
+            <h2 id="brand-placeholder" style="color: var(--primary);">Innovine</h2>
+        </div>
+
+        <!-- System Audio Tracks -->
+        <audio id="audio-right" src="assets/correct.mp3" preload="auto"></audio>
+        <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+        <!-- Screen 1: Highly Attractive Catchy Intro Setup Page -->
+        <div id="intro-screen" style="display: flex; flex-direction: column; justify-content: center; flex: 1;">
+            <h1 class="intro-title">Data Flow Factory</h1>
+            <h2 class="intro-subtitle">Chapter 1: Data Processing Lifecycle</h2>
+            
+            <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; margin-bottom: 25px; font-size: 14px; font-weight: 600; color: #ffffff; line-height: 1.6; border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                <div style="margin-bottom: 4px; display: flex; justify-content: space-between;">
+                    <span>🎓 Grade: 7</span>
+                    <span>💻 Subject: ICT</span>
+                </div>
+                <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 6px 0; padding-top: 6px;">
+                    🏭 Mission: Assemble 3 System Pipelines
+                </div>
+            </div>
+            
+            <p style="font-size: 15px; margin-bottom: 25px; text-align: center; color: #f1f5f9; line-height: 1.6; font-weight: 500;">
+                Tap the data tasks in their **exact chronological order**. Be careful: if you guess wrong, you will get **only one hint** before the system locks!
+            </p>
+            <button class="btn btn-start" onclick="launchGame()">Start Building 🚀</button>
+        </div>
+
+        <!-- Screen 2: Game Dashboard Area -->
+        <div id="game-screen" class="hidden" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="top-status">
+                <span id="level-indicator">System: 1/3</span>
+                <span id="score-indicator">Score: 0</span>
+                <button class="audio-toggle" onclick="toggleAudioMute()" id="mute-icon">🔊</button>
+            </div>
+
+            <p id="target-desc" style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 12px; text-align: center;"></p>
+
+            <!-- 4 Step Chronological Pipeline Target Slots -->
+            <div class="pipeline-container">
+                <div class="pipeline-slot" id="slot-0"><span class="slot-num">1</span><div class="slot-content">Empty</div></div>
+                <div class="pipeline-slot" id="slot-1"><span class="slot-num">2</span><div class="slot-content">Empty</div></div>
+                <div class="pipeline-slot" id="slot-2"><span class="slot-num">3</span><div class="slot-content">Empty</div></div>
+                <div class="pipeline-slot" id="slot-3"><span class="slot-num">4</span><div class="slot-content">Empty</div></div>
+            </div>
+
+            <!-- Choices Panel -->
+            <div class="blocks-container" id="choices-panel"></div>
+
+            <div id="feedback" class="hidden"></div>
+            <button id="action-btn" class="btn hidden" onclick="advanceStep()">Next System</button>
+        </div>
+
+        <!-- Screen 3: Final Analysis Output -->
+        <div id="result-screen" class="hidden" style="text-align: center; padding: 20px 0; margin-auto: 0;">
+            <h1>Assembly Report</h1>
+            <p id="grade-metric" style="font-size: 22px; font-weight: bold; margin: 20px 0; color: var(--primary);"></p>
+            <p id="feedback-memo" style="font-size: 15px; padding: 14px; border-radius: 8px; background: #f1f5f9; line-height: 1.5; margin-bottom: 20px;"></p>
+            <button class="btn" onclick="location.reload()">Reboot Factory</button>
+        </div>
+    </div>
+
+    <script>
+        // Self destruct handler ensures brand screen completely disappears to prevent blocking taps
+        function clearBrandOverlay() {
+            const screen = document.getElementById('brand-screen');
+            if (screen) screen.remove();
+        }
+        setTimeout(clearBrandOverlay, 4500);
+
+        const levels = [
+            {
+                title: "Standard Four-Stage Lifecycle",
+                desc: "Reconstruct the foundational four-stage sequence that transforms raw values into meaningful output documents.",
+                correctSequence: ["Collection", "Input", "Processing", "Output"],
+                blocks: [
+                    { name: "Input", icon: "⌨️", text: "Loading raw data inside the system memory nodes." },
+                    { name: "Output", icon: "📊", text: "Displaying informative charts, reports, and clear visual summaries." },
+                    { name: "Collection", icon: "📦", text: "Gathering individual unstructured facts into warehouses." },
+                    { name: "Processing", icon: "⚙️", text: "Manipulating, sorting, or running mathematical queries." }
+                ]
+            },
+            {
+                title: "Utility Batch Infrastructure",
+                desc: "Map the order for an overnight Telecom / Credit Card batch billing run where accuracy outweighs real-time speed.",
+                correctSequence: ["Gather Bills", "Queue Group", "Run Sequence", "Print Records"],
+                blocks: [
+                    { name: "Run Sequence", icon: "🖥️", text: "Computing massive calculations together automatically overnight." },
+                    { name: "Queue Group", icon: "🗂️", text: "Grouping statements into an automated linear task queue." },
+                    { name: "Print Records", icon: "🖨️", text: "Generating absolute customer receipts with zero user interruptions." },
+                    { name: "Gather Bills", icon: "📝", text: "Accumulating standard consumption usage logs from past weeks." }
+                ]
+            },
+            {
+                title: "Real-Time ATM Transaction",
+                desc: "Sequence an immediate financial ATM action requiring fast output loops prior to accepting the next customer command.",
+                correctSequence: ["Insert Card", "Verify PIN", "Check Ledger", "Dispense Cash"],
+                blocks: [
+                    { name: "Verify PIN", icon: "🔐", text: "Authenticating personal identification sequences securely." },
+                    { name: "Dispense Cash", icon: "💵", text: "Delivering immediately updated local currency notes to user." },
+                    { name: "Insert Card", icon: "💳", text: "Initiating hardware connection at the terminal slot interface." },
+                    { name: "Check Ledger", icon: "🔄", text: "Executing real-time database lookups on the active cloud registry." }
+                ]
+            }
+        ];
+
+        let levelIndex = 0;
+        let currentStepInLevel = 0;
+        let score = 0;
+        let maxPointsPossible = 12; 
+        let soundMuted = false;
+        let currentStepChances = 1; 
+
+        function launchGame() {
+            clearBrandOverlay(); // Emergency clear
+            // Switch structural layout theme back to default clean game panel style
+            document.getElementById('main-box').classList.remove('intro-active-bg');
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            loadLevel();
+        }
+
+        function loadLevel() {
+            currentStepInLevel = 0;
+            currentStepChances = 1; 
+            document.getElementById('action-btn').classList.add('hidden');
+            document.getElementById('feedback').classList.add('hidden');
+            
+            const lvl = levels[levelIndex];
+            document.getElementById('level-indicator').innerText = `System: ${levelIndex + 1}/${levels.length}`;
+            document.getElementById('target-desc').innerText = lvl.desc;
+            
+            if (levelIndex === levels.length - 1) {
+                document.getElementById('action-btn').innerText = "View Assembly Report";
+            } else {
+                document.getElementById('action-btn').innerText = "Next System";
+            }
+
+            for (let i = 0; i < 4; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                slot.className = "pipeline-slot";
+                slot.innerHTML = `<span class="slot-num">${i+1}</span><div class="slot-content">Empty</div>`;
+            }
+
+            renderChoices();
+        }
+
+        function renderChoices() {
+            const lvl = levels[levelIndex];
+            const panel = document.getElementById('choices-panel');
+            panel.innerHTML = '';
+
+            lvl.blocks.forEach(b => {
+                const element = document.createElement('div');
+                element.className = "action-block";
+                if (lvl.correctSequence.indexOf(b.name) < currentStepInLevel) {
+                    element.classList.add('used');
+                }
+                element.innerHTML = `<span style='font-size:20px; margin-bottom:4px;'>${b.icon}</span><span>${b.name}</span>`;
+                element.onclick = () => handleBlockTap(b, element);
+                panel.appendChild(element);
+            });
+        }
+
+        function handleBlockTap(block, element) {
+            const lvl = levels[levelIndex];
+            const feedback = document.getElementById('feedback');
+            const expectedName = lvl.correctSequence[currentStepInLevel];
+            const correctBlockData = lvl.blocks.find(b => b.name === expectedName);
+
+            if (block.name === expectedName) {
+                element.classList.add('used');
+                const activeSlot = document.getElementById(`slot-${currentStepInLevel}`);
+                activeSlot.className = "pipeline-slot filled";
+                activeSlot.innerHTML = `<span class="slot-num">${currentStepInLevel+1}</span><div class="slot-icon">${block.icon}</div><div class="slot-content">${block.name}</div>`;
+                
+                score++;
+                currentStepInLevel++;
+                currentStepChances = 1; 
+                document.getElementById('score-indicator').innerText = `Score: ${score}`;
+                
+                feedback.className = "fb-correct";
+                feedback.innerText = `Correct! ${block.text}`;
+                feedback.classList.remove('hidden');
+                triggerSparklersEffect();
+                triggerAudioTrack('audio-right');
+
+                if (currentStepInLevel === 4) {
+                    document.getElementById('action-btn').classList.remove('hidden');
+                    document.getElementById('choices-panel').innerHTML = ''; 
+                } else {
+                    renderChoices();
+                }
+            } else {
+                element.classList.add('shake');
+                setTimeout(() => element.classList.remove('shake'), 300);
+
+                if (currentStepChances > 0) {
+                    currentStepChances--;
+                    feedback.className = "fb-hint";
+                    feedback.innerText = `💡 HINT: Step ${currentStepInLevel + 1} requires finding the component that matches this operation: "${correctBlockData.text}" Try again!`;
+                    feedback.classList.remove('hidden');
+                    triggerAudioTrack('audio-wrong');
+                } else {
+                    triggerAudioTrack('audio-wrong');
+                    document.getElementById('choices-panel').innerHTML = ''; 
+
+                    const activeSlot = document.getElementById(`slot-${currentStepInLevel}`);
+                    activeSlot.className = "pipeline-slot failed";
+                    activeSlot.innerHTML = `<span class="slot-num">${currentStepInLevel+1}</span><div class="slot-icon">❌</div><div class="slot-content">Failed</div>`;
+
+                    feedback.className = "fb-wrong";
+                    
+                    if (levelIndex === levels.length - 1) {
+                        feedback.innerText = `Incorrect again! You have used your chance. This system pipeline has encountered an unrecoverable order configuration fault. Let's look at your scores.`;
+                    } else {
+                        feedback.innerText = `Incorrect again! You have used your chance. This system pipeline has encountered an unrecoverable order configuration fault. Let's move to the next screen.`;
+                    }
+                    
+                    feedback.classList.remove('hidden');
+                    document.getElementById('action-btn').classList.remove('hidden');
+                }
+            }
+        }
+
+        function advanceStep() {
+            levelIndex++;
+            if (levelIndex < levels.length) {
+                loadLevel();
+            } else {
+                renderFinalReport();
+            }
+        }
+
+        function renderFinalReport() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const ratio = (score / maxPointsPossible) * 100;
+            document.getElementById('grade-metric').innerText = `Assembled: ${score} / ${maxPointsPossible} (${Math.round(ratio)}%)`;
+
+            const memo = document.getElementById('feedback-memo');
+            if (ratio >= 75) {
+                memo.innerText = "Good job! You've completely mastered the structured sequencing loops and data configurations of systems.";
+                memo.style.color = "#137333";
+            } else if (ratio >= 40) {
+                memo.innerText = "Review this chapter and try again. Focus closely on distinguishing automated batch schedules from instantaneous processing.";
+                memo.style.color = "#b06000";
+            } else {
+                memo.innerText = "Let’s practise more. Take another pass through the system stages to master data processing streams.";
+                memo.style.color = "#c5221f";
+            }
+        }
+
+        function toggleAudioMute() {
+            soundMuted = !soundMuted;
+            document.getElementById('mute-icon').innerText = soundMuted ? "🔇" : "🔊";
+        }
+
+        function triggerAudioTrack(id) {
+            if (soundMuted) return;
+            const track = document.getElementById(id);
+            if (track) {
+                track.currentTime = 0;
+                track.play().catch(() => console.log("Audio pipeline buffered."));
+            }
+        }
+
+        const canvas = document.getElementById('canvas-sparks');
+        const ctx = canvas.getContext('2d');
+        let sparklersList = [];
+
+        function setCanvasDimensions() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        function triggerSparklersEffect() {
+            setCanvasDimensions();
+            const colors = ['#2ecc71', '#3498db', '#f1c40f', '#e67e22', '#e74c3c'];
+            for (let i = 0; i < 35; i++) {
+                sparklersList.push({
+                    x: canvas.width / 2,
+                    y: canvas.height * 0.5,
+                    r: Math.random() * 3 + 1.5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vx: (Math.random() - 0.5) * 7,
+                    vy: (Math.random() - 0.6) * 8,
+                    life: 1.0
+                });
+            }
+            if (sparklersList.length === 35) renderSparksLoop();
+        }
+
+        function renderSparksLoop() {
+            if (sparklersList.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            sparklersList.forEach((s, idx) => {
+                s.x += s.vx;
+                s.y += s.vy;
+                s.life -= 0.025;
+
+                ctx.save();
+                ctx.globalAlpha = s.life;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = s.color;
+                ctx.fill();
+                ctx.restore();
+
+                if (s.life <= 0) sparklersList.splice(idx, 1);
+            });
+            requestAnimationFrame(renderSparksLoop);
+        }
+    </script>
+</body>
+</html>
