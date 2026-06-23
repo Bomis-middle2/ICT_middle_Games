@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>G7 ICT - Charts Runner</title>
+<style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+  background-color: #000;
+}
+/* Screen Container Styles */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  z-index: 50;
+}
+/* Branding Screen Details */
+#branding-screen {
+  background: #ffffff;
+  transition: opacity 0.5s ease;
+}
+.brand-logo {
+  width: 240px;
+  max-width: 80%;
+  height: auto;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+/* Intro & End Screens */
+#instructions, #end {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+.ui-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-width: 600px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+h1 { color: #1e3c72; margin-top: 0; font-size: 28px; }
+h2 { color: #2a5298; margin: 10px 0; font-size: 20px; }
+.meta-info {
+  background: #eef2f7;
+  padding: 12px;
+  border-radius: 10px;
+  margin: 15px 0;
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.5;
+}
+/* Speed Selector Buttons styling */
+.speed-container {
+  margin: 20px 0;
+}
+.speed-label {
+  font-weight: bold;
+  color: #1e3c72;
+  display: block;
+  margin-bottom: 8px;
+}
+.speed-options {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.speed-btn {
+  padding: 10px 20px;
+  border: 2px solid #2a5298;
+  background: white;
+  color: #2a5298;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.speed-btn.active {
+  background: #2a5298;
+  color: white;
+}
+/* Interactive Components */
+.action-btn {
+  padding: 16px 40px;
+  border: 0;
+  border-radius: 50px;
+  background: linear-gradient(to right, #1e3c72, #2a5298);
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(30,60,114,0.3);
+  transition: transform 0.2s;
+  width: 100%;
+}
+.action-btn:active {
+  transform: scale(0.95);
+}
+/* Core Game Layout */
+#game {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background: linear-gradient(to bottom, #114b79 0%, #207cca 45%, #e2e2e2 45%, #999999 100%);
+  overflow: hidden;
+  display: none;
+}
+#hud {
+  position: absolute;
+  top: 12px;
+  left: 15px;
+  right: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #114b79;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+#question {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 800px;
+  background: white;
+  border: 3px solid #207cca;
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  color: #222;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+/* Runner & Animation Tracks */
+#runner {
+  position: absolute;
+  left: 80px;
+  width: 80px;
+  height: 80px;
+  font-size: 65px;
+  z-index: 9;
+  transition: top 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: runningMotion 0.4s infinite alternate ease-in-out;
+}
+@keyframes runningMotion {
+  from { transform: translateY(0) scaleX(-1); }
+  to { transform: translateY(-8px) scaleX(-1); }
+}
+.track-divider {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border-top: 1px dashed #666;
+}
+.scrolling-stripe {
+  position: absolute;
+  width: 100px;
+  height: 6px;
+  background: #fff;
+  opacity: 0.5;
+  border-radius: 4px;
+  animation: stripeScroll 2s linear infinite;
+}
+@keyframes stripeScroll {
+  from { left: 100%; }
+  to { left: -150px; }
+}
+/* Target Item Boards */
+.choice-board {
+  position: absolute;
+  width: 260px;
+  min-height: 80px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 4px solid #114b79;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #114b79;
+  padding: 10px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 8;
+}
+/* Popups and Learning Overlays */
+#feedback-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 60;
+  padding: 20px;
+}
+.feedback-box {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+.feedback-box h3 {
+  margin-top: 0;
+  font-size: 28px;
+}
+.feedback-box p {
+  font-size: 18px;
+  line-height: 1.5;
+  color: #444;
+  margin: 15px 0 25px 0;
+}
+/* Mobile Layout Controls */
+#controls {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 40px;
+  z-index: 30;
+  width: 90%;
+  max-width: 440px;
+}
+.ctrl-btn {
+  flex: 1;
+  height: 65px;
+  border-radius: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  background: #ffffff;
+  color: #114b79;
+  border: 3px solid #114b79;
+  box-shadow: 0 6px 0 #114b79;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ctrl-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #114b79;
+}
+/* Visual FX Particles */
+.particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100;
+  animation: explode 0.8s ease-out forwards;
+}
+@keyframes explode {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--mx), var(--my)) scale(0); opacity: 0; }
+}
+/* Responsive Optimization */
+@media (max-width: 600px) {
+  #question { font-size: 16px; top: 65px; padding: 10px; }
+  .choice-board { width: 190px; font-size: 14px; min-height: 70px; }
+  #runner { width: 60px; height: 60px; font-size: 50px; left: 40px; }
+  #hud { font-size: 15px; padding: 8px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 1. Mandatory Branding Screen (Enforced 5 Seconds Display) -->
+<div id="branding-screen" class="screen">
+  <img src="assets/innovine-logo.png" alt="Innovine Logo" class="brand-logo" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='block';">
+  <h1 id="fallback-logo" style="display:none; font-size:42px; color:#1e3c72;">INNOVINE</h1>
+</div>
+
+<!-- 2. Game Intro / Instructions Screen -->
+<div id="instructions" class="screen" style="display:none;">
+  <div class="ui-card">
+    <h1 id="intro-title"></h1>
+    <div class="meta-info">
+      <strong>Grade:</strong> <span id="meta-grade"></span> | <strong>Topic:</strong> <span id="meta-topic"></span>
+    </div>
+    
+    <!-- Speed Option Selectors -->
+    <div class="speed-container">
+      <span class="speed-label">SELECT GAME SPEED:</span>
+      <div class="speed-options">
+        <button type="button" class="speed-btn" onclick="setSpeed(2.5, this)">Slow</button>
+        <button type="button" class="speed-btn active" onclick="setSpeed(5, this)">Medium</button>
+        <button type="button" class="speed-btn" onclick="setSpeed(8.5, this)">High</button>
+      </div>
+    </div>
+
+    <button class="action-btn" onclick="triggerStart()">START CHALLENGE</button>
+  </div>
+</div>
+
+<!-- 3. Primary Play Screen Arena -->
+<div id="game">
+  <div id="hud">
+    <div>Score Tracker: <span id="score">0</span></div>
+    <div>Time: <span id="time-left">90</span>s</div>
+  </div>
+
+  <div id="question"></div>
+
+  <!-- Lane Geometry Layout -->
+  <div class="track-divider" style="top: 30%;"></div>
+  <div class="track-divider" style="top: 52%;"></div>
+  <div class="track-divider" style="top: 74%;"></div>
+
+  <!-- Ambient Dynamic Road Elements -->
+  <div class="scrolling-stripe" style="top: 20%; animation-delay: 0s;"></div>
+  <div class="scrolling-stripe" style="top: 42%; animation-delay: 0.6s;"></div>
+  <div class="scrolling-stripe" style="top: 64%; animation-delay: 1.2s;"></div>
+  <div class="scrolling-stripe" style="top: 85%; animation-delay: 0.3s;"></div>
+
+  <div id="runner">🏃‍♂️</div>
+
+  <div id="controls">
+    <button class="ctrl-btn" onmousedown="shiftLaneUp()" ontouchstart="event.preventDefault(); shiftLaneUp();">⬆ UP</button>
+    <button class="ctrl-btn" onmousedown="shiftLaneDown()" ontouchstart="event.preventDefault(); shiftLaneDown();">⬇ DOWN</button>
+  </div>
+</div>
+
+<!-- 4. Pedagogical Feedback Intervention Overlay -->
+<div id="feedback-overlay">
+  <div class="feedback-box">
+    <h3 id="feedback-header"></h3>
+    <p id="feedback-text"></p>
+    <button class="action-btn" onclick="dismissFeedback()">CONTINUE</button>
+  </div>
+</div>
+
+<!-- 5. End Game Results Evaluation Screen -->
+<div id="end" class="screen" style="display:none;">
+  <div class="ui-card">
+    <h1>Mission Complete!</h1>
+    <h2 id="end-evaluation"></h2>
+    <div class="meta-info" style="text-align: center; font-size: 22px;">
+      Final Score: <span id="final-score" style="font-weight:bold; color:#1e3c72;"></span>
+    </div>
+    <button class="action-btn" onclick="location.reload()">PLAY AGAIN</button>
+  </div>
+</div>
+
+<!-- Native Audio Pipeline Assets -->
+<audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+<script>
+const gameMetadata = {
+  title: "Data Charts Runner",
+  grade: "Grade 7",
+  topic: "OpenOffice 4 Calc-I",
+};
+
+// Kept questions short and clear[cite: 1]
+const textbookDatabase = [
+  {
+    q: "Which element displays the main title at the top of a chart?",
+    options: ["Chart Title", "Plot Area", "Legend"],
+    ans: "Chart Title",
+    rationale: "Correct! The Chart Title is positioned at the top and displays title context for the data visualization."
+  },
+  {
+    q: "What is the rectangular area bounded by the two axes called?",
+    options: ["Plot Area", "Chart Area", "X-axis"],
+    ans: "Plot Area",
+    rationale: "Correct! The Plot Area is the rectangular region bordered by the axes containing the actual data series rendering."
+  },
+  {
+    q: "Which chart is best for showing continuous trends over time?",
+    options: ["Line Chart", "Pie Chart", "Bar Chart"],
+    ans: "Line Chart",
+    rationale: "Spot on! Line charts use connecting points to show performance trajectories and trends across periods of time."
+  },
+  {
+    q: "Which chart displays data variables using horizontal bars?",
+    options: ["Bar Chart", "Column Chart", "Pie Chart"],
+    ans: "Bar Chart",
+    rationale: "Correct! Bar charts compare individual records via long horizontal rods, reversing the axes layout of a column chart."
+  },
+  {
+    q: "How many data series can a Pie Chart visualize at once?",
+    options: ["Only one series", "Multiple series", "Infinite series"],
+    ans: "Only one series",
+    rationale: "Excellent! Pie charts represent portions of a single whole, restricting their range to only one active data series."
+  },
+  {
+    q: "Where in the Wizard can you toggle chart axis lines/grids?",
+    options: ["Chart Elements", "Data Range", "Chart Type"],
+    ans: "Chart Elements",
+    rationale: "Correct! The Chart Elements stage enables you to key in titles, subtitles, and choose to Display Grids."
+  },
+  {
+    q: "What is the standard Calc shortcut to open the Print dialog?",
+    options: ["Ctrl + P", "Ctrl + Print", "Alt + P"],
+    ans: "Ctrl + P",
+    rationale: "Correct! Pressing Ctrl + P loads the Calc Print settings dialog for page range selection."
+  }
+];
+
+// Runtime Engine State Variables
+let currentQuestionIndex = 0;
+let userScore = 0;
+let gameClock = 90;
+let activeLaneIndex = 1; 
+let choiceBoardsArray = [];
+let gameLoopInterval = null;
+let clockCountdownInterval = null;
+let isSystemPaused = false;
+let gameSpeed = 5; // Default medium configuration pace
+
+// Compute scalable viewport tracking metrics
+let verticalLanesArray = [];
+function updateLaneMetrics() {
+  const h = window.innerHeight;
+  verticalLanesArray = [h * 0.18, h * 0.40, h * 0.62];
+}
+
+// Initial Bootstrap Sequence
+window.onload = () => {
+  document.getElementById("intro-title").textContent = gameMetadata.title;
+  document.getElementById("meta-grade").textContent = gameMetadata.grade;
+  document.getElementById("meta-topic").textContent = gameMetadata.topic;
+
+  // Strict 5 Seconds Mandatory Branding Intercept
+  setTimeout(() => {
+    const brandScreen = document.getElementById("branding-screen");
+    brandScreen.style.opacity = 0;
+    setTimeout(() => {
+      brandScreen.style.display = "none";
+      document.getElementById("instructions").style.display = "flex";
+    }, 500);
+  }, 5000);
+
+  updateLaneMetrics();
+  window.addEventListener("resize", updateLaneMetrics);
+};
+
+// Alters board movement velocity based on chosen settings button
+function setSpeed(value, btnElement) {
+  gameSpeed = value;
+  document.querySelectorAll('.speed-btn').forEach(btn => btn.classList.remove('active'));
+  btnElement.classList.add('active');
+}
+
+function triggerStart() {
+  document.getElementById("instructions").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  alignRunnerLane();
+  renderQuestionCard();
+
+  clockCountdownInterval = setInterval(() => {
+    if (!isSystemPaused) {
+      gameClock--;
+      document.getElementById("time-left").textContent = gameClock;
+      if (gameClock <= 0) terminateGameInstance();
+    }
+  }, 1000);
+
+  gameLoopInterval = setInterval(processFrameUpdates, 1000 / 60);
+}
+
+function alignRunnerLane() {
+  const runner = document.getElementById("runner");
+  runner.style.top = verticalLanesArray[activeLaneIndex] + "px";
+}
+
+function shiftLaneUp() {
+  if (activeLaneIndex > 0 && !isSystemPaused) {
+    activeLaneIndex--;
+    alignRunnerLane();
+  }
+}
+
+function shiftLaneDown() {
+  if (activeLaneIndex < 2 && !isSystemPaused) {
+    activeLaneIndex++;
+    alignRunnerLane();
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") shiftLaneUp();
+  if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") shiftLaneDown();
+});
+
+function renderQuestionCard() {
+  clearActiveTargets();
+  if (currentQuestionIndex >= textbookDatabase.length) {
+    terminateGameInstance();
+    return;
+  }
+
+  const currentItem = textbookDatabase[currentQuestionIndex];
+  document.getElementById("question").textContent = `Q${currentQuestionIndex + 1}: ${currentItem.q}`;
+
+  let optionsClone = [...currentItem.options];
+  let sortedLanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < 3; i++) {
+    let boardNode = document.createElement("div");
+    boardNode.className = "choice-board";
+    boardNode.textContent = optionsClone[i];
+    boardNode.dataset.answerValue = optionsClone[i];
+    
+    boardNode.style.left = (window.innerWidth + 50) + "px";
+    boardNode.style.top = verticalLanesArray[sortedLanes[i]] + "px";
+    
+    document.getElementById("game").appendChild(boardNode);
+    choiceBoardsArray.push(boardNode);
+  }
+  isSystemPaused = false;
+}
+
+function processFrameUpdates() {
+  if (isSystemPaused) return;
+
+  const runnerElement = document.getElementById("runner");
+  const runnerBox = runnerElement.getBoundingClientRect();
+  let missedTargetFlag = false;
+
+  choiceBoardsArray.forEach((board) => {
+    let activeLeftPosition = parseFloat(board.style.left);
+    activeLeftPosition -= gameSpeed; // Applies selected velocity parameter
+    board.style.left = activeLeftPosition + "px";
+
+    let boardBox = board.getBoundingClientRect();
+    if (
+      runnerBox.right > boardBox.left &&
+      runnerBox.left < boardBox.right &&
+      runnerBox.top < boardBox.bottom &&
+      runnerBox.bottom > boardBox.top
+    ) {
+      isSystemPaused = true;
+      processSelectionEvaluation(board.dataset.answerValue, boardBox);
+    }
+
+    if (activeLeftPosition < -280) {
+      missedTargetFlag = true;
+    }
+  });
+
+  if (missedTargetFlag && !isSystemPaused) {
+    isSystemPaused = true;
+    processSelectionEvaluation("__MISSED__", null);
+  }
+}
+
+function processSelectionEvaluation(selectedText, targetRect) {
+  const item = textbookDatabase[currentQuestionIndex];
+  const audioCorrect = document.getElementById("sound-correct");
+  const audioWrong = document.getElementById("sound-wrong");
+
+  if (selectedText === item.ans) {
+    userScore++;
+    document.getElementById("score").textContent = userScore;
+    try { audioCorrect.play(); } catch(e){}
+    
+    if (targetRect) {
+      generateParticleBurst(targetRect.left + (targetRect.width/2), targetRect.top + (targetRect.height/2));
+    }
+    
+    document.getElementById("feedback-header").textContent = "🎉 Brilliant!";
+    document.getElementById("feedback-header").style.color = "#2e7d32";
+  } else {
+    try { audioWrong.play(); } catch(e){}
+    document.getElementById("feedback-header").textContent = selectedText === "__MISSED__" ? "⏱️ Track Missed!" : "🤔 Not Quite!";
+    document.getElementById("feedback-header").style.color = "#c62828";
+  }
+
+  document.getElementById("feedback-text").textContent = item.rationale;
+  document.getElementById("feedback-overlay").style.display = "flex";
+}
+
+function dismissFeedback() {
+  document.getElementById("feedback-overlay").style.display = "none";
+  currentQuestionIndex++;
+  renderQuestionCard();
+}
+
+function generateParticleBurst(originX, originY) {
+  const gameArena = document.getElementById("game");
+  const hues = ['#ffd700', '#ff5722', '#4caf50', '#00bcd4', '#e91e63'];
+  
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    p.style.backgroundColor = hues[Math.floor(Math.random() * hues.length)];
+    p.style.left = originX + "px";
+    p.style.top = originY + "px";
+    
+    const angle = Math.random() * Math.PI * 2;
+    const force = 50 + Math.random() * 120;
+    p.style.setProperty('--mx', Math.cos(angle) * force + "px");
+    p.style.setProperty('--my', Math.sin(angle) * force + "px");
+    
+    gameArena.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+}
+
+function clearActiveTargets() {
+  choiceBoardsArray.forEach(b => b.remove());
+  choiceBoardsArray = [];
+}
+
+function terminateGameInstance() {
+  clearInterval(gameLoopInterval);
+  clearInterval(clockCountdownInterval);
+  clearActiveTargets();
+
+  document.getElementById("game").style.display = "none";
+  document.getElementById("feedback-overlay").style.display = "none";
+  
+  const totalItems = textbookDatabase.length;
+  const genericPercentage = (userScore / totalItems) * 100;
+  let summaryMessage = "";
+
+  if (genericPercentage >= 75) {
+    summaryMessage = "Good job! You have fully mastered the visual data elements of OpenOffice Calc.";
+  } else if (genericPercentage >= 40) {
+    summaryMessage = "Review this chapter and try again to build stronger visualization metrics.";
+  } else {
+    summaryMessage = "Let's practise more. Re-reading the components of charts will improve performance!";
+  }
+
+  document.getElementById("end-evaluation").textContent = summaryMessage;
+  document.getElementById("final-score").textContent = `${userScore} / ${totalItems}`;
+  document.getElementById("end").style.display = "flex";
+}
+</script>
+</body>
+</html>
