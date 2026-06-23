@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spreadsheet Blueprint Repair</title>
+    <style>
+        :root {
+            --slate-bg: #f1f5f9;
+            --panel-card: #ffffff;
+            --text-main: #0f172a;
+            --text-alt: #64748b;
+            --brand-blue: #3b82f6;
+            --border-ui: #cbd5e1;
+            --green-glow: #22c55e;
+            --red-glow: #ef4444;
+            --amber-glow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--slate-bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        #game-box {
+            width: 100%;
+            max-width: 680px;
+            background: var(--panel-card);
+            border: 2px solid var(--border-ui);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            min-height: 480px;
+        }
+
+        /* MANDATORY 5-SECOND INTRO SCREEN */
+        #brand-bypass-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #brand-bypass-screen img {
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .fallback-brand-logo {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .bar-container {
+            width: 140px;
+            height: 4px;
+            background: #e2e8f0;
+            margin-top: 16px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            width: 100%;
+            height: 100%;
+            background: var(--brand-blue);
+            transform: translateX(-100%);
+            animation: startBypassProgress 5s linear forwards;
+        }
+
+        @keyframes startBypassProgress {
+            100% { transform: translateX(0); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Core Presentation Styles */
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--text-main);
+        }
+
+        .game-subtitle {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-alt);
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-ui);
+            padding-bottom: 12px;
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border-ui);
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .audio-toggle-btn {
+            background: #ffffff;
+            border: 1px solid var(--border-ui);
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .prompt-instruction-bubble {
+            background: #eff6ff;
+            border-left: 4px solid var(--brand-blue);
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* SPREADSHEET CANVAS INTERFACE (ZERO GUIDE LINES) */
+        .spreadsheet-mock-frame {
+            width: 100%;
+            background: #ffffff;
+            border: 2px solid #94a3b8;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .mock-menu-bar {
+            background: #f1f5f9;
+            border-bottom: 1px solid var(--border-ui);
+            padding: 8px 12px;
+            display: flex;
+            gap: 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .mock-toolbar {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-ui);
+            padding: 6px 12px;
+            display: flex;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .mock-tool-btn {
+            width: 20px;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .mock-formula-zone {
+            display: flex;
+            border-bottom: 1px solid var(--border-ui);
+            background: #ffffff;
+        }
+
+        .mock-name-box {
+            width: 80px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 700;
+            border-right: 1px solid var(--border-ui);
+            background: #fff;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .mock-input-line {
+            flex-grow: 1;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #334155;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .mock-grid-matrix {
+            display: grid;
+            grid-template-columns: 35px repeat(3, 1fr);
+            background: #e2e8f0;
+            gap: 1px;
+        }
+
+        .mock-cell {
+            background: #ffffff;
+            padding: 10px;
+            font-size: 12px;
+            font-family: monospace;
+            min-height: 36px;
+        }
+
+        .mock-cell.header-node {
+            background: #f1f5f9;
+            font-weight: 700;
+            text-align: center;
+            color: #475569;
+        }
+
+        .mock-sheet-tabs-row {
+            background: #f1f5f9;
+            border-top: 1px solid var(--border-ui);
+            padding: 6px 8px;
+            display: flex;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .mock-tab-item {
+            background: #ffffff;
+            padding: 4px 10px;
+            border: 1px solid var(--border-ui);
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+
+        /* Hotkey Inputs */
+        .circuit-board-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .circuit-node-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border-ui);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .circuit-node-card input {
+            width: 44px;
+            height: 34px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            border: 2px solid var(--border-ui);
+            border-radius: 6px;
+            text-transform: uppercase;
+            color: var(--brand-blue);
+            background: #ffffff;
+        }
+
+        .packet-stream-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .visual-packet-item {
+            background: #ffffff;
+            border: 2px dashed var(--brand-blue);
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: inline-block;
+        }
+
+        .sorting-bin-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .target-sorting-bin {
+            background: #f8fafc;
+            border: 2px solid var(--border-ui);
+            border-radius: 10px;
+            padding: 16px 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .target-sorting-bin:hover {
+            border-color: var(--brand-blue);
+            background: #eff6ff;
+        }
+
+        /* Phase 4 Workflows */
+        .q4-workspace-panel {
+            background: #f8fafc;
+            border: 1px solid var(--border-ui);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .q4-step-box {
+            background: #ffffff;
+            border: 1px solid var(--border-ui);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .q4-step-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-alt);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .q4-click-chip {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-top: 6px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: background 0.15s;
+        }
+
+        .q4-click-chip:hover {
+            background: #cbd5e1;
+        }
+
+        .q4-click-chip.selected {
+            background: var(--brand-blue);
+            color: #ffffff;
+            border-color: #1d4ed8;
+        }
+
+        /* Action Nodes */
+        .game-primary-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--text-main);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .game-primary-btn:hover {
+            background: #1e293b;
+        }
+
+        .feedback-output-panel {
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .pass-style { background: #f0fdf4; border: 1px solid var(--green-glow); color: #166534; }
+        .fail-style { background: #fef2f2; border: 1px solid var(--red-glow); color: #991b1b; }
+    </style>
+</head>
+<body>
+
+    <div id="game-box">
+        <div id="brand-bypass-screen">
+            <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('fallback-logo-alt').classList.remove('hidden');">
+            <div id="fallback-logo-alt" class="fallback-brand-logo hidden">INNOVINE</div>
+            <div style="font-size:11px; font-weight:700; color:var(--text-alt); letter-spacing:1px; margin-top:2px;"></div>
+            <div class="bar-container">
+                <div class="bar-fill"></div>
+            </div>
+        </div>
+
+        <div id="panel-start">
+            <h1>Spreadsheet Interactive Matrix</h1>
+            <div class="game-subtitle">Grade 6 ICT &bull; Operations Blueprint</div>
+            <p style="font-size: 14px; color: var(--text-alt); line-height: 1.6; text-align: center; margin-bottom: 24px;">
+                Interact directly with the blueprint interface canvas. Touch layout components, wire key circuits, and route live data streams to fix the configuration map.
+            </p>
+            <button class="game-primary-btn" onclick="engageSystemDeck()">ENGAGE MATRIX COMPONENT</button>
+        </div>
+
+        <div id="panel-core-runtime" class="hidden">
+            <div class="hud-row">
+                <div>Operational Phase: <span id="hud-phase-lbl">1/4</span></div>
+                <button class="audio-toggle-btn" id="audio-toggle" onclick="toggleMuteState()">🔊 Audio On</button>
+            </div>
+
+            <div class="prompt-instruction-bubble" id="runtime-instruction-text">
+                Initializing operational objective variables...
+            </div>
+
+            <div id="canvas-task-1" class="hidden">
+                <div class="spreadsheet-mock-frame">
+                    <div class="mock-menu-bar" onclick="registerCanvasClick('Menu Bar')">
+                        <span>File</span><span>Edit</span><span>View</span><span>Insert</span><span>Format</span>
+                    </div>
+                    <div class="mock-toolbar" onclick="registerCanvasClick('Toolbar')">
+                        <div class="mock-tool-btn"></div><div class="mock-tool-btn"></div><div class="mock-tool-btn"></div>
+                    </div>
+                    <div class="mock-formula-zone">
+                        <div class="mock-name-box" id="target-ui-namebox" onclick="registerCanvasClick('Name Box', event)">B4</div>
+                        <div class="mock-input-line" id="target-ui-inputline" onclick="registerCanvasClick('Input Line Bar', event)">=SUM(C10:C15)</div>
+                    </div>
+                    <div class="mock-grid-matrix">
+                        <div class="mock-cell header-node"></div><div class="mock-cell header-node">A</div><div class="mock-cell header-node">B</div><div class="mock-cell header-node">C</div>
+                        <div class="mock-cell header-node">1</div><div class="mock-cell"></div><div class="mock-cell"></div><div class="mock-cell"></div>
+                        <div class="mock-cell header-node">2</div><div class="mock-cell"></div><div class="mock-cell"></div><div class="mock-cell"></div>
+                    </div>
+                    <div class="mock-sheet-tabs-row" onclick="registerCanvasClick('Sheet Tabs')">
+                        <div class="mock-tab-item">Sheet1</div><div class="mock-tab-item">Sheet2</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="canvas-task-2" class="hidden">
+                <div class="circuit-board-row">
+                    <div class="circuit-node-card"><span>Boot a Blank Workbook File</span><div>Ctrl + <input type="text" id="circuit-key-1" maxlength="1"></div></div>
+                    <div class="circuit-node-card"><span>Save Modified File Data Changes</span><div>Ctrl + <input type="text" id="circuit-key-2" maxlength="1"></div></div>
+                    <div class="circuit-node-card"><span>Center Text Elements Horizontally</span><div>Ctrl + <input type="text" id="circuit-key-3" maxlength="1"></div></div>
+                    <div class="circuit-node-card"><span>Apply Bold Type Font Weight</span><div>Ctrl + <input type="text" id="circuit-key-4" maxlength="1"></div></div>
+                </div>
+                <button class="game-primary-btn" onclick="submitHotkeyCircuitry()">CONNECT KEYBOARD CIRCUITS</button>
+            </div>
+
+            <div id="canvas-task-3" class="hidden">
+                <div class="packet-stream-box">
+                    <div class="visual-packet-item" id="stream-packet-node">---</div>
+                </div>
+                <div class="sorting-bin-row">
+                    <div class="target-sorting-bin" onclick="routeStreamPacket('Formula')">🧪 [ Formula Slot ]<br><span style="font-size:10px;color:var(--text-alt)">(Starts with '=')</span></div>
+                    <div class="target-sorting-bin" onclick="routeStreamPacket('Number')">🔢 [ Numeric Bin ]<br><span style="font-size:10px;color:var(--text-alt)">(Right-Aligned Default)</span></div>
+                    <div class="target-sorting-bin" onclick="routeStreamPacket('Text')">📦 [ Text Vault ]<br><span style="font-size:10px;color:var(--text-alt)">(Left-Aligned Default)</span></div>
+                </div>
+            </div>
+
+            <div id="canvas-task-4" class="hidden">
+                <div class="q4-workspace-panel">
+                    <div class="q4-step-box">
+                        <div class="q4-step-title">Step 1: Erase an unneeded table row index line completely</div>
+                        <div class="q4-click-chip" data-step="1" data-val="wrong1" onclick="selectQ4Chip(this)">Delete all surrounding Data Columns</div>
+                        <div class="q4-click-chip" data-step="1" data-val="right" onclick="selectQ4Chip(this)">Right-Click row index line &rarr; Choose "Delete Row"</div>
+                    </div>
+
+                    <div class="q4-step-box">
+                        <div class="q4-step-title">Step 2: Create a completely blank new entry row at position 10</div>
+                        <div class="q4-click-chip" data-step="2" data-val="right" onclick="selectQ4Chip(this)">Right-Click Row 10 &rarr; Choose "Insert Row"</div>
+                        <div class="q4-click-chip" data-step="2" data-val="wrong2" onclick="selectQ4Chip(this)">Cut-and-paste the entire worksheet elsewhere</div>
+                    </div>
+
+                    <div class="q4-step-box">
+                        <div class="q4-step-title">Step 3: Fix long data text so it wraps cleanly on multiple lines</div>
+                        <div class="q4-click-chip" data-step="3" data-val="wrong3" onclick="selectQ4Chip(this)">Crop background screen canvas pixels</div>
+                        <div class="q4-click-chip" data-step="3" data-val="right" onclick="selectQ4Chip(this)">Open Format Cells &rarr; Check "Wrap text automatically"</div>
+                    </div>
+                </div>
+                <button class="game-primary-btn" onclick="submitQ4Workflow()">EXECUTE SPREADSHEET PATCH</button>
+            </div>
+
+            <div id="live-feedback-box" class="feedback-output-panel"></div>
+            <button id="forward-step-btn" class="game-primary-btn hidden" style="margin-top:16px;" onclick="advanceGameSequence()">PROCEED SYSTEM SCAN</button>
+        </div>
+
+        <div id="panel-final-report" class="hidden">
+            <h1>Diagnostic Summary Logs</h1>
+            <p id="total-accuracy-lbl" style="text-align: center; margin: 16px 0; font-size: 15px; font-weight: 600; color: var(--text-alt);"></p>
+            <p id="grade-output-msg" style="text-align: center; font-size: 20px; font-weight: 800; margin-bottom: 32px;"></p>
+            <button class="game-primary-btn" onclick="hardResetGameSystem()">RESTART RUNTIME ENGINE</button>
+        </div>
+    </div>
+
+    <audio id="fx-audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="fx-audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        let systemPhase = 1;
+        let successfulTicks = 0;
+        const totalValidationCount = 7;
+        let audioMuteToggle = false;
+
+        let activeUiClickIndex = 0;
+        const uiClicksPool = [
+            { targetKey: "Input Line Bar", directive: "CRITICAL REPAIR: Find and click directly on the component that displays internal formula calculation logic or raw input values logged inside the active cell." },
+            { targetKey: "Name Box", directive: "CRITICAL REPAIR: Find and click directly on the component responsible for showing the explicit alpha-numeric row/column intersection coordinate identifier address of your active cell." }
+        ];
+
+        let livePacketIndex = 0;
+        const livePacketPool = [
+            { content: "=SUM(E4:E7)", targetGroup: "Formula" },
+            { content: "September 17, 2016", targetGroup: "Number" },
+            { content: "Advanced Coding Workshop", targetGroup: "Text" }
+        ];
+
+        // REMOVAL HANDLER: Fades out overlay and turns off visibility to preserve underlying assets
+        function executeForcedBypass() {
+            const overlayNode = document.getElementById('brand-bypass-screen');
+            if (overlayNode) {
+                overlayNode.style.opacity = '0';
+                overlayNode.style.visibility = 'hidden';
+            }
+        }
+        setTimeout(executeForcedBypass, 5000);
+
+        function toggleMuteState() {
+            audioMuteToggle = !audioMuteToggle;
+            document.getElementById('audio-toggle').innerText = audioMuteToggle ? "🔇 Audio Off" : "🔊 Audio On";
+        }
+
+        function playSoundChime(status) {
+            if (audioMuteToggle) return;
+            const element = document.getElementById(status === 'pass' ? 'fx-audio-correct' : 'fx-audio-wrong');
+            if (element) {
+                element.currentTime = 0;
+                element.play().catch(() => {});
+            }
+        }
+
+        function engageSystemDeck() {
+            document.getElementById('panel-start').classList.add('hidden');
+            document.getElementById('panel-core-runtime').classList.remove('hidden');
+            populateActivePhaseView();
+        }
+
+        function populateActivePhaseView() {
+            document.getElementById('canvas-task-1').classList.add('hidden');
+            document.getElementById('canvas-task-2').classList.add('hidden');
+            document.getElementById('canvas-task-3').classList.add('hidden');
+            document.getElementById('canvas-task-4').classList.add('hidden');
+            document.getElementById('live-feedback-box').style.display = 'none';
+            document.getElementById('forward-step-btn').classList.add('hidden');
+            document.getElementById('hud-phase-lbl').innerText = `${systemPhase}/4`;
+
+            if (systemPhase === 1) {
+                initUiClickStage();
+            } else if (systemPhase === 2) {
+                document.getElementById('runtime-instruction-text').innerText = "WIRING MATRIX: Complete the circuit matrix below by filling in the standard single-letter shortcut modifier values.";
+                document.getElementById('canvas-task-2').classList.remove('hidden');
+            } else if (systemPhase === 3) {
+                initPacketRoutingStage();
+            } else if (systemPhase === 4) {
+                document.getElementById('runtime-instruction-text').innerText = "WORKFLOW ENGINE: Construct a functional spreadsheet pipeline sequence using the task blocks below to repair layout and text settings safely.";
+                document.getElementById('canvas-task-4').classList.remove('hidden');
+                document.querySelectorAll('.q4-click-chip').forEach(c => c.classList.remove('selected'));
+            }
+        }
+
+        function initUiClickStage() {
+            document.getElementById('canvas-task-1').classList.remove('hidden');
+            let obj = uiClicksPool[activeUiClickIndex];
+            document.getElementById('runtime-instruction-text').innerText = obj.directive;
+        }
+
+        function registerCanvasClick(clickedComponentKey, event) {
+            if (event) event.stopPropagation();
+            if (document.getElementById('forward-step-btn').classList.contains('hidden') === false) return;
+
+            let targetItem = uiClicksPool[activeUiClickIndex];
+            let fb = document.getElementById('live-feedback-box');
+            fb.style.display = 'block';
+
+            if (clickedComponentKey === targetItem.targetKey) {
+                successfulTicks++;
+                fb.className = "feedback-output-panel pass-style";
+                fb.innerText = "Target component matches systemic schema layout perfectly.";
+                playSoundChime('pass');
+            } else {
+                fb.className = "feedback-output-panel fail-style";
+                fb.innerText = `Diagnostic Error. Click detected on [${clickedComponentKey}]. The targeted zone was actually the [${targetItem.targetKey}].`;
+                playSoundChime('fail');
+            }
+            document.getElementById('forward-step-btn').classList.remove('hidden');
+        }
+
+        function submitHotkeyCircuitry() {
+            let val1 = document.getElementById('circuit-key-1').value.trim().toUpperCase();
+            let val2 = document.getElementById('circuit-key-2').value.trim().toUpperCase();
+            let val3 = document.getElementById('circuit-key-3').value.trim().toUpperCase();
+            let val4 = document.getElementById('circuit-key-4').value.trim().toUpperCase();
+            let fb = document.getElementById('live-feedback-box');
+            fb.style.display = 'block';
+
+            if (val1 === 'N' && val2 === 'S' && val3 === 'E' && val4 === 'B') {
+                successfulTicks++;
+                fb.className = "feedback-output-panel pass-style";
+                fb.innerText = "Circuit loops connected successfully. Input sequences established.";
+                playSoundChime('pass');
+            } else {
+                fb.className = "feedback-output-panel fail-style";
+                fb.innerText = "Wiring Collision! Correct parameters require: New = N, Save = S, Center = E, Bold = B.";
+                playSoundChime('fail');
+            }
+            document.getElementById('forward-step-btn').classList.remove('hidden');
+        }
+
+        function initPacketRoutingStage() {
+            document.getElementById('canvas-task-3').classList.remove('hidden');
+            if (livePacketIndex < livePacketPool.length) {
+                document.getElementById('runtime-instruction-text').innerText = `DATA SEGREGATION FILTER: Analyze the code archetype string alignment values and direct it to the correct structural pipeline container slot.`;
+                document.getElementById('stream-packet-node').innerText = livePacketPool[livePacketIndex].content;
+            }
+        }
+
+        function routeStreamPacket(selectedTargetSlot) {
+            if (document.getElementById('forward-step-btn').classList.contains('hidden') === false) return;
+            let activePacket = livePacketPool[livePacketIndex];
+            let fb = document.getElementById('live-feedback-box');
+            fb.style.display = 'block';
+
+            if (selectedTargetSlot === activePacket.targetGroup) {
+                successfulTicks++;
+                fb.className = "feedback-output-panel pass-style";
+                fb.innerText = `Packet accurately cataloged inside the database system under the ${activePacket.targetGroup} structure branch.`;
+                playSoundChime('pass');
+            } else {
+                fb.className = "feedback-output-panel fail-style";
+                fb.innerText = `Data type mismatch exception. The packet string belongs to the ${activePacket.targetGroup} archetype storage field.`;
+                playSoundChime('fail');
+            }
+            document.getElementById('forward-step-btn').classList.remove('hidden');
+        }
+
+        function selectQ4Chip(chipElement) {
+            if (document.getElementById('forward-step-btn').classList.contains('hidden') === false) return;
+            let stepNum = chipElement.getAttribute('data-step');
+            document.querySelectorAll(`.q4-click-chip[data-step="${stepNum}"]`).forEach(c => c.classList.remove('selected'));
+            chipElement.classList.add('selected');
+        }
+
+        function submitQ4Workflow() {
+            let picks = document.querySelectorAll('.q4-click-chip.selected');
+            let fb = document.getElementById('live-feedback-box');
+            fb.style.display = 'block';
+
+            if (picks.length < 3) {
+                fb.className = "feedback-output-panel fail-style";
+                fb.innerText = "Sequence incomplete. Please click an item inside each of the 3 step boxes before parsing.";
+                return;
+            }
+
+            let perfectSequence = true;
+            picks.forEach(p => {
+                if (p.getAttribute('data-val') !== 'right') perfectSequence = false;
+            });
+
+            if (perfectSequence) {
+                successfulTicks++;
+                fb.className = "feedback-output-panel pass-style";
+                fb.innerText = "Pipeline validated perfectly! Modifications deployed to sheet structure with zero errors.";
+                playSoundChime('pass');
+            } else {
+                fb.className = "feedback-output-panel fail-style";
+                fb.innerText = "Pipeline Crash! The choices combined cause asset deletion or canvas errors. Check step parameters and build again.";
+                playSoundChime('fail');
+            }
+            document.getElementById('forward-step-btn').classList.remove('hidden');
+        }
+
+        function advanceGameSequence() {
+            if (systemPhase === 1) {
+                activeUiClickIndex++;
+                if (activeUiClickIndex < uiClicksPool.length) { populateActivePhaseView(); return; }
+                else { systemPhase = 2; }
+            } else if (systemPhase === 2) {
+                systemPhase = 3;
+            } else if (systemPhase === 3) {
+                livePacketIndex++;
+                if (livePacketIndex < livePacketPool.length) { populateActivePhaseView(); return; }
+                else { systemPhase = 4; }
+            } else if (systemPhase === 4) {
+                compileFinalAssessmentScoreboard();
+                return;
+            }
+            populateActivePhaseView();
+        }
+
+        function compileFinalAssessmentScoreboard() {
+            document.getElementById('panel-core-runtime').classList.add('hidden');
+            document.getElementById('panel-final-report').classList.remove('hidden');
+
+            let accuracyRate = (successfulTicks / totalValidationCount) * 100;
+            document.getElementById('total-accuracy-lbl').innerText = `System Validation Accuracy: ${accuracyRate.toFixed(0)}% (${successfulTicks} out of ${totalValidationCount} components configured)`;
+
+            let msgNode = document.getElementById('grade-output-msg');
+            if (accuracyRate >= 75) {
+                msgNode.innerText = "Good job";
+                msgNode.style.color = "var(--green-glow)";
+            } else if (accuracyRate >= 40) {
+                msgNode.innerText = "Review this chapter and try again";
+                msgNode.style.color = "var(--amber-glow)";
+            } else {
+                msgNode.innerText = "Let’s practise more";
+                msgNode.style.color = "var(--red-glow)";
+            }
+        }
+
+        function hardResetGameSystem() {
+            systemPhase = 1;
+            successfulTicks = 0;
+            activeUiClickIndex = 0;
+            livePacketIndex = 0;
+
+            document.getElementById('circuit-key-1').value = "";
+            document.getElementById('circuit-key-2').value = "";
+            document.getElementById('circuit-key-3').value = "";
+            document.getElementById('circuit-key-4').value = "";
+
+            document.querySelectorAll('.q4-click-chip').forEach(c => c.classList.remove('selected'));
+
+            document.getElementById('panel-final-report').classList.add('hidden');
+            document.getElementById('panel-start').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
