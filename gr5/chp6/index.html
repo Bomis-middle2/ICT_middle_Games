@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Presentation Pro: Animation Master</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e0f7fa; text-align: center; margin: 0; }
+        #intro-screen { position: fixed; top: 0; width: 100%; height: 100%; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .game-container { max-width: 600px; margin: 50px auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
+        #score-board { position: absolute; top: 10px; right: 20px; font-weight: bold; }
+        
+        .dark-blue-page { background-color: #00008b !important; }
+        .text-white { color: white !important; }
+        .text-dark { color: #000000; }
+        
+        .slide-area { width: 400px; height: 200px; border: 4px dashed #34495e; margin: 20px auto; display: flex; align-items: center; justify-content: center; gap: 40px; background: white; transition: 0.5s; }
+        .item { cursor: pointer; padding: 15px; border: 3px solid transparent; transition: 0.3s; border-radius: 8px; }
+        .selected { border-color: #e74c3c; background: #fff0f0; }
+        .no-border { border: none !important; }
+        
+        button { display: block; width: 100%; margin: 8px 0; padding: 12px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        .animate-fade { animation: fade 1s forwards; }
+        .animate-spin { animation: spin 1s forwards; }
+        @keyframes fade { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="intro-screen">
+    <img src="assets/innovine-logo.png" id="logo" style="width: 250px;">
+    <div id="intro-details" style="display:none;">
+        <h1>Presentation Pro: Animation Lab</h1>
+        <p>Grade: 5 | Subject: ICT | Topic: OpenOffice Impress</p>
+        <button onclick="startMission()">Start Missions</button>
+    </div>
+</div>
+
+<div class="game-container" id="game" style="display:none;">
+    <div id="score-board">Score: <span id="score">0</span></div>
+    <div id="timer">Time Left: <span id="time">45</span>s</div>
+    <h2 id="mission-title"></h2>
+    <p id="mission-desc"></p>
+    <div class="slide-area" id="slide-preview">
+        <div class="item" id="obj1" onclick="selectItem('obj1')"><img src="assets/emoji.png" style="width:50px;"></div>
+        <div class="item" id="obj2" onclick="selectItem('obj2')"><span id="text-el" class="text-dark" style="font-weight:bold; font-size:1.5rem;">My Page</span></div>
+    </div>
+    <div id="options"></div>
+    <p id="feedback"></p>
+</div>
+
+<script>
+    const correctSound = new Audio('assets/correct.mp3');
+    const wrongSound = new Audio('assets/wrong.mp3');
+    let currentMission = 0, score = 0, attempts = 0, timeLeft = 45, timerInterval, selectedId = null, themeApplied = false;
+
+    const missions = [
+        { title: "Mission 1: The Intro", desc: "Select 'My Page' and pick the animation category that makes it smoothly appear.", opts: ["Entrance", "Emphasis", "Exit"], target: "obj2", effect: "animate-fade", correctIdx: 0, hint: "Hint: Appearance logic." },
+        { title: "Mission 2: Highlighting", desc: "Select the Image and pick the category to spin it for audience focus.", opts: ["Entrance", "Emphasis", "Motion Path"], target: "obj1", effect: "animate-spin", correctIdx: 1, hint: "Hint: Focus/Highlighting logic." },
+        { title: "Mission 3: Slide Motion", desc: "You want a special effect when changing from one slide to another. Which tool do you use?", opts: ["Custom Animation", "Slide Transition", "Object Properties"], correctIdx: 1, hint: "Hint: It controls the slide itself, not objects." },
+        { title: "Mission 4: Information Load", desc: "Too many facts? Pick the action following the '6 points' rule.", opts: ["All facts", "6 key points", "Small font"], target: "obj2", isNoBorder: true, correctIdx: 1, hint: "Hint: Simplify information." },
+        { title: "Mission 5: Animation Control", desc: "You need to animate just one object. Pick the correct tool.", opts: ["Transition", "Custom Animation", "None"], target: "obj1", correctIdx: 1, hint: "Hint: 'Custom' means for individual items." }
+    ];
+
+    setTimeout(() => { document.getElementById('logo').style.display = 'none'; document.getElementById('intro-details').style.display = 'block'; }, 5000);
+
+    function startMission() {
+        document.getElementById('intro-screen').style.display = 'none';
+        document.getElementById('game').style.display = 'block';
+        loadMission();
+    }
+
+    function selectItem(id) {
+        document.querySelectorAll('.item').forEach(i => i.classList.remove('selected'));
+        document.getElementById(id).classList.add('selected');
+        selectedId = id;
+    }
+
+    function startTimer() {
+        timeLeft = 45;
+        document.getElementById('time').innerText = timeLeft;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('time').innerText = timeLeft;
+            if (timeLeft <= 0) { clearInterval(timerInterval); checkAnswer(-1); }
+        }, 1000);
+    }
+
+    function loadMission() {
+        attempts = 0;
+        let m = missions[currentMission];
+        let slide = document.getElementById('slide-preview');
+        
+        // Theme applied from mission 3 onwards
+        if (currentMission >= 2) {
+            themeApplied = true;
+            slide.classList.add('dark-blue-page');
+            document.getElementById('text-el').classList.add('text-white');
+            document.getElementById('text-el').classList.remove('text-dark');
+        }
+
+        if (currentMission === 3) document.getElementById('obj2').classList.add('no-border');
+        else document.getElementById('obj2').classList.remove('no-border');
+        
+        document.getElementById('mission-title').innerText = m.title;
+        document.getElementById('mission-desc').innerText = m.desc;
+        let optDiv = document.getElementById('options');
+        optDiv.innerHTML = "";
+        m.opts.forEach((o, i) => {
+            let b = document.createElement('button');
+            b.innerText = o;
+            b.onclick = () => checkAnswer(i);
+            optDiv.appendChild(b);
+        });
+        startTimer();
+    }
+
+    function checkAnswer(idx) {
+        let m = missions[currentMission];
+        if (currentMission < 2 && !selectedId) { alert("Please select an object first!"); return; }
+
+        if (idx === m.correctIdx) {
+            correctSound.play();
+            score += 20;
+            document.getElementById('score').innerText = score;
+            
+            if (m.effect && selectedId) {
+                document.getElementById(selectedId).classList.add(m.effect);
+            }
+            
+            clearInterval(timerInterval);
+            currentMission++;
+            if (currentMission < missions.length) loadMission(); else showResults();
+        } else {
+            attempts++;
+            wrongSound.play();
+            if (idx === -1) { alert("Time's up!"); currentMission++; if(currentMission < missions.length) loadMission(); else showResults(); }
+            else if (attempts < 2) document.getElementById('feedback').innerText = m.hint;
+            else { currentMission++; if(currentMission < missions.length) loadMission(); else showResults(); }
+        }
+    }
+
+    function showResults() {
+        let msg = score >= 75 ? "Good job" : score >= 40 ? "Review this chapter and try again" : "Let’s practise more";
+        document.getElementById('game').innerHTML = `<h2>Result: ${score}%</h2><p>${msg}</p><button onclick="location.reload()">Restart Game</button>`;
+    }
+</script>
+</body>
+</html>
