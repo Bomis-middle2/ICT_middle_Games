@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weebly Web Architect</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --canvas-bg: #334155;
+            --primary-accent: #38bdf8;
+            --success-color: #4ade80;
+            --error-color: #f87171;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        /* Mandatory Branding Screen (Strict 5-second look window with structural fail-safes) */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease-out;
+            padding: 20px;
+        }
+        #splash-screen img {
+            max-width: 240px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        #splash-fallback {
+            color: #0f172a;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #cbd5e1;
+            border-top-color: #2e5bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Universal Application Container */
+        .app-container {
+            background: var(--panel-bg);
+            width: 100%;
+            max-width: 750px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Typography */
+        h1 { font-size: 1.6rem; color: var(--primary-accent); margin-bottom: 8px; text-align: center; }
+        h2 { font-size: 1.3rem; margin-bottom: 12px; text-align: center; }
+        p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; }
+
+        /* Welcome/Intro Content View */
+        .intro-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .meta-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            width: 100%;
+        }
+        .meta-card p { color: var(--text-main); margin-bottom: 8px; font-size: 0.95rem; }
+        .meta-card strong { color: var(--primary-accent); }
+
+        /* Standardized Action Buttons */
+        .btn {
+            background: var(--primary-accent);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+            align-self: center;
+            transition: transform 0.1s, background-color 0.2s;
+            text-align: center;
+        }
+        .btn:active { transform: scale(0.98); }
+
+        /* Header Area Layout */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .header-meta { font-weight: 600; font-size: 1rem; }
+        .mute-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Requirement Prompt Panel */
+        .prompt-banner {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 4px solid var(--primary-accent);
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        /* Mock Web Canvas Layout Grid */
+        .mock-canvas {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            color: #000;
+            margin-bottom: 20px;
+        }
+        .mock-slot {
+            border: 2px dashed #94a3b8;
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 14px;
+            text-align: center;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        .mock-slot:last-child { margin-bottom: 0; }
+        
+        .mock-slot.active-target {
+            border-color: var(--primary-accent);
+            background: #f0f9ff;
+            color: #0369a1;
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0% { border-color: #38bdf8; }
+            50% { border-color: #0284c7; }
+            100% { border-color: #38bdf8; }
+        }
+
+        .mock-slot.slot-filled-correct {
+            border-style: solid;
+            border-color: #16a34a;
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        /* Choice Grid Button Containers */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+        @media (min-width: 480px) {
+            .options-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .option-card {
+            background: var(--canvas-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .option-card:hover { border-color: var(--primary-accent); background: #475569; }
+
+        /* Feedback Windows */
+        .feedback-box {
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .feedback-success { background: #065f46; color: #fff; border-left: 5px solid var(--success-color); }
+        .feedback-error { background: #991b1b; color: #fff; border-left: 5px solid var(--error-color); }
+        .feedback-text { font-size: 0.95rem; font-weight: 500; line-height: 1.4; }
+        
+        .feedback-box .btn {
+            max-width: 100%;
+            background: #ffffff;
+            color: #000;
+        }
+
+        /* End Game Results screen layouts */
+        .results-view {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .score-badge {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary-accent);
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <img id="branding-logo" src="assets/innovine-logo.png" alt="Innovine Logo">
+        <div id="splash-fallback" style="display: none;">Innovine Educational Media</div>
+        <div class="spinner"></div>
+    </div>
+
+    <div id="intro-screen" class="app-container hidden">
+        <div class="intro-content">
+            <h1>Weebly Web Architect</h1>
+            <p style="text-align: center;">Analyze client requests and tap the correct Weebly component to safely engineer and structure their webpage layout.</p>
+            
+            <div class="meta-card">
+                <p><strong>Grade:</strong> Grade 6</p>
+                <p><strong>Subject:</strong> ICT Computer Studies</p>
+                <p><strong>Topic:</strong> Weebly Part-II (Chapter 6)</p>
+                <p><strong>Number of Tasks:</strong> 5</p>
+            </div>
+            
+            <button class="btn" onclick="startGame()">Launch Workspace</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="app-container hidden">
+        <div class="game-header">
+            <div class="header-meta">Task <span id="current-task-num">1</span> of 5</div>
+            <div class="header-meta">Score: <span id="live-score">0</span></div>
+            <button class="mute-btn" id="mute-toggle" onclick="toggleMute()">🔊 Mute</button>
+        </div>
+
+        <div class="prompt-banner">
+            <strong>Blueprint Constraint Directive:</strong>
+            <div id="task-prompt" style="margin-top: 4px; color: var(--text-main);">Loading...</div>
+        </div>
+
+        <div class="mock-canvas">
+            <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; margin-bottom: 6px; text-transform: uppercase;">Mock Webpage Layout Panel</div>
+            <div id="canvas-slots-container">
+                </div>
+        </div>
+
+        <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px;">Select Tool Palette Component:</div>
+        <div class="options-grid" id="options-container">
+            </div>
+
+        <div id="feedback-panel" class="feedback-box hidden">
+            <div class="feedback-text" id="feedback-msg">Status text</div>
+            <button class="btn" onclick="advanceTask()">Continue</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="app-container hidden">
+        <div class="results-view">
+            <h2>Workspace Analysis Complete</h2>
+            <p>Your ultimate design evaluation rank calculation:</p>
+            <div class="score-badge" id="final-score">0/5</div>
+            <h2 id="evaluation-heading" style="margin-bottom: 20px;">Ranking...</h2>
+            <button class="btn" onclick="restartGame()">Reset Workspace</button>
+        </div>
+    </div>
+
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        // High Contrast layout data matching G6 ICT Chapter 6 parameters
+        const dataset = [
+            {
+                prompt: "Insert a layout option that creates full-width row panels completely wide across your page layout, offering colored, video, or picture backgrounds.",
+                options: ["Title", "Section", "Spacer"],
+                correct: "Section",
+                blueprint: ["Header Block Container", "Target Layout Row", "Bottom Content Footer"],
+                targetSlot: 1,
+                remedial: "A Section allows you to extend page margins cleanly into customizable full-width layout bands."
+            },
+            {
+                prompt: "Your layout paragraphs are crowded together. Put down an invisible element designed to provide clean spatial buffers between assets.",
+                options: ["Divider", "Map", "Spacer"],
+                correct: "Spacer",
+                blueprint: ["Main Image Grid", "Target Layout Row", "Paragraph Text Row"],
+                targetSlot: 1,
+                remedial: "The Spacer tool maps structural clear space boundaries to cleanly separate stacked layout elements."
+            },
+            {
+                prompt: "Separate your upper heading from your primary text context by deploying a visible straight horizontal bar down the page width.",
+                options: ["Divider", "Gallery", "Audio"],
+                correct: "Divider",
+                blueprint: ["Main Title Header", "Target Layout Row", "Article Narrative Row"],
+                targetSlot: 1,
+                remedial: "A Divider places a native horizontal rule baseline to cleanly separate individual rows."
+            },
+            {
+                prompt: "Integrate an inline multimedia component node configured to handle sound track uploads specifically limited to MP3 formatting files.",
+                options: ["Flash", "Slideshow", "Audio"],
+                correct: "Audio",
+                blueprint: ["Music Album Cover", "Target Layout Row"],
+                targetSlot: 1,
+                remedial: "The Audio component implements an inline music system element running standard MP3 file formats."
+            },
+            {
+                prompt: "Your local design parameters are completely validated. Find the control module option directory layout to unpublish or remove the live site domain.",
+                options: ["Pages Tab", "Theme Menu", "Settings Tab"],
+                correct: "Settings Tab",
+                blueprint: ["Main Design Panel", "Target Layout Row"],
+                targetSlot: 1,
+                remedial: "Unpublishing controls reside directly inside the Configuration Settings Tab dashboard framework."
+            }
+        ];
+
+        let currentTaskIndex = 0;
+        let score = 0;
+        let isMuted = false;
+        let isFeedbackStateActive = false;
+
+        // Custom Sound API Hooks
+        function triggerAudioFeedback(status) {
+            if (isMuted) return;
+            const sound = document.getElementById(status === 'correct' ? 'audio-correct' : 'audio-wrong');
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("System audio policy bypass managed."));
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            document.getElementById('mute-toggle').innerText = isMuted ? "🔇 Unmute" : "🔊 Mute";
+        }
+
+        // --- SAFE LOGO SYSTEM ARCHITECTURE ---
+        const logoImage = document.getElementById('branding-logo');
+        const fallbackText = document.getElementById('splash-fallback');
+
+        // If the logo image doesn't exist or fails to load, gracefully switch to elegant typography
+        logoImage.onerror = function() {
+            logoImage.style.display = 'none';
+            fallbackText.style.display = 'block';
+        };
+
+        // Enforced Lifecycle Timer: Guaranteed to move on after 5 seconds no matter what
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.classList.add('hidden');
+                    document.getElementById('intro-screen').classList.remove('hidden');
+                }, 500);
+            }, 5000); // Strict 5-second window
+        });
+        // -------------------------------------
+
+        // Game Core Framework initialization
+        function startGame() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            currentTaskIndex = 0;
+            score = 0;
+            loadTask();
+        }
+
+        // UI Generator Mechanics
+        function loadTask() {
+            isFeedbackStateActive = false;
+            document.getElementById('feedback-panel').classList.add('hidden');
+            document.getElementById('current-task-num').innerText = currentTaskIndex + 1;
+            document.getElementById('live-score').innerText = score;
+
+            const task = dataset[currentTaskIndex];
+            document.getElementById('task-prompt').innerText = task.prompt;
+
+            // Render Blueprint Layout Grid Row Visual Elements
+            const canvasContainer = document.getElementById('canvas-slots-container');
+            canvasContainer.innerHTML = '';
+            task.blueprint.forEach((slotName, idx) => {
+                const slot = document.createElement('div');
+                if (idx === task.targetSlot) {
+                    slot.className = 'mock-slot active-target';
+                    slot.id = 'target-blueprint-slot';
+                    slot.innerText = `[ Tap Correct Option To Build: ${slotName} ]`;
+                } else {
+                    slot.className = 'mock-slot';
+                    slot.innerText = slotName;
+                }
+                canvasContainer.appendChild(slot);
+            });
+
+            // Render Option Click Grid Selection Nodes
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            task.options.forEach(optionName => {
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.innerText = optionName;
+                card.onclick = () => validateSelection(optionName, card);
+                optionsContainer.appendChild(card);
+            });
+        }
+
+        // Structural validation execution logic
+        function validateSelection(selectedName, elementNode) {
+            if (isFeedbackStateActive) return; 
+            isFeedbackStateActive = true;
+
+            const task = dataset[currentTaskIndex];
+            const feedbackPanel = document.getElementById('feedback-panel');
+            const feedbackMsg = document.getElementById('feedback-msg');
+            const blueprintTarget = document.getElementById('target-blueprint-slot');
+
+            if (selectedName === task.correct) {
+                score++;
+                document.getElementById('live-score').innerText = score;
+                blueprintTarget.className = 'mock-slot slot-filled-correct';
+                blueprintTarget.innerText = `🟢 ${selectedName} Configured Perfectly`;
+                
+                feedbackMsg.innerText = "🟢 Validation Successful! The component matches layout structure requirements accurately.";
+                feedbackPanel.className = "feedback-box feedback-success";
+                triggerAudioFeedback('correct');
+
+                // Visual Sparkler Event Drop Trigger
+                confetti({ particleCount: 70, spread: 60, origin: { y: 0.75 } });
+            } else {
+                feedbackMsg.innerText = `🔴 Configuration Alignment Fault. Expected component allocation was "${task.correct}".\n\n💡 Remedial Directive: ${task.remedial}`;
+                feedbackPanel.className = "feedback-box feedback-error";
+                triggerAudioFeedback('wrong');
+            }
+
+            feedbackPanel.classList.remove('hidden');
+        }
+
+        // Application State Flow Controller Loops
+        function advanceTask() {
+            currentTaskIndex++;
+            if (currentTaskIndex < dataset.length) {
+                loadTask();
+            } else {
+                renderEvaluationView();
+            }
+        }
+
+        function renderEvaluationView() {
+            document.getElementById('game-screen').classList.add('hidden');
+            const resultScreen = document.getElementById('result-screen');
+            resultScreen.classList.remove('hidden');
+
+            const total = dataset.length;
+            document.getElementById('final-score').innerText = `${score} / ${total}`;
+            const msgNode = document.getElementById('evaluation-heading');
+
+            const percent = (score / total) * 100;
+            if (percent >= 75) {
+                msgNode.innerText = "Good job! 🌟";
+                msgNode.style.color = "var(--success-color)";
+                confetti({ particleCount: 140, spread: 80 });
+            } else if (percent >= 40) {
+                msgNode.innerText = "Review this chapter and try again 📖";
+                msgNode.style.color = "#f59e0b"; 
+            } else {
+                msgNode.innerText = "Let’s practise more 💪";
+                msgNode.style.color = "var(--error-color)";
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('result-screen').classList.add('hidden');
+            startGame();
+        }
+    </script>
+</body>
+</html>
