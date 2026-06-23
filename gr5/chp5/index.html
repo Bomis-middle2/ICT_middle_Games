@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Show Collector</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #e0f7fa; text-align: center; }
+        #screen, #feedback-screen { position: fixed; top: 0; width: 100%; height: 100%; background: white; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #game-area { width: 100vw; height: 80vh; position: relative; overflow: hidden; }
+        #bucket { width: 100px; height: 30px; background: #0078d4; position: absolute; bottom: 50px; left: 45%; border-radius: 5px; transition: left 0.05s linear; }
+        .item { width: 120px; height: 40px; position: absolute; background: white; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #ui { padding: 20px; background: #fff; border-bottom: 2px solid #ccc; }
+        button { padding: 15px 30px; font-size: 1.2rem; cursor: pointer; background: #0078d4; color: white; border: none; border-radius: 5px; margin-top: 20px; }
+        .rules { text-align: left; max-width: 500px; margin: 20px 0; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div id="screen">
+        <img id="logo" src="assets/innovine-logo.png" alt="Logo" style="width: 200px;">
+        <div id="title-section" style="display:none;">
+            <h1>Slide Show Collector</h1>
+            <p>Grade: 5 | Subject: ICT | Topic: OpenOffice Impress</p>
+            
+            <div class="rules">
+                <strong>How to Play:</strong>
+                <ul>
+                    <li><strong>Objective:</strong> Collect the correct technical terms before time expires.</li>
+                    <li><strong>Desktop:</strong> Use the <em>Left</em> and <em>Right Arrow</em> keys to navigate the slider.</li>
+                    <li><strong>Mobile/Tablet:</strong> Touch and drag the slider horizontally to collect data.</li>
+                    <li><strong>Constraint:</strong> You have 45 seconds to secure the correct answer for each challenge.</li>
+                </ul>
+            </div>
+            
+            <button onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+
+    <div id="feedback-screen" style="display: none;">
+        <h1 id="feedback-title">Game Complete!</h1>
+        <p id="final-score-text"></p>
+        <button onclick="location.reload()">Restart Game</button>
+    </div>
+
+    <div id="ui">
+        <h2 id="task">Loading...</h2>
+        <p>Time: <span id="timer">45</span>s | Score: <span id="score">0</span> | Q: <span id="q-num">1</span>/10</p>
+    </div>
+    
+    <div id="game-area"><div id="bucket"></div></div>
+
+    <script>
+        let score = 0, timeLeft = 45, currentQ = 0, bucketPos = 45, timerInterval;
+        const correctSound = new Audio('assets/correct.mp3');
+        const wrongSound = new Audio('assets/wrong.mp3');
+        
+        const questions = [
+            { q: "Catch the Slide Show shortcut!", correct: "F5", distractors: ["Ctrl+P", "Alt+F4", "F1", "F12"] },
+            { q: "Catch the file extension!", correct: ".odp", distractors: [".docx", ".pptx", ".odt", ".pdf"] },
+            { q: "Catch the formatting tool!", correct: "Slide Master", distractors: ["Gallery", "Sidebar", "Drawing", "Task Pane"] },
+            { q: "Catch the key for New Presentation!", correct: "Ctrl + N", distractors: ["Ctrl+S", "Ctrl+O", "Ctrl+P", "Ctrl+Z"] },
+            { q: "Catch the View to organize slides!", correct: "Slide Sorter", distractors: ["Normal", "Outline", "Notes", "Handout"] },
+            { q: "Catch the pane for slide thumbnails!", correct: "Slides Pane", distractors: ["Task Pane", "Master View", "Status Bar", "Title Bar"] },
+            { q: "Catch the area for properties!", correct: "Task Pane", distractors: ["Slides Pane", "Menu Bar", "Standard Toolbar", "Drawing Toolbar"] },
+            { q: "Catch the software name!", correct: "Impress", distractors: ["Writer", "Calc", "Base", "Draw"] },
+            { q: "Catch the key to stop a show!", correct: "Esc", distractors: ["Enter", "Space", "Tab", "Shift"] },
+            { q: "Catch the file menu item!", correct: "File", distractors: ["Edit", "View", "Insert", "Format"] }
+        ];
+
+        // Branding Display
+        setTimeout(() => {
+            document.getElementById('logo').style.display = 'none';
+            document.getElementById('title-section').style.display = 'block';
+        }, 5000);
+
+        function startGame() {
+            document.getElementById('screen').style.display = 'none';
+            document.getElementById('task').innerText = questions[0].q;
+            resetTimer();
+            setInterval(spawnItem, 1500);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 45;
+            document.getElementById('timer').innerText = timeLeft;
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    document.getElementById('timer').innerText = timeLeft;
+                } else {
+                    wrongSound.play();
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            currentQ++;
+            if(currentQ >= questions.length) {
+                clearInterval(timerInterval);
+                document.getElementById('feedback-screen').style.display = 'flex';
+                document.getElementById('final-score-text').innerText = `Your Final Score: ${score}/10`;
+            } else {
+                resetTimer();
+                document.getElementById('task').innerText = questions[currentQ].q;
+                document.getElementById('q-num').innerText = currentQ + 1;
+            }
+        }
+
+        // Movement: Keyboard and Touch support
+        window.addEventListener('keydown', (e) => {
+            if(e.key === "ArrowLeft" && bucketPos > 5) bucketPos -= 5;
+            if(e.key === "ArrowRight" && bucketPos < 85) bucketPos += 5;
+            document.getElementById('bucket').style.left = bucketPos + '%';
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            bucketPos = (e.touches[0].clientX / window.innerWidth) * 100;
+            if(bucketPos > 5 && bucketPos < 85) document.getElementById('bucket').style.left = bucketPos + '%';
+        });
+
+        function spawnItem() {
+            if (timeLeft <= 0 || currentQ >= questions.length) return;
+            const item = document.createElement('div');
+            item.className = 'item';
+            const isCorrect = Math.random() > 0.4;
+            item.innerText = isCorrect ? questions[currentQ].correct : questions[currentQ].distractors[Math.floor(Math.random() * questions[currentQ].distractors.length)];
+            item.style.left = Math.random() * 80 + '%';
+            item.style.top = '0px';
+            document.getElementById('game-area').appendChild(item);
+            
+            let pos = 0;
+            let fall = setInterval(() => {
+                pos += 5;
+                item.style.top = pos + 'px';
+                if(pos > (window.innerHeight * 0.7)) {
+                    if(Math.abs(parseFloat(item.style.left) - bucketPos) < 10) {
+                        if(item.innerText === questions[currentQ].correct) {
+                            score++; correctSound.play();
+                            document.getElementById('score').innerText = score;
+                            item.remove(); clearInterval(fall); nextQuestion();
+                        } else {
+                            item.remove(); clearInterval(fall);
+                        }
+                    }
+                }
+                if(pos > window.innerHeight) { clearInterval(fall); item.remove(); }
+            }, 30);
+        }
+    </script>
+</body>
+</html>
