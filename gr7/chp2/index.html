@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G7 ICT: Network Troubleshooting & Architecture Challenge</title>
+<style>
+* { box-sizing: border-box; }
+body { 
+  margin: 0; 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  background: linear-gradient(#1a2a6c, #b21f1f, #fdbb2d); 
+  overflow: hidden; 
+  text-align: center; 
+  color: #333;
+}
+.screen { 
+  position: fixed; 
+  inset: 0; 
+  background: #f4f9ff; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 50; 
+  padding: 24px; 
+}
+#loader { background: #ffffff; z-index: 60; }
+.logo { width: 180px; height: auto; margin-bottom: 20px; }
+button { 
+  border: 0; 
+  border-radius: 12px; 
+  background: #0066ff; 
+  color: white; 
+  font-size: 20px; 
+  font-weight: bold; 
+  padding: 14px 32px; 
+  cursor: pointer; 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  transition: background 0.2s;
+}
+button:hover { background: #0052cc; }
+#hud { 
+  display: flex; 
+  justify-content: space-around; 
+  align-items: center;
+  padding: 12px; 
+  font-size: 18px; 
+  font-weight: bold; 
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.audio-ctrl {
+  background: #444;
+  color: white;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+#questionBox { 
+  width: 92%; 
+  max-width: 850px; 
+  margin: 12px auto; 
+  background: white; 
+  border: 4px solid #004aad; 
+  border-radius: 16px; 
+  padding: 18px; 
+  font-size: 20px; 
+  font-weight: bold; 
+  line-height: 1.5;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+#gameArea { 
+  position: relative; 
+  width: 950px; 
+  max-width: 96vw; 
+  height: 440px; 
+  margin: 10px auto; 
+  border-radius: 20px; 
+  overflow: hidden; 
+  border: 5px solid #2c3e50; 
+  background: linear-gradient(#2bc48a 0 70%, #e67e22 70% 100%);
+}
+.chest { position: absolute; width: 170px; height: 160px; cursor: pointer; transition: transform 0.2s; }
+.chest:hover { transform: scale(1.05); }
+.chestTop { 
+  width: 170px; 
+  height: 65px; 
+  background: #8e44ad; 
+  border: 4px solid #4a235a; 
+  border-radius: 16px 16px 6px 6px; 
+  position: absolute; 
+  top: 0; 
+  transition: transform 0.5s;
+}
+.chestBody { 
+  width: 170px; 
+  height: 100px; 
+  background: #9b59b6; 
+  border: 4px solid #4a235a; 
+  border-radius: 0 0 16px 16px; 
+  position: absolute; 
+  top: 55px; 
+}
+.lock { 
+  width: 26px; 
+  height: 36px; 
+  background: #f1c40f; 
+  border: 3px solid #b7950b; 
+  position: absolute; 
+  left: 72px; 
+  top: 68px; 
+  border-radius: 5px; 
+}
+.answerText { 
+  position: absolute; 
+  width: 100%; 
+  bottom: -50px; 
+  font-size: 16px; 
+  font-weight: bold; 
+  color: #ffffff; 
+  background: rgba(0, 0, 0, 0.85);
+  padding: 6px 4px;
+  border-radius: 6px;
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.open .chestTop { transform: rotate(-30deg); transform-origin: left bottom; }
+.sparkle { position: absolute; font-size: 30px; animation: burst 0.8s ease-out forwards; pointer-events: none; }
+@keyframes burst {
+  0% { transform: translateY(0) scale(0.3); opacity: 1; }
+  100% { transform: translateY(-100px) scale(1.4); opacity: 0; }
+}
+.shake { animation: shake 0.4s; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+#msg { 
+  font-size: 20px; 
+  font-weight: bold; 
+  min-height: 60px; 
+  margin-top: 8px; 
+  padding: 10px 20px; 
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 8px;
+}
+.info-card {
+  background: #eef2f7;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: left;
+  margin: 15px 0;
+  border-left: 5px solid #0066ff;
+  font-size: 18px;
+}
+</style>
+</head>
+<body>
+
+<!-- Mandatory Branding Loader (5 Seconds Display) -->
+<div id="loader" class="screen">
+  <img src="assets/innovine-logo.png" class="logo" alt="Innovine Logo">
+  <h2>Initializing Network Diagnostic Engine...</h2>
+</div>
+
+<!-- Detailed Intro Screen -->
+<div id="instructions" class="screen" style="display:none">
+  <img src="assets/innovine-logo.png" class="logo" style="width:100px;" alt="Innovine Logo">
+  <h1>Computer Networks: Competency Assessment</h1>
+  <div style="font-size:18px; margin-bottom:15px; color:#555;">
+    <strong>Grade:</strong> Grade 7 | <strong>Subject:</strong> ICT<br>
+    <strong>Topic:</strong> Chapter 2 - Computer Networks<br>
+    <strong>Total Challenges:</strong> 10 Scenario Tasks
+  </div>
+  <div class="info-card" style="max-width:600px;">
+    <p>• Read through the physical and logical networking scenarios critically.</p>
+    <p>• Select the appropriate configuration or diagnostic outcome.</p>
+    <p>• <strong>System Update:</strong> If your first attempt is incorrect, the engine will immediately provide an engineering hint to help you correct your path!</p>
+  </div>
+  <button onclick="startGame()">Click Here to Start</button>
+</div>
+
+<!-- Dynamic Feedback Result End Screen -->
+<div id="end" class="screen" style="display:none">
+  <img src="assets/innovine-logo.png" class="logo" style="width:120px;" alt="Innovine Logo">
+  <h1 id="endTitle">Diagnostic Complete</h1>
+  <h2>Final Score: <span id="finalScore"></span></h2>
+  <div id="feedbackMessage" style="font-size:22px; font-weight:bold; margin:20px; max-width:600px;"></div>
+  <button onclick="location.reload()">Restart Protocol</button>
+</div>
+
+<!-- Active Score HUD Tracking -->
+<div id="hud">
+  <div>Score: <span id="score">0</span></div>
+  <div>Attempts left for current node: <span id="chances">2</span></div>
+  <div>Node Matrix: <span id="qno">1</span>/10</div>
+  <button class="audio-ctrl" onclick="toggleMute()" id="muteBtn">🔊 Mute</button>
+</div>
+
+<div id="questionBox">Analyzing Network Topology Environment...</div>
+<div id="gameArea"><div id="chests"></div></div>
+<div id="msg"></div>
+
+<!-- Required Audio Systems -->
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {
+    q: "A smart wristband updates health data to a smartphone 2 meters away using Bluetooth. What network configuration is managing this environment?",
+    options: ["PAN", "LAN", "CAN"],
+    ans: "PAN",
+    hint: "Hint: This type of network operates entirely within an individual's micro personal space of up to 10 meters."
+  },
+  {
+    q: "A school network consists of 4 distinct computing labs located across 3 interconnected multi-story buildings on the same property. This setup is categorized as a:",
+    options: ["CAN", "MAN", "WAN"],
+    ans: "CAN",
+    hint: "Hint: Think bigger than a single building Local Area Network, but restricted specifically to a multi-building corporate or school property layout."
+  },
+  {
+    q: "A bank needs to securely link its primary server base in Mumbai to its processing operations branch located in London. What network architecture handles this global footprint?",
+    options: ["WAN", "LAN", "MAN"],
+    ans: "WAN",
+    hint: "Hint: This infrastructure scales past local cities to seamlessly join distinct computing nodes across whole countries or continents."
+  },
+  {
+    q: "An ICT engineer notices that data traffic is slowing down because a legacy hub copies and transmits every incoming packet to every single connected node. Which device should replace it to route data directly to designated targets?",
+    options: ["Switch", "Repeater", "Modem"],
+    ans: "Switch",
+    hint: "Hint: You need an intelligent device that evaluates MAC addresses to establish dedicated direct lines for specific destinations."
+  },
+  {
+    q: "A technician connects 8 computers together by attaching each one directly to a central structural Switch hub. Which specific structural topology did they build?",
+    options: ["Star Topology", "Bus Topology", "Ring Topology"],
+    ans: "Star Topology",
+    hint: "Hint: If the central hub drops offline, every node drops offline. Its geometric schematic features spokes extending out from a single middle node."
+  },
+  {
+    q: "A network design requires maximum fault tolerance, where the severed cable of any single device must not interrupt any other device's communications. Every machine must link directly to every other machine. Which configuration fits?",
+    options: ["Mesh Topology", "Bus Topology", "Ring Topology"],
+    ans: "Mesh Topology",
+    hint: "Hint: This architecture offers absolute redundancy by wiring dedicated point-to-point connections across every node pair in the network."
+  },
+  {
+    q: "An internet service provider transmits data via telephone lines as analog sound signals, but your desktop requires digital square waves. Which device bridges this incompatibility?",
+    options: ["Modem", "Hub", "Router"],
+    ans: "Modem",
+    hint: "Hint: This hardware asset specializes in performing both modulation and demodulation functions to convert wave types."
+  },
+  {
+    q: "A network fails entirely. The IT department reports that a single terminator cap came loose on the main central backbone cable. Which layout was this network using?",
+    options: ["Bus Topology", "Star Topology", "Mesh Topology"],
+    ans: "Bus Topology",
+    hint: "Hint: In this legacy architecture, nodes are tapped linearly along a single shared main trunk highway."
+  },
+  {
+    q: "A vast chunk of web page data needs to be delivered across the world. Which protocol slices this file down into manageable sequential chunks at the source and accurately reassembles them at the destination?",
+    options: ["TCP", "IP", "HTTP"],
+    ans: "TCP",
+    hint: "Hint: This transport-layer system works closely with IP, but handles the sequencing, fragmenting, and reliability checking of the payload packet stream."
+  },
+  {
+    q: "You type 'www.google.com' into a web browser. What application protocol processes your software client request to securely fetch the hypertext documents?",
+    options: ["HTTP", "FTP", "SMTP"],
+    ans: "HTTP",
+    hint: "Hint: This foundational rule protocol manages how hypermedia assets are requested and delivered over the World Wide Web."
+  }
+];
+
+let current = 0, score = 0, chances = 2, locked = false, isMuted = false;
+
+window.onload = () => {
+  setTimeout(() => {
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("instructions").style.display = "flex";
+  }, 5000);
+};
+
+function startGame() {
+  document.getElementById("instructions").style.display = "none";
+  loadQuestion();
+}
+
+function loadQuestion() {
+  locked = false;
+  chances = 2;
+  document.getElementById("chances").textContent = chances;
+
+  if (current >= questions.length) {
+    evaluateGameEnd();
+    return;
+  }
+
+  document.getElementById("qno").textContent = current + 1;
+  document.getElementById("questionBox").textContent = "Scenario Q" + (current + 1) + ": " + questions[current].q;
+  
+  const msgBox = document.getElementById("msg");
+  msgBox.textContent = "";
+  msgBox.style.background = "transparent";
+  
+  createChests();
+}
+
+function createChests() {
+  const wrap = document.getElementById("chests");
+  wrap.innerHTML = "";
+  const item = questions[current];
+  const shuffled = [...item.options].sort(() => Math.random() - 0.5);
+  const positions = [90, 390, 690];
+
+  shuffled.forEach((opt, i) => {
+    const chest = document.createElement("div");
+    chest.className = "chest";
+    chest.style.left = positions[i] + "px";
+    chest.style.top = "160px";
+    chest.dataset.answer = opt;
+    chest.innerHTML = `
+      <div class="chestTop"></div>
+      <div class="chestBody"></div>
+      <div class="lock"></div>
+      <div class="answerText">${opt}</div>
+    `;
+    chest.onclick = () => selectChest(chest, opt);
+    wrap.appendChild(chest);
+  });
+}
+
+function selectChest(chest, selected) {
+  if (locked || chest.classList.contains("shake") || chest.classList.contains("open")) return;
+
+  if (selected === questions[current].ans) {
+    locked = true;
+    correctChest(chest);
+  } else {
+    wrongChest(chest);
+  }
+}
+
+function playAudio(id) {
+  if (!isMuted) {
+    const sound = document.getElementById(id);
+    sound.currentTime = 0;
+    sound.play().catch(e => console.log("Audio play blocked"));
+  }
+}
+
+function toggleMute() {
+  isMuted = !isMuted;
+  document.getElementById("muteBtn").textContent = isMuted ? "🔇 Unmute" : "🔊 Mute";
+}
+
+function correctChest(chest) {
+  playAudio("correctSound");
+  score++;
+  document.getElementById("score").textContent = score;
+  
+  const msgBox = document.getElementById("msg");
+  msgBox.style.color = "#196f3d";
+  msgBox.style.background = "#e8f8f5";
+  msgBox.textContent = "✔ Target configuration successfully verified!";
+  
+  chest.classList.add("open");
+  generateSparklers(chest);
+  current++;
+  setTimeout(loadQuestion, 1800);
+}
+
+function wrongChest(chest) {
+  playAudio("wrongSound");
+  chest.classList.add("shake");
+  chances--;
+  document.getElementById("chances").textContent = chances;
+  
+  const msgBox = document.getElementById("msg");
+  msgBox.style.color = "#b03a2e";
+  msgBox.style.background = "#fdf2e9";
+
+  // Real-time strategic condition logic shift
+  if (chances === 1) {
+    // Immediate Hint Broadcast Protocol on the first wrong click
+    msgBox.textContent = "❌ Alert: Analysis Failed. " + questions[current].hint;
+    setTimeout(() => chest.classList.remove("shake"), 600);
+  } else {
+    // Zero attempts remaining on current node
+    locked = true;
+    const correctAns = questions[current].ans;
+    msgBox.style.background = "#f9ebea";
+    msgBox.textContent = "❌ Node failure. Standard solution pattern requires: " + correctAns;
+
+    document.querySelectorAll(".chest").forEach(c => {
+      if (c.dataset.answer === correctAns) {
+        c.classList.add("open");
+        generateSparklers(c);
+      }
+    });
+
+    current++;
+    setTimeout(loadQuestion, 3500); 
+  }
+}
+
+function generateSparklers(chest) {
+  for (let i = 0; i < 15; i++) {
+    const spark = document.createElement("div");
+    spark.className = "sparkle";
+    spark.innerHTML = "✨";
+    spark.style.left = (chest.offsetLeft + 50 + Math.random() * 70) + "px";
+    spark.style.top = (chest.offsetTop + 30) + "px";
+    document.getElementById("gameArea").appendChild(spark);
+    setTimeout(() => spark.remove(), 800);
+  }
+}
+
+function evaluateGameEnd() {
+  document.getElementById("hud").style.display = "none";
+  document.getElementById("questionBox").style.display = "none";
+  document.getElementById("gameArea").style.display = "none";
+  document.getElementById("msg").style.display = "none";
+  
+  const pct = (score / questions.length) * 100;
+  const finalScoreSpan = document.getElementById("finalScore");
+  const feedbackMsg = document.getElementById("feedbackMessage");
+  
+  finalScoreSpan.textContent = score + " / " + questions.length + " (" + pct + "%)";
+  
+  if (pct >= 75) {
+    feedbackMsg.style.color = "#1e8449";
+    feedbackMsg.textContent = "Exceptional performance! Your competency in structural design parameters and network administration metrics is verified.";
+  } else if (pct >= 40) {
+    feedbackMsg.style.color = "#d35400";
+    feedbackMsg.textContent = "Review is recommended. Spend more time studying structural differences in network nodes, single points of failure, and foundational protocols.";
+  } else {
+    feedbackMsg.style.color = "#c0392b";
+    feedbackMsg.textContent = "Diagnostic critical error. Re-read the Grade 7 Chapter 2 textbook materials and run the infrastructure evaluation again.";
+  }
+  
+  document.getElementById("end").style.display = "flex";
+}
+</script>
+
+</body>
+</html>
