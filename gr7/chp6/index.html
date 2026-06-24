@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 7 ICT - HTML Layout Debugger</title>
+    <!-- Canvas Confetti Library for Celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --code-bg: #0b1329;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 480px;
+        }
+
+        /* 5-Second Brand Countdown Splash Screen */
+        #branding-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease-out;
+            padding: 20px;
+        }
+
+        #branding-logo {
+            max-width: 240px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 4px solid #cbd5e1;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Audio Toggle Button Layer */
+        .audio-control {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            background: #334155;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            z-index: 10;
+            color: white;
+        }
+
+        /* Screen States Manager */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Typography & Structure Elements */
+        h1 {
+            font-family: sans-serif;
+            font-size: 1.6rem;
+            color: #38bdf8;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .meta-text {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            font-family: sans-serif;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #1e3a8a;
+            color: #93c5fd;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-family: sans-serif;
+        }
+
+        p.description {
+            margin: 20px 0;
+            color: var(--text-light);
+            font-size: 1rem;
+            font-family: sans-serif;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            text-align: center;
+            width: 100%;
+            margin-top: auto;
+            font-family: sans-serif;
+            min-height: 54px;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .score-tracker {
+            font-weight: 700;
+            color: #38bdf8;
+            font-size: 1.1rem;
+            background: #0c4a6e;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: sans-serif;
+        }
+
+        .directive-panel {
+            background: #0f172a;
+            border-left: 4px solid var(--accent);
+            padding: 14px;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: sans-serif;
+        }
+
+        /* Live Integrated Code Editor Terminal Console */
+        .editor-container {
+            background: var(--code-bg);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            color: #cbd5e1;
+        }
+
+        .sandbox-input {
+            background: #1e293b;
+            border: 1px dashed #38bdf8;
+            color: #22c55e;
+            font-weight: 700;
+            font-size: 1.05rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            outline: none;
+            width: 160px;
+            font-family: 'Courier New', Courier, monospace;
+            transition: border-color 0.2s;
+        }
+
+        .sandbox-input:focus {
+            border-color: #22c55e;
+            background: #273549;
+        }
+
+        /* Educational Explanatory Feedback Box Node */
+        .feedback-box {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: none;
+            font-family: sans-serif;
+            line-height: 1.5;
+        }
+
+        .feedback-box.correct {
+            display: block;
+            background: #064e3b;
+            color: #6ee7b7;
+            border: 1px solid #047857;
+        }
+
+        .feedback-box.incorrect {
+            display: block;
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: 1px solid #b91c1c;
+        }
+
+        .result-card {
+            text-align: center;
+            padding: 20px 0;
+            font-family: sans-serif;
+        }
+
+        .final-score {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin: 15px 0;
+        }
+
+        .result-msg {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 18px; }
+            h1 { font-size: 1.4rem; }
+            .editor-container { font-size: 0.9rem; padding: 12px; }
+            .sandbox-input { width: 110px; font-size: 0.9rem; }
+            .btn { font-size: 1rem; padding: 14px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Splash Screen Layer explicitly calling your target local asset file -->
+        <div id="branding-screen">
+            <img id="branding-logo" src="assets/innovine-logo.png" alt="Innovine Logo">
+            <div class="spinner"></div>
+            <p style="color: #64748b; font-size: 0.85rem; margin-top: 15px; font-family:sans-serif; font-weight:600; letter-spacing:0.5px;">INITIALIZING REPAIR ENGINE</p>
+        </div>
+
+        <!-- Audio Action Toggle Interface -->
+        <button class="audio-control" id="mute-btn" title="Toggle Sound Setting">🔊</button>
+
+        <!-- 1. Intro Screen Dashboard View -->
+        <div id="intro-screen" class="screen active">
+            <div><span class="badge">G7 ICT - Chapter 6</span></div>
+            <h1>HTML Live Script Repair</h1>
+            <div class="meta-text"><strong>Format:</strong> Continuous Text Entry Syntax Sandbox</div>
+            <div class="meta-text"><strong>Curriculum Focus:</strong> Image Call Anchors, Modifiers &amp; Link Routing</div>
+            <div class="meta-text"><strong>Total Workspace Scripts:</strong> <span id="q-count-meta">0</span> Code Blocks</div>
+            
+            <p class="description">
+                Welcome to the terminal, Web Architect. Several script modules contains broken tags and incomplete parameters. Type the missing attributes, commands, or value parameters directly into the live text editor console rows to restore layout compilation!
+            </p>
+            <button class="btn" onclick="startGame()">Open Terminal Console</button>
+        </div>
+
+        <!-- 2. Active Technical Coding Simulation Loop View -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <span class="meta-text" id="progress-text" style="font-family:sans-serif;">Code Block: 1 of 5</span>
+                <div class="score-tracker">Score: <span id="score-display">0</span></div>
+            </div>
+
+            <div class="directive-panel">
+                <strong style="color: #38bdf8;">Architect Directive:</strong>
+                <div id="task-directive" style="margin-top: 5px; color: #cbd5e1;">Loading workspace directives...</div>
+            </div>
+
+            <!-- Active Code Editor Console Component -->
+            <div style="font-size: 0.8rem; color:#64748b; text-transform:uppercase; margin-top:15px; margin-bottom:6px; font-weight:700;">Live Workspace Editor Row:</div>
+            <div class="editor-container" id="code-editor-row">
+                <!-- Loaded dynamically by state controller script -->
+            </div>
+
+            <!-- Contextual Educational Explanatory Feedback Box Node -->
+            <div id="feedback-box" class="feedback-box"></div>
+
+            <button class="btn" id="action-btn" onclick="handleAction()">Execute Code Compilation</button>
+        </div>
+
+        <!-- 3. Final Summary & Metrics Evaluation Screen -->
+        <div id="result-screen" class="screen">
+            <div class="result-card">
+                <h1>Deployment Sequence Compiled</h1>
+                <p class="meta-text">Total validated sandbox configurations:</p>
+                <div class="final-score" id="final-score-display">0%</div>
+                <p class="result-msg" id="result-message">Analyzing script structures...</p>
+            </div>
+            <button class="btn" onclick="resetGame()">Reload Script Terminal</button>
+        </div>
+    </div>
+
+    <!-- Background Media Sinks -->
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        // Strictly Interactive Chapter 6 Coding Tasks - Formatted for absolute text insertion
+        const codeTasks = [
+            {
+                directive: "We need to invoke an external image onto our document layout. Complete the starting tag declaration with the specific 3-letter keyword required for images.",
+                codeBefore: "<",
+                codeAfter: " src=\"mumbai.jpg\" alt=\"Gateway\">",
+                placeholder: "tag name",
+                correct: ["img"],
+                feedback: "Excellent! The 3-letter empty element <img> handles image loading. It does not carry a closing tag."
+            },
+            {
+                directive: "The visual file path is broken because the source modifier is written incorrectly as 'source'. Fix it by typing the exact 3-letter attribute name.",
+                codeBefore: "<img ",
+                codeAfter: "=\"delhi.png\" alt=\"Red Fort\">",
+                placeholder: "attribute name",
+                correct: ["src"],
+                feedback: "Correct! The image tag expects the abbreviated keyword 'src' (source) to track file paths."
+            },
+            {
+                directive: "Provide alternate description variables to the asset line so accessibility screen-readers can explain it if the asset file goes missing. Insert the attribute name.",
+                codeBefore: "<img src=\"logo.png\" ",
+                codeAfter: "=\"Company Logo Label\">",
+                placeholder: "attribute name",
+                correct: ["alt"],
+                feedback: "Correct! The 'alt' (alternate text) parameter provides a fallback description row if graphics cannot be fetched."
+            },
+            {
+                directive: "NEW CHALLENGE: This corporate logo banner stretches across the entire page layout. Fix the tag by typing the attribute name used to set the custom horizontal width dimension in pixels.",
+                codeBefore: "<img src=\"banner.png\" ",
+                codeAfter: "=\"500\" height=\"200\">",
+                placeholder: "attribute name",
+                correct: ["width"],
+                feedback: "Incredible choice! The 'width' attribute regulates the horizontal pixel stretch of an image block directly in HTML."
+            },
+            {
+                directive: "NEW CHALLENGE: Complete this absolute external hyperlink anchor row by typing the correct, mandatory standard internet protocol structure (Hypertext Transfer Protocol Secure).",
+                codeBefore: "<a href=\"",
+                codeAfter: "://www.innovine.com\">Visit Official Portal</a>",
+                placeholder: "protocol string",
+                correct: ["https", "http"],
+                feedback: "Stellar parsing! Hyperlinks referencing external absolute addresses must lead with an explicit web transmission protocol prefix like 'https' or 'http'."
+            }
+        ];
+
+        let currentTaskIndex = 0;
+        let score = 0;
+        let isMuted = false;
+        let hasEvaluated = false;
+
+        const sndCorrect = document.getElementById('audio-correct');
+        const sndWrong = document.getElementById('audio-wrong');
+
+        // STRICT 5-SECOND TIME-LOOP REPAIR LAYER
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('q-count-meta').innerText = codeTasks.length;
+            
+            setTimeout(() => {
+                const splash = document.getElementById('branding-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.style.display = 'none', 500);
+                }
+            }, 5000); // Strict, unblockable 5-second exit window
+        });
+
+        // Audio Settings Interceptor Toggles
+        document.getElementById('mute-btn').addEventListener('click', function() {
+            isMuted = !isMuted;
+            this.innerText = isMuted ? "❌" : "🔊";
+        });
+
+        function playSoundChannel(type) {
+            if (isMuted) return;
+            const channelNode = (type === 'correct') ? sndCorrect : sndWrong;
+            if (channelNode) {
+                channelNode.currentTime = 0;
+                channelNode.play().catch(() => {});
+            }
+        }
+
+        // Script Simulation Loop State Engines
+        function startGame() {
+            document.getElementById('intro-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            currentTaskIndex = 0;
+            score = 0;
+            loadCodeTask();
+        }
+
+        function loadCodeTask() {
+            hasEvaluated = false;
+            const currentItem = codeTasks[currentTaskIndex];
+
+            document.getElementById('progress-text').innerText = `Code Block: ${currentTaskIndex + 1} of ${codeTasks.length}`;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('task-directive').innerText = currentItem.directive;
+
+            // Generate terminal text lines with an inline text slot input box
+            const editor = document.getElementById('code-editor-row');
+            editor.innerHTML = `
+                <span style="color:#64748b;">&lt;!-- Syntax Sandbox Row --&gt;</span><br>
+                <span>${escapeMarkupSymbols(currentItem.codeBefore)}</span><input type="text" id="editor-slot" class="sandbox-input" placeholder="${currentItem.placeholder}" autocomplete="off" spellcheck="false"><span>${escapeMarkupSymbols(currentItem.codeAfter)}</span>
+            `;
+
+            const feedback = document.getElementById('feedback-box');
+            feedback.className = "feedback-box";
+            feedback.innerText = "";
+
+            document.getElementById('action-btn').innerText = "Execute Code Compilation";
+
+            const inputField = document.getElementById('editor-slot');
+            inputField.focus();
+            
+            // Allow instant submission when pressing the Enter key inside the terminal slot
+            inputField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleAction();
+            });
+        }
+
+        function handleAction() {
+            if (!hasEvaluated) {
+                verifyInputSyntax();
+            } else {
+                currentTaskIndex++;
+                if (currentTaskIndex < codeTasks.length) {
+                    loadCodeTask();
+                } else {
+                    renderFinalEvaluationGrid();
+                }
+            }
+        }
+
+        function verifyInputSyntax() {
+            const slot = document.getElementById('editor-slot');
+            const sanitizedUser = slot.value.trim().toLowerCase();
+            const currentItem = codeTasks[currentTaskIndex];
+            const feedback = document.getElementById('feedback-box');
+
+            if (!sanitizedUser) {
+                slot.style.borderColor = "var(--danger)";
+                return; // Blocks evaluating blank workspaces
+            }
+
+            hasEvaluated = true;
+            slot.disabled = true;
+
+            // Filters out brackets if student types them into the row for safety matching
+            const checkSuccess = currentItem.correct.some(ans => {
+                const standardAns = ans.replace(/[<>]/g, "").trim();
+                const standardUser = sanitizedUser.replace(/[<>]/g, "").trim();
+                return standardUser === standardAns;
+            });
+
+            if (checkSuccess) {
+                score++;
+                document.getElementById('score-display').innerText = score;
+                feedback.className = "feedback-box correct";
+                feedback.innerText = `✔️ Compilation Success! ${currentItem.feedback}`;
+                slot.style.borderColor = "var(--success)";
+                playSoundChannel('correct');
+                try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.75 } }); } catch(e){}
+            } else {
+                feedback.className = "feedback-box incorrect";
+                feedback.innerHTML = `❌ Syntax Compilation Interrupted.<br><strong>Required Script String: ${currentItem.correct[0]}</strong>.<br><br>💡 Standard: ${currentItem.feedback}`;
+                slot.style.borderColor = "var(--danger)";
+                playSoundChannel('wrong');
+            }
+
+            document.getElementById('action-btn').innerText = (currentTaskIndex + 1 < codeTasks.length) ? "Advance Code Module" : "Generate Production Scripts";
+        }
+
+        function renderFinalEvaluationGrid() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.add('active');
+
+            const scoreRatio = Math.round((score / codeTasks.length) * 100);
+            document.getElementById('final-score-display').innerText = `${scoreRatio}%`;
+
+            const messageNode = document.getElementById('result-message');
+
+            // Grade Boundaries
+            if (scoreRatio >= 75) {
+                messageNode.innerText = "Good job";
+                messageNode.style.color = "var(--success)";
+                try { confetti({ particleCount: 140, spread: 85 }); } catch(e){}
+            } else if (scoreRatio >= 40) {
+                messageNode.innerText = "Review this chapter and try again";
+                messageNode.style.color = "#eab308";
+            } else {
+                messageNode.innerText = "Let’s practise more";
+                messageNode.style.color = "var(--danger)";
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('result-screen').classList.remove('active');
+            document.getElementById('intro-screen').classList.add('active');
+        }
+
+        function escapeMarkupSymbols(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
