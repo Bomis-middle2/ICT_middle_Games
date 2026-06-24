@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tinkercad Explorer Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { font-family:Arial; text-align:center; background:linear-gradient(#87CEEB,#ffffff); margin:0; min-height: 100vh; display: flex; flex-direction: column; }
+    #loader { position:fixed; inset:0; background:white; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
+    #loader img { width:min(300px,80vw); margin-bottom: 20px; }
+    
+    #track { width:90%; max-width:800px; height:120px; margin:20px auto; background:#444; border-radius:10px; position:relative; overflow:hidden; }
+    #line { position:absolute; top:55px; width:100%; height:10px; background:repeating-linear-gradient(to right, white 0 40px, transparent 40px 80px); }
+    #car { width:80px; height:40px; background:red; position:absolute; top:40px; left:0; border-radius:10px; transition: 0.5s; }
+    #car:before, #car:after { content:""; width:20px; height:20px; background:black; border-radius:50%; position:absolute; bottom:-10px; }
+    #car:before { left:10px; }
+    #car:after { right:10px; }
+    
+    #box { background:white; padding:20px; width:90%; max-width:650px; margin:auto; border-radius:15px; box-shadow:0 0 10px gray; }
+    button { padding:12px; margin:6px; font-size:15px; cursor:pointer; border:none; border-radius:8px; background:#0077ff; color:white; width: 45%; }
+    #endScreen { position:fixed; inset:0; background:white; display:none; flex-direction:column; justify-content:center; align-items:center; z-index:999; }
+</style>
+</head>
+<body>
+
+<div id="loader">
+    <img src="assets/innovine-logo.png">
+    <h3>Grade 8 | ICT | Tinkercad Design</h3>
+</div>
+
+<h2>🚗 Tinkercad Explorer</h2>
+<div id="track"><div id="line"></div><div id="car"></div></div>
+
+<div id="box">
+    <h3 id="q"></h3>
+    <div id="options"></div>
+    <p id="msg"></p>
+</div>
+
+<div id="endScreen">
+    <h1>Mission Complete!</h1>
+    <p id="finalScore"></p>
+    <button onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+const correctAudio = new Audio('assets/correct.mp3');
+const wrongAudio = new Audio('assets/wrong.mp3');
+
+let allQuestions = [
+    {q:"You are starting a new project. Where do you drag shapes to begin your 3-D design?", options:["Dashboard", "Workplane", "Inspector", "Toolbar"], ans:"Workplane"},
+    {q:"You want to create a hole in a solid object. Which feature do you apply to the object?", options:["Align", "Group", "Hole", "Duplicate"], ans:"Hole"},
+    {q:"You need to quickly repeat a shape you just placed. What is your most efficient workflow?", options:["Ctrl + C", "Ctrl + V", "Ctrl + D", "Ctrl + A"], ans:"Ctrl + D"},
+    {q:"You need to find a primitive shape like a cylinder. Where should you look?", options:["Navigation", "Shape Panel", "Inspector", "Toolbar"], ans:"Shape Panel"},
+    {q:"You are modifying an object's properties (size, color, hole/solid). Where are these controls located?", options:["Workplane", "Toolbar", "Inspector Window", "Dashboard"], ans:"Inspector Window"},
+    {q:"You have two separate pieces and need to make them act as one single object. What is your next step?", options:["Group", "Workplane", "Rotate", "Align"], ans:"Group"},
+    {q:"You want to place a shape on top of a cube, not the floor. How do you set the new surface?", options:["Flip", "Scale", "Workplane Tool", "Drop Tool"], ans:"Workplane Tool"},
+    {q:"You are resizing a cube but need it to grow uniformly on all sides. What key do you hold?", options:["Alt", "Ctrl", "Shift", "Space"], ans:"Shift"},
+    {q:"To ensure two objects are perfectly centered on the same axis, which tool do you use?", options:["Group", "Align", "Workplane", "Hole"], ans:"Align"},
+    {q:"Your workspace is getting crowded with many shapes. What command allows you to temporarily remove an object from view?", options:["Group", "Hole", "Hide (Ctrl+H)", "Lock"], ans:"Hide (Ctrl+H)"}
+];
+
+let qIndex = 0, attempts = 0, score = 0, pos = 0;
+
+function loadQ() {
+    attempts = 0;
+    let qObj = allQuestions[qIndex];
+    document.getElementById("q").innerText = qObj.q;
+    document.getElementById("msg").innerText = "";
+    let html = "";
+    qObj.options.forEach(opt => {
+        html += `<button onclick="check('${opt}')">${opt}</button>`;
+    });
+    document.getElementById("options").innerHTML = html;
+}
+
+function check(ans) {
+    attempts++;
+    if(ans === allQuestions[qIndex].ans) {
+        correctAudio.play();
+        score++;
+        pos += (85 / allQuestions.length); 
+        document.getElementById("car").style.left = pos + "%";
+        nextQuestion();
+    } else if (attempts >= 2) {
+        wrongAudio.play();
+        document.getElementById("msg").innerText = "Correct answer was: " + allQuestions[qIndex].ans;
+        // Wait 2 seconds so user can see the correct answer, then move on
+        setTimeout(nextQuestion, 2000);
+    } else {
+        wrongAudio.play();
+        document.getElementById("msg").innerText = "Not quite! Try again.";
+    }
+}
+
+function nextQuestion() {
+    qIndex++;
+    if(qIndex < allQuestions.length) {
+        loadQ();
+    } else {
+        // Final screen transition
+        setTimeout(showWin, 500);
+    }
+}
+
+function showWin() {
+    document.getElementById("endScreen").style.display = "flex";
+    document.getElementById("finalScore").innerText = `Final Score: ${score} / ${allQuestions.length}`;
+}
+
+window.onload = () => setTimeout(() => {
+    document.getElementById("loader").style.display = "none";
+    loadQ();
+}, 5000);
+</script>
+</body>
+</html>
