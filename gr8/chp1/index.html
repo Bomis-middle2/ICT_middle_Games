@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>G8 ICT - Software Sort Challenge</title>
+<style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f4f8;
+  overflow: hidden;
+  height: 100vh;
+}
+/* Screen Management */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  z-index: 50;
+}
+#branding-screen {
+  background: #ffffff;
+  transition: opacity 0.5s ease;
+}
+.brand-logo {
+  width: 240px;
+  max-width: 80%;
+  height: auto;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+#instructions, #end {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+}
+.ui-card {
+  background: white;
+  padding: 30px;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-width: 550px;
+  width: 100%;
+}
+h1 { color: #1e3a8a; margin-top: 0; font-size: 26px; }
+h2 { color: #2563eb; margin: 10px 0; font-size: 18px; }
+.meta-info {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 12px;
+  margin: 15px 0;
+  font-size: 14px;
+  color: #475569;
+}
+.action-btn {
+  padding: 15px 40px;
+  border: 0;
+  border-radius: 50px;
+  background: linear-gradient(to right, #1e3a8a, #2563eb);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+  width: 100%;
+  margin-top: 10px;
+}
+/* Main Game Grid Layout */
+#game {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  padding: 15px;
+  background: #f8fafc;
+}
+#hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-weight: bold;
+  color: #1e3a8a;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.mute-btn {
+  background: #e2e8f0;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+/* Card Deck & Interactive Items */
+#deck-zone {
+  height: 35vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+.sort-card {
+  background: white;
+  border: 3px solid #2563eb;
+  border-radius: 16px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #0f172a;
+  box-shadow: 0 8px 16px rgba(37,99,235,0.15);
+  cursor: grab;
+  touch-action: none;
+}
+.sort-card:active { cursor: grabbing; }
+.sort-card.selected {
+  border-color: #f59e0b;
+  background: #fef3c7;
+}
+/* Target Sorting Bins */
+#bins-zone {
+  display: flex;
+  gap: 15px;
+  height: 40vh;
+}
+.bin {
+  flex: 1;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  padding: 15px;
+  text-align: center;
+}
+#bin-open {
+  background: #dcfce7;
+  border: 4px dashed #22c55e;
+  color: #14532d;
+}
+#bin-open.hover { background: #bbf7d0; transform: scale(1.02); }
+#bin-closed {
+  background: #fee2e2;
+  border: 4px dashed #ef4444;
+  color: #7f1d1d;
+}
+#bin-closed.hover { background: #fecaca; transform: scale(1.02); }
+.bin-icon { font-size: 45px; margin-bottom: 10px; }
+.mobile-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+/* Educational Intervention Feedback */
+#feedback-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 60;
+  padding: 20px;
+}
+.feedback-box {
+  background: white;
+  border-radius: 24px;
+  padding: 30px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+.feedback-box h3 { margin-top: 0; font-size: 24px; }
+.feedback-box p { font-size: 15px; color: #475569; line-height: 1.5; margin: 15px 0 25px; }
+</style>
+</head>
+<body>
+
+<!-- 1. Mandatory Branding Screen -->
+<div id="branding-screen" class="screen">
+  <img src="assets/innovine-logo.png" alt="Innovine Logo" class="brand-logo" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='block';">
+  <h1 id="fallback-logo" style="display:none; font-size:42px; color:#1e3a8a;">INNOVINE</h1>
+</div>
+
+<!-- 2. Menu Start Screen -->
+<div id="instructions" class="screen" style="display:none;">
+  <div class="ui-card">
+    <h1 id="intro-title"></h1>
+    <div class="meta-info">
+      <strong>Grade:</strong> <span id="meta-grade"></span> | 
+      <strong>Subject:</strong> <span id="meta-subject"></span> | 
+      <strong>Topic:</strong> <span id="meta-topic"></span>
+    </div>
+    <p style="font-size: 14px; color:#475569; text-align:left; line-height: 1.4;">
+      <b>How to Play:</b><br>
+      • <b>Tap the data card to select it, then tap your target bin to sort it.
+    </p>
+    <button class="action-btn" onclick="startGame()">START CHALLENGE</button>
+  </div>
+</div>
+
+<!-- 3. Primary Play Arena -->
+<div id="game">
+  <div id="hud">
+    <div>Score: <span id="score-label">0</span> / <span id="total-label">0</span></div>
+    <div><button class="mute-btn" onclick="toggleMute()" id="mute-btn">🔊 Mute</button></div>
+  </div>
+
+  <div id="deck-zone">
+    <!-- Active sorting item generated dynamically by JS -->
+  </div>
+
+  <div class="mobile-hint">Tap card, then tap bin if using a mobile touch device</div>
+
+  <div id="bins-zone">
+    <div id="bin-open" class="bin" dropzone="move">
+      <div class="bin-icon">🔓</div>
+      <div>Open-Source Bin</div>
+    </div>
+    <div id="bin-closed" class="bin" dropzone="move">
+      <div class="bin-icon">🔒</div>
+      <div>Closed-Source Bin</div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Pedagogical Feedback Intervention -->
+<div id="feedback-overlay">
+  <div class="feedback-box">
+    <h3 id="feedback-header"></h3>
+    <p id="feedback-text"></p>
+    <button class="action-btn" onclick="nextCard()">CONTINUE</button>
+  </div>
+</div>
+
+<!-- 5. Evaluation Summary End Screen -->
+<div id="end" class="screen" style="display:none;">
+  <div class="ui-card">
+    <h1>Sorting Complete!</h1>
+    <h2 id="end-evaluation"></h2>
+    <div class="meta-info" style="font-size: 22px; font-weight: bold; color: #1e3a8a;">
+      Final Score: <span id="final-score"></span>
+    </div>
+    <button class="action-btn" onclick="location.reload()">PLAY AGAIN</button>
+  </div>
+</div>
+
+<!-- Audio Assets Elements -->
+<audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+<script>
+const config = {
+  title: "Software Sort: Open vs. Closed Source",
+  grade: "Grade 8",
+  subject: "ICT",
+  topic: "Chapter 1 - Open Source Software"
+};
+
+// Concise, direct textbook categorization items
+const sortDatabase = [
+  {
+    item: "Source Code is freely available to view/modify",
+    type: "open",
+    rationale: "Correct! Open-source software makes its internal programming source code fully viewable and editable by users."
+  },
+  {
+    item: "Microsoft Office Suite",
+    type: "closed",
+    rationale: "That is right! MS Office is proprietary/closed-source software. You cannot access its source code."
+  },
+  {
+    item: "OpenOffice & LibreOffice",
+    type: "open",
+    rationale: "Spot on! OpenOffice is a widely recognized alternative application suite released as open-source software."
+  },
+  {
+    item: "The internal code is hidden and protected by creators",
+    type: "closed",
+    rationale: "Correct! Closed-source software locks away its code to safeguard ownership rights and intellectual designs."
+  },
+  {
+    item: "Linux Operating System",
+    type: "open",
+    rationale: "Excellent! Linux is one of the most foundational open-source operating systems operating globally."
+  },
+  {
+    item: "No licensing fees required to use standard features",
+    type: "open",
+    rationale: "Correct! An advantage of open-source software is lower costs, as users don't pay licensing fees."
+  }
+];
+
+let currentIndex = 0;
+let correctCount = 0;
+let isAudioMuted = false;
+let selectedTouchCard = null;
+
+window.onload = () => {
+  document.getElementById("intro-title").textContent = config.title;
+  document.getElementById("meta-grade").textContent = config.grade;
+  document.getElementById("meta-subject").textContent = config.subject;
+  document.getElementById("meta-topic").textContent = config.topic;
+  document.getElementById("total-label").textContent = sortDatabase.length;
+
+  // Enforced 5-Second Load Threshold
+  setTimeout(() => {
+    const splash = document.getElementById("branding-screen");
+    splash.style.opacity = 0;
+    setTimeout(() => {
+      splash.style.display = "none";
+      document.getElementById("instructions").style.display = "flex";
+    }, 500);
+  }, 5000);
+
+  setupDragAndDropMechanics();
+};
+
+function toggleMute() {
+  isAudioMuted = !isAudioMuted;
+  document.getElementById("mute-btn").textContent = isAudioMuted ? "🔇 Unmute" : "🔊 Mute";
+}
+
+function startGame() {
+  document.getElementById("instructions").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  spawnActiveCard();
+}
+
+function spawnActiveCard() {
+  const deck = document.getElementById("deck-zone");
+  deck.innerHTML = "";
+  selectedTouchCard = null;
+
+  if (currentIndex >= sortDatabase.length) {
+    endGame();
+    return;
+  }
+
+  const currentData = sortDatabase[currentIndex];
+  const card = document.createElement("div");
+  card.className = "sort-card";
+  card.id = "active-card";
+  card.draggable = true;
+  card.textContent = currentData.item;
+
+  // Drag listeners (Desktop)
+  card.addEventListener("dragstart", (e) => {
+    e.dataTransfer.setData("text/plain", currentData.type);
+  });
+
+  // Tap listeners (Mobile)
+  card.addEventListener("click", () => {
+    card.classList.toggle("selected");
+    selectedTouchCard = card.classList.contains("selected") ? currentData.type : null;
+  });
+
+  deck.appendChild(card);
+}
+
+function setupDragAndDropMechanics() {
+  const openBin = document.getElementById("bin-open");
+  const closedBin = document.getElementById("bin-closed");
+
+  [openBin, closedBin].forEach(bin => {
+    bin.addEventListener("dragover", (e) => e.preventDefault());
+    bin.addEventListener("dragenter", () => bin.classList.add("hover"));
+    bin.addEventListener("dragleave", () => bin.classList.remove("hover"));
+    
+    bin.addEventListener("drop", (e) => {
+      e.preventDefault();
+      bin.classList.remove("hover");
+      const droppedType = e.dataTransfer.getData("text/plain");
+      const targetBinType = bin.id === "bin-open" ? "open" : "closed";
+      processEvaluation(droppedType === targetBinType);
+    });
+
+    // Touch tap support for bins
+    bin.addEventListener("click", () => {
+      if (selectedTouchCard) {
+        const targetBinType = bin.id === "bin-open" ? "open" : "closed";
+        processEvaluation(selectedTouchCard === targetBinType);
+      }
+    });
+  });
+}
+
+function processEvaluation(isCorrectAnswer) {
+  const dataItem = sortDatabase[currentIndex];
+  const winSound = document.getElementById("sound-correct");
+  const loseSound = document.getElementById("sound-wrong");
+
+  if (isCorrectAnswer) {
+    correctCount++;
+    document.getElementById("score-label").textContent = correctCount;
+    if (!isAudioMuted) { try { winSound.play(); } catch(e){} }
+    document.getElementById("feedback-header").textContent = "🎉 Right Answer!";
+    document.getElementById("feedback-header").style.color = "#16a34a";
+  } else {
+    if (!isAudioMuted) { try { loseSound.play(); } catch(e){} }
+    document.getElementById("feedback-header").textContent = "❌ Incorrect Placement";
+    document.getElementById("feedback-header").style.color = "#dc2626";
+  }
+
+  document.getElementById("feedback-text").textContent = dataItem.rationale;
+  document.getElementById("feedback-overlay").style.display = "flex";
+}
+
+function nextCard() {
+  document.getElementById("feedback-overlay").style.display = "none";
+  currentIndex++;
+  spawnActiveCard();
+}
+
+function endGame() {
+  document.getElementById("game").style.display = "none";
+  const passPercent = (correctCount / sortDatabase.length) * 100;
+  let summaryEval = "";
+
+  // Dynamic pedagogical text assignment based on scoring thresholds
+  if (passPercent >= 75) {
+    summaryEval = "Good job!";
+  } else if (passPercent >= 40) {
+    summaryEval = "Review this chapter and try again";
+  } else {
+    summaryEval = "Let’s practise more";
+  }
+
+  document.getElementById("end-evaluation").textContent = summaryEval;
+  document.getElementById("final-score").textContent = `${correctCount} / ${sortDatabase.length}`;
+  document.getElementById("end").style.display = "flex";
+}
+</script>
+</body>
+</html>
