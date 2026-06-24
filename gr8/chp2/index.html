@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Grade 8 ICT - Network Password Breaker</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --primary-glow: #38bdf8;
+            --success-glow: #4ade80;
+            --error-glow: #f87171;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        /* Fully Fluid Responsive Container Layout */
+        .terminal-container {
+            background-color: var(--panel-bg);
+            width: 100%;
+            max-width: 580px;
+            border-radius: var(--border-radius);
+            border: 2px solid #334155;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.15);
+            padding: clamp(15px, 4vw, 24px);
+            position: relative;
+            min-height: calc(100vh - 24px);
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        @media (min-height: 650px) {
+            .terminal-container {
+                min-height: 520px;
+            }
+        }
+
+        /* 5-Second Mandatory Splash Screen Overlay */
+        #branding-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            border-radius: var(--border-radius);
+            transition: opacity 0.5s ease;
+        }
+
+        .logo-img {
+            width: 200px;
+            height: auto;
+            max-width: 80%;
+            margin-bottom: 20px;
+        }
+
+        .glitch-text {
+            color: var(--primary-glow);
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* Screens Setup */
+        .screen {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            flex-grow: 1;
+            animation: terminalScan 0.3s ease-out forwards;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes terminalScan {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h1 {
+            color: var(--primary-glow);
+            font-size: clamp(18px, 4vw, 22px);
+            text-align: center;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-matrix {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: clamp(12px, 3vw, 14px);
+            line-height: 1.5;
+            color: var(--text-muted);
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .info-matrix p {
+            margin-bottom: 8px;
+        }
+
+        .info-matrix strong {
+            color: var(--text-main);
+        }
+
+        /* Dashboard Top Status Panel */
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #334155;
+            padding-bottom: 8px;
+            font-size: clamp(11px, 3vw, 13px);
+            gap: 5px;
+        }
+
+        /* Dynamic Graphical Timeline Progress Bar */
+        .timer-container {
+            width: 100%;
+            background-color: #334155;
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background-color: var(--primary-glow);
+            transition: width 1s linear, background-color 0.3s ease;
+        }
+
+        .crypto-hint {
+            background: rgba(56, 189, 248, 0.05);
+            border-left: 3px solid var(--primary-glow);
+            padding: 10px 12px;
+            font-size: clamp(12px, 3.2vw, 14px);
+            line-height: 1.4;
+            margin-bottom: 15px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        /* Word Guessing Target Grid Display */
+        .word-display-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin: 15px 0;
+            min-height: 46px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .char-tile {
+            width: clamp(28px, 6.5vw, 36px);
+            height: clamp(36px, 8.5vw, 44px);
+            border: 2px solid #475569;
+            background: #0f172a;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(14px, 4vw, 18px);
+            font-weight: bold;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .char-tile.revealed {
+            border-color: var(--success-glow);
+            color: var(--success-glow);
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.2);
+        }
+
+        .char-tile.failed-reveal {
+            border-color: var(--error-glow);
+            color: var(--error-glow);
+        }
+
+        .char-tile.space {
+            border: none;
+            background: transparent;
+            width: clamp(10px, 3vw, 15px);
+        }
+
+        /* Fully Responsive Virtual Alpha Keyboard Grid Layout */
+        .key-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: clamp(5px, 1.5vw, 8px);
+            margin-top: auto;
+            width: 100%;
+        }
+
+        .key-btn {
+            background: #334155;
+            border: none;
+            color: var(--text-main);
+            padding: clamp(10px, 2.5vw, 14px) 2px;
+            font-size: clamp(12px, 3.5vw, 15px);
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.1s;
+            text-align: center;
+            min-height: clamp(40px, 9vw, 48px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .key-btn:active {
+            transform: scale(0.95);
+        }
+
+        .key-btn.used-correct {
+            background: #065f46;
+            color: var(--success-glow);
+            pointer-events: none;
+        }
+
+        .key-btn.used-wrong {
+            background: #7f1d1d;
+            color: var(--error-glow);
+            pointer-events: none;
+        }
+
+        /* Global Control Action Buttons */
+        .action-btn {
+            background: var(--primary-glow);
+            color: #0f172a;
+            border: none;
+            padding: clamp(12px, 3.5vw, 16px);
+            font-size: clamp(14px, 3.5vw, 16px);
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            min-height: 48px;
+        }
+
+        .audio-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: clamp(16px, 4vw, 20px);
+            padding: 4px;
+        }
+
+        /* Score & End Screen Display */
+        .score-big {
+            font-size: clamp(38px, 10vw, 54px);
+            color: var(--primary-glow);
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .status-msg {
+            text-align: center;
+            font-size: clamp(13px, 3.5vw, 15px);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: var(--success-glow);
+            padding: 0 10px;
+        }
+
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 40;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="terminal-container">
+        <canvas id="particle-canvas"></canvas>
+
+        <!-- 5-Second Mandatory Splash Screen Overlay -->
+        <div id="branding-overlay">
+            <img class="logo-img" src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('alt-logo').style.display='block';">
+            <div id="alt-logo" class="glitch-text" style="display:none;">// INNOVINE //</div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px; letter-spacing: 3px;">INITIALIZING CRYPTO-CORE...</p>
+        </div>
+
+        <!-- INTRO PANEL -->
+        <div id="screen-intro" class="screen">
+            <h1>Network Term Breaker</h1>
+            <div class="info-matrix">
+                <p><strong>GRADE:</strong> Grade 8</p>
+                <p><strong>SUBJECT:</strong> ICT</p>
+                <p><strong>TOPIC:</strong> Chapter 2 — Computer Networks</p>
+                <p><strong>TIME LIMIT:</strong> 45 Seconds Per Question!</p>
+                <p><strong>GAMEPLAY:</strong> Crack the encrypted network system terms using definitions from Chapter 2. Avoid running out of time or losing health!</p>
+                <p><strong>TOTAL TERMINALS:</strong> 5 Targets</p>
+            </div>
+            <button class="action-btn" onclick="startCracking()">Initialize Break</button>
+        </div>
+
+        <!-- MAIN GAMEPLAY PANEL -->
+        <div id="screen-game" class="screen">
+            <div class="dashboard">
+                <div id="terminal-count">TERM: 1/5</div>
+                <div id="timer-text">TIME: 45s</div>
+                <div id="attempts-left">HEALTH: [■■■■■]</div>
+                <button class="audio-toggle" id="sound-btn" onclick="toggleSoundSystem()">🔊</button>
+            </div>
+
+            <!-- Dynamic Progress Tracker Timeline -->
+            <div class="timer-container">
+                <div class="timer-bar" id="timer-bar"></div>
+            </div>
+
+            <div class="crypto-hint" id="crypto-hint-text">Loading mainframe hints...</div>
+
+            <div class="word-display-container" id="puzzle-box"></div>
+
+            <div class="key-grid" id="keyboard-box"></div>
+        </div>
+
+        <!-- FINAL RESULTS PANEL -->
+        <div id="screen-results" class="screen">
+            <h1>DECRYPTION EVALUATION</h1>
+            <div class="score-big" id="final-score">0/5</div>
+            <div class="status-msg" id="evaluation-label">Processing records...</div>
+            <button class="action-btn" onclick="restartCore()">Reboot Core</button>
+        </div>
+    </div>
+
+    <!-- Audio Element Paths per asset parameters -->
+    <audio id="clip-right" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="clip-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        // Sourced Question Config array mapped exclusively to textbook data
+        const corePool = [
+            { word: "MODEM", hint: "A hardware item required to connect to an ISP so your account can be verified and assigned an IP address." },
+            { word: "INTRANET", hint: "A private organization network providing restricted access services like private emails, messages, and web pages." },
+            { word: "EXTRANET", hint: "An extension of an organization's network enabling outside authorized collaborators to interact via encrypted VPNs." },
+            { word: "BLUETOOTH", hint: "A short-range wireless standard named after a 10th-century Scandinavian King, using low-power radio waves." },
+            { word: "INFRARED", hint: "A short-range 'line-of-sight' straight light-wave connection commonly utilized inside television remote controls." }
+        ];
+
+        let activelyMuted = false;
+        let currentTarget = 0;
+        let missedStrikes = 0;
+        let successfulTermsCracked = 0;
+        let targetWord = "";
+        let correctlyGuessedLetters = [];
+        
+        let countdownValue = 45;
+        let countdownTimerId = null;
+        let sequenceLocked = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('branding-overlay');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    switchTerminalView('screen-intro');
+                }, 500);
+            }, 5000); // Strict 5000ms duration
+        });
+
+        function switchTerminalView(panelId) {
+            document.querySelectorAll('.screen').forEach(view => view.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+        }
+
+        function startCracking() {
+            currentTarget = 0;
+            successfulTermsCracked = 0;
+            switchTerminalView('screen-game');
+            buildPuzzleSession();
+        }
+
+        function buildPuzzleSession() {
+            missedStrikes = 5;
+            countdownValue = 45;
+            sequenceLocked = false;
+            correctlyGuessedLetters = [];
+            targetWord = corePool[currentTarget].word.toUpperCase();
+            
+            document.getElementById('terminal-count').innerText = `TERM: ${currentTarget + 1}/${corePool.length}`;
+            document.getElementById('crypto-hint-text').innerText = `HINT: ${corePool[currentTarget].hint}`;
+            document.getElementById('timer-text').innerText = `TIME: ${countdownValue}s`;
+            
+            const bar = document.getElementById('timer-bar');
+            bar.style.width = '100%';
+            bar.style.backgroundColor = 'var(--primary-glow)';
+            
+            updateHealthBar();
+            generateDisplayTiles();
+            generateInputKeyboard();
+            
+            clearInterval(countdownTimerId);
+            countdownTimerId = setInterval(executeClockTick, 1000);
+        }
+
+        function executeClockTick() {
+            if (sequenceLocked) return;
+            
+            countdownValue--;
+            document.getElementById('timer-text').innerText = `TIME: ${countdownValue}s`;
+            
+            const bar = document.getElementById('timer-bar');
+            const calculatedPercentage = (countdownValue / 45) * 100;
+            bar.style.width = `${calculatedPercentage}%`;
+            
+            if (countdownValue <= 15) {
+                bar.style.backgroundColor = 'var(--error-glow)';
+            }
+            
+            if (countdownValue <= 0) {
+                clearInterval(countdownTimerId);
+                playLocalSound('clip-wrong');
+                lockMatrixToNext(true);
+            }
+        }
+
+        function updateHealthBar() {
+            let symbolBlock = "";
+            for (let i = 0; i < 5; i++) {
+                symbolBlock += (i < missedStrikes) ? "■" : " ";
+            }
+            document.getElementById('attempts-left').innerText = `HEALTH: [${symbolBlock}]`;
+        }
+
+        function generateDisplayTiles() {
+            const pBox = document.getElementById('puzzle-box');
+            pBox.innerHTML = "";
+            
+            for (let letter of targetWord) {
+                const tile = document.createElement('div');
+                if (letter === " ") {
+                    tile.className = "char-tile space";
+                } else {
+                    tile.className = "char-tile";
+                    tile.id = `tile-${letter}`;
+                    if (correctlyGuessedLetters.includes(letter)) {
+                        tile.innerText = letter;
+                        tile.classList.add('revealed');
+                    } else {
+                        tile.innerText = "_";
+                    }
+                }
+                pBox.appendChild(tile);
+            }
+        }
+
+        function generateInputKeyboard() {
+            const keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            const kBox = document.getElementById('keyboard-box');
+            kBox.innerHTML = "";
+            
+            keys.forEach(k => {
+                const btn = document.createElement('button');
+                btn.className = "key-btn";
+                btn.innerText = k;
+                btn.onclick = () => evaluateInputCharacter(k, btn);
+                kBox.appendChild(btn);
+            });
+        }
+
+        function evaluateInputCharacter(character, elementReference) {
+            if (sequenceLocked) return;
+            
+            if (targetWord.includes(character)) {
+                correctlyGuessedLetters.push(character);
+                elementReference.classList.add('used-correct');
+                playLocalSound('clip-right');
+                spawnBurst();
+                generateDisplayTiles();
+                
+                const pureLetters = targetWord.replace(/\s+/g, '').split('');
+                const hasWon = pureLetters.every(char => correctlyGuessedLetters.includes(char));
+                
+                if (hasWon) {
+                    successfulTermsCracked++;
+                    clearInterval(countdownTimerId);
+                    lockMatrixToNext(false);
+                }
+            } else {
+                missedStrikes--;
+                elementReference.classList.add('used-wrong');
+                playLocalSound('clip-wrong');
+                updateHealthBar();
+                
+                if (missedStrikes <= 0) {
+                    clearInterval(countdownTimerId);
+                    lockMatrixToNext(false);
+                }
+            }
+        }
+
+        function lockMatrixToNext(wasTimeOut) {
+            sequenceLocked = true;
+            document.querySelectorAll('.key-btn').forEach(b => b.style.pointerEvents = 'none');
+            
+            const pBox = document.getElementById('puzzle-box');
+            pBox.innerHTML = "";
+            for (let letter of targetWord) {
+                const tile = document.createElement('div');
+                tile.className = wasTimeOut ? "char-tile failed-reveal" : "char-tile revealed";
+                tile.innerText = letter;
+                pBox.appendChild(tile);
+            }
+
+            setTimeout(() => {
+                currentTarget++;
+                if (currentTarget < corePool.length) {
+                    buildPuzzleSession();
+                } else {
+                    generateFinalScoreboard();
+                }
+            }, 2500);
+        }
+
+        function generateFinalScoreboard() {
+            clearInterval(countdownTimerId);
+            switchTerminalView('screen-results');
+            document.getElementById('final-score').innerText = `${successfulTermsCracked}/${corePool.length}`;
+            
+            const totalRatio = (successfulTermsCracked / corePool.length) * 100;
+            let outputEvaluationText = "";
+            
+            if (totalRatio >= 75) {
+                outputEvaluationText = "Good job! Mainframe fully restored. Excellent execution.";
+            } else if (totalRatio >= 40) {
+                outputEvaluationText = "Review this chapter and try again. System interference detected.";
+            } else {
+                outputEvaluationText = "Let’s practise more. Database interface dropped.";
+            }
+            
+            document.getElementById('evaluation-label').innerText = outputEvaluationText;
+        }
+
+        function restartCore() {
+            startCracking();
+        }
+
+        function toggleSoundSystem() {
+            activelyMuted = !activelyMuted;
+            document.getElementById('sound-btn').innerText = activelyMuted ? "🔇" : "🔊";
+        }
+
+        function playLocalSound(targetId) {
+            if (activelyMuted) return;
+            const targetAudio = document.getElementById(targetId);
+            if (targetAudio) {
+                targetAudio.currentTime = 0;
+                targetAudio.play().catch(() => {});
+            }
+        }
+
+        function spawnBurst() {
+            const displaySurface = document.getElementById('particle-canvas');
+            const context = displaySurface.getContext('2d');
+            displaySurface.width = displaySurface.parentElement.offsetWidth;
+            displaySurface.height = displaySurface.parentElement.offsetHeight;
+            
+            let nodes = [];
+            for (let x = 0; x < 25; x++) {
+                nodes.push({
+                    posX: displaySurface.width / 2,
+                    posY: displaySurface.height / 2.2,
+                    mX: (Math.random() - 0.5) * 6,
+                    mY: (Math.random() - 0.5) * 6 - 2,
+                    hex: '#38bdf8',
+                    alpha: 1
+                });
+            }
+            
+            function animateLoop() {
+                context.clearRect(0, 0, displaySurface.width, displaySurface.height);
+                let processing = false;
+                nodes.forEach(node => {
+                    node.posX += node.mX;
+                    node.posY += node.mY;
+                    node.alpha -= 0.03;
+                    if (node.alpha > 0) {
+                        processing = true;
+                        context.fillStyle = node.hex;
+                        context.globalAlpha = node.alpha;
+                        context.fillRect(node.posX, node.posY, 4, 4);
+                    }
+                });
+                if (processing) requestAnimationFrame(animateLoop);
+            }
+            animateLoop();
+        }
+    </script>
+</body>
+</html>
