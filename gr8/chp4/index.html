@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cloud Command 3D: Cyber Progression Edition</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        :root {
+            --tech-cyan: #06b6d4;
+            --tech-blue: #3b82f6;
+            --tech-dark-blue: #1e3a8a;
+            --success-green: #10b981;
+            --error-pink: #ef4444;
+            --bg-light: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-light);
+            background-image: linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-frame {
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            max-height: 850px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        @media (min-width: 501px) {
+            #game-frame {
+                height: 94vh;
+                border-radius: 24px;
+                box-shadow: 0 25px 50px -12px rgba(6, 182, 212, 0.25);
+            }
+        }
+
+        /* Mandatory Branding Screen Overlay (5 Seconds Strict Lifecycle) */
+        #branding-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: all;
+            transition: opacity 0.5s ease;
+        }
+        #branding-overlay img {
+            max-width: 180px;
+            height: auto;
+            margin-bottom: 24px;
+        }
+        .loader-track {
+            width: 180px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .loader-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--tech-cyan);
+            transform: translateX(-100%);
+            animation: fillingBar 4.5s linear forwards;
+        }
+        @keyframes fillingBar { to { transform: translateX(0); } }
+
+        /* Audio Toggle Button Widget */
+        .audio-toggle-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+
+        /* Screen Setup */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 10;
+        }
+        .screen.active { display: flex; }
+
+        h1 { font-size: 28px; font-weight: 800; text-align: center; color: var(--tech-dark-blue); margin-top: 20px; }
+        h2 { font-size: 13px; font-weight: 700; text-align: center; color: var(--tech-cyan); margin-bottom: 16px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        .level-badge {
+            background: linear-gradient(135deg, var(--tech-dark-blue) 0%, var(--tech-blue) 100%);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
+            align-self: center;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        }
+
+        .meta-container {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .meta-row:last-child { border-bottom: none; }
+        .meta-label { color: var(--text-muted); }
+        .meta-value { font-weight: 700; color: var(--text-main); }
+
+        .intro-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            width: 100%;
+            min-height: 54px;
+            background: linear-gradient(135deg, var(--tech-cyan) 0%, var(--tech-blue) 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+            transition: all 0.2s ease;
+            margin-top: auto;
+        }
+        .btn:disabled {
+            background: #cbd5e1 !important;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Gameplay Frame HUD */
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .hud-chip { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+        .hud-score { background: #e0f2fe; color: var(--tech-blue); padding: 4px 14px; border-radius: 20px; }
+        
+        .timer-container {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--tech-cyan), var(--tech-blue));
+            transform-origin: left center;
+            transition: transform 0.1s linear, background-color 0.3s;
+        }
+
+        /* Catchy Neon 3D Viewport Simulation Area */
+        .viewport-3d {
+            flex: 1;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            border: 2px solid var(--tech-cyan);
+            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 16px;
+            perspective: 400px;
+            box-shadow: inset 0 0 30px rgba(6, 182, 212, 0.4), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .cyber-grid {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image: 
+                linear-gradient(rgba(6, 182, 212, 0.15) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.15) 2px, transparent 2px);
+            background-size: 40px 40px;
+            transform: rotateX(65deg);
+            transform-origin: center center;
+            animation: gridScroll 4s linear infinite;
+        }
+        @keyframes gridScroll {
+            0% { transform: rotateX(65deg) translateY(0); }
+            100% { transform: rotateX(65deg) translateY(40px); }
+        }
+
+        .neon-glow-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(65deg);
+            width: 260px;
+            height: 260px;
+            border: 2px dashed rgba(6, 182, 212, 0.4);
+            border-radius: 50%;
+            animation: rotateRing 15s linear infinite;
+        }
+        @keyframes rotateRing { to { transform: translate(-50%, -50%) rotateX(65deg) rotate(360deg); } }
+
+        .data-hub-3d {
+            position: absolute;
+            top: 32%;
+            left: 10%;
+            width: 80%;
+            height: 38%;
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid var(--tech-cyan);
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.6);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            text-align: center;
+            animation: catchyFloat 2.5s ease-in-out infinite alternate;
+        }
+        @keyframes catchyFloat {
+            from { transform: translateY(0px) scale(0.98); }
+            to { transform: translateY(-8px) scale(1.02); }
+        }
+        .hub-title { font-size: 11px; color: var(--tech-blue); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .hub-node-name { font-size: 16px; font-weight: 800; color: #020617; line-height: 1.3; }
+
+        /* Grid Controls Buttons Panels */
+        .grid-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .ctrl-btn {
+            min-height: 54px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 16px;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            text-align: center;
+            line-height: 1.2;
+        }
+        .ctrl-btn:active { background: #ecfeff; border-color: var(--tech-cyan); }
+        .ctrl-btn span { font-size: 10px; color: var(--text-muted); font-weight: normal; margin-top: 3px; display: block; }
+
+        /* Learning Focused Feedback Modals */
+        .feedback-overlay-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(248, 250, 252, 0.98);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+        .status-header { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+        .status-header.success { color: var(--success-green); }
+        .status-header.fail { color: var(--error-pink); }
+        
+        .feedback-explanation { 
+            font-size: 14px; 
+            color: var(--text-main); 
+            line-height: 1.6; 
+            margin-bottom: 24px; 
+            text-align: left; 
+            background: #ffffff; 
+            padding: 16px; 
+            border-radius: 12px; 
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid var(--tech-blue); 
+        }
+
+        .sparkler-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: blastOut 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        @keyframes blastOut {
+            0% { transform: translate(0,0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--cx), var(--cy)) scale(0); opacity: 0; }
+        }
+
+        .badge-icon { font-size: 64px; text-align: center; margin: 16px 0; }
+        .summary-header { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 6px; color: var(--tech-dark-blue); }
+        .summary-desc { font-size: 14px; text-align: center; color: var(--text-muted); margin-bottom: 24px; padding: 0 10px; }
+    </style>
+</head>
+<body>
+
+    <audio id="sound-game-music" src="https://upload.wikimedia.org/wikipedia/commons/3/34/Beat_the_Competition.mp3" preload="auto" loop></audio>
+    <audio id="sound-right" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="game-frame">
+        
+        <div id="branding-overlay">
+            <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="handleLogoError(this);">
+            <div class="loader-track">
+                <div class="loader-bar"></div>
+            </div>
+        </div>
+
+        <button class="audio-toggle-btn" id="audio-toggle-widget" aria-label="Toggle Sounds">
+            <svg id="svg-on" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+            <svg id="svg-off" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" style="display:none;"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        </button>
+
+        <div class="screen active" id="screen-intro">
+            <h1>Cloud Command 3D</h1>
+            <h2>Matrix Security Role-Play</h2>
+            <div class="level-badge" id="lbl-intro-current-level">Target Node: Level 1</div>
+
+            <div class="meta-container">
+                <div class="meta-row"><span class="meta-label">User Clearance</span><span class="meta-value">Grade 8 Student</span></div>
+                <div class="meta-row"><span class="meta-label">Subject Framework</span><span class="meta-value">ICT Module</span></div>
+                <div class="meta-row"><span class="meta-label">Matrix Node Chapter</span><span class="meta-value">Chapter 4: Cloud Computing</span></div>
+                <div class="meta-row"><span class="meta-label">Level Configuration</span><span class="meta-value">3 Directives Per Level</span></div>
+            </div>
+
+            <p class="intro-text" id="lbl-level-intro-desc">
+                Welcome to Level 1. Map each item payload to its correct cloud repository category. You must achieve at least 75% accuracy to bypass firewalls and unlock higher levels!
+            </p>
+
+            <button class="btn" id="btn-start-quest" disabled>Initializing Systems (5s)...</button>
+        </div>
+
+        <div class="screen" id="screen-gameplay">
+            <div class="hud-top">
+                <span class="hud-chip" id="lbl-task-progress">Processing Node 1 of 3</span>
+                <span class="hud-chip hud-score" id="lbl-hud-score">Secure Actions: 0</span>
+            </div>
+
+            <div class="timer-container">
+                <div class="timer-bar" id="ui-timer-countdown"></div>
+            </div>
+
+            <div class="viewport-3d" id="viewport-canvas-frame">
+                <div class="cyber-grid"></div>
+                <div class="neon-glow-ring"></div>
+
+                <div class="data-hub-3d" id="active-hub-terminal">
+                    <div class="hub-title" id="lbl-hub-classification">Incoming Data Pack</div>
+                    <div class="hub-node-name" id="lbl-hub-asset-title">Parsing Parameters...</div>
+                </div>
+            </div>
+
+            <p class="intro-text" style="text-align: center; font-size: 13px; margin-bottom: 12px; font-weight: 600;" id="lbl-mission-objective">
+                Map the item node to its correct cloud repository category:
+            </p>
+
+            <div class="grid-controls" id="container-control-matrix">
+                <button class="ctrl-btn" data-index="0" id="btn-opt-0">Category Alpha <span>Deploy Payload</span></button>
+                <button class="ctrl-btn" data-index="1" id="btn-opt-1">Category Beta <span>Deploy Payload</span></button>
+                <button class="ctrl-btn" data-index="2" id="btn-opt-2">Category Gamma <span>Deploy Payload</span></button>
+            </div>
+
+            <div class="feedback-overlay-modal" id="modal-feedback-pane">
+                <div class="status-header" id="lbl-feedback-verdict">Verification Verdict</div>
+                <div class="feedback-explanation" id="lbl-feedback-explanation" style="padding: 16px;">Review information logs here...</div>
+                <button class="btn" id="btn-feedback-advance">Advance Packet Stream</button>
+            </div>
+        </div>
+
+        <div class="screen" id="screen-results">
+            <h1 id="lbl-results-title">Level Assessment Concluded</h1>
+            <div class="badge-icon" id="lbl-res-badge">🏆</div>
+            <div class="summary-header" id="lbl-res-verdict">Evaluating Clearance Metrics...</div>
+            <div class="summary-desc" id="lbl-res-desc">Processing accurate routing thresholds...</div>
+
+            <div class="meta-container">
+                <div class="meta-row"><span class="meta-label">Elements Evaluated</span><span class="meta-value" id="lbl-summary-total">3</span></div>
+                <div class="meta-row"><span class="meta-label">Accurate Routing Actions</span><span class="meta-value" id="lbl-summary-correct" style="color: var(--success-green);">0</span></div>
+                <div class="meta-row"><span class="meta-label">Firewall Integrity Ratio</span><span class="meta-value" id="lbl-summary-percent">0%</span></div>
+            </div>
+
+            <button class="btn" id="btn-restart-simulation">Action Button</button>
+        </div>
+
+    </div>
+
+    <script>
+        /* FIXED: Every single question has a DIFFERENT correct answer layout per level */
+        const gameLevelsDataset = {
+            1: [ // LEVEL 1: BASE CLOUD METRICS & PROPERTIES
+                {
+                    item: "The 'Cloud' Metaphor Concept",
+                    category: "Google Drive Integrated Productivity Tools",
+                    explanation: "Chapter 4 notes that 'the cloud' is simply a metaphor for the internet. Storing data here lets you access files from any device while freeing up local space."
+                },
+                {
+                    item: "15GB Storage Capacity Allocation",
+                    category: "Uneditable Uploaded Files (Zip, Video, Audio)",
+                    explanation: "The textbook states that Google Drive assigns each user a baseline free quota of exactly 15 Gigabytes (15GB) to host personal backups and file records."
+                },
+                {
+                    item: "The Risk of Snooping on Transit Paths",
+                    category: "Cloud Data Storage Security Threats",
+                    explanation: "Snooping is explicitly highlighted in the textbook as a key security threat where unauthorized interceptors monitor and read information packets while moving over a network connection."
+                }
+            ],
+            2: [ // LEVEL 2: PRODUCTIVITY MODULE FEATURES
+                {
+                    item: "Google Forms Suite App Engine",
+                    category: "Google Drive Integrated Productivity Tools",
+                    explanation: "Google Forms operates as a web-based productivity application in Google Drive that handles real-time online questionnaire creation and automated data aggregation."
+                },
+                {
+                    item: "Deceptive Password-Theft Phishing Letters",
+                    category: "Cloud Data Storage Security Threats",
+                    explanation: "Phishing emails are dangerous threat vectors mentioned under cloud risk logs where fake communications trick accounts into exposing sensitive login metrics."
+                },
+                {
+                    item: "Compressed .zip Archives & Media Items",
+                    category: "Uneditable Uploaded Files (Zip, Video, Audio)",
+                    explanation: "The chapter outlines that files you cannot modify directly inside Google Drive—like zipped folders, music tracks, or video files—are treated as uneditable backups."
+                }
+            ],
+            3: [ // LEVEL 3: STRUCTURAL CLOUD THREAT MECHANICS
+                {
+                    item: "Data Leakage Exposure Hazards",
+                    category: "Cloud Data Storage Security Threats",
+                    explanation: "Data leakage is defined as a significant cloud hazard where internal or sensitive information accidentally becomes exposed or visible outside permitted circles."
+                },
+                {
+                    item: "Google Slides Collaborative Creator",
+                    category: "Google Drive Integrated Productivity Tools",
+                    explanation: "Google Slides operates as an integrated productivity program within Google Drive, built specifically for real-time multiplayer slide design and editing."
+                },
+                {
+                    item: "Raw Audio / MP3 Stream Playback Elements",
+                    category: "Uneditable Uploaded Files (Zip, Video, Audio)",
+                    explanation: "The textbook notes that uploaded mp3 tracks function as uneditable files that rely on continuous network streaming vectors to start playing during delivery cycles."
+                }
+            ]
+        };
+
+        const masterSectors = [
+            "Google Drive Integrated Productivity Tools",
+            "Cloud Data Storage Security Threats",
+            "Uneditable Uploaded Files (Zip, Video, Audio)"
+        ];
+
+        let currentActiveLevel = 1; 
+        let activeTaskIndex = 0;
+        let successfulActionsCount = 0;
+        let systemAudioMuted = false;
+        
+        let trackingCountdownValue = 45;
+        let runningTimerIntervalHandle = null;
+
+        const viewIntroScreen = document.getElementById('screen-intro');
+        const viewGameplayScreen = document.getElementById('screen-gameplay');
+        const viewResultsScreen = document.getElementById('screen-results');
+        
+        const actionBtnLaunch = document.getElementById('btn-start-quest');
+        const actionBtnAdvance = document.getElementById('btn-feedback-advance');
+        const actionBtnRestart = document.getElementById('btn-restart-simulation');
+        const actionBtnMuteToggle = document.getElementById('audio-toggle-widget');
+
+        const displayLabelAsset = document.getElementById('lbl-hub-asset-title');
+        const displayLabelProgress = document.getElementById('lbl-task-progress');
+        const displayLabelScore = document.getElementById('lbl-hud-score');
+        const visualTimerBarNode = document.getElementById('ui-timer-countdown');
+        
+        const blockFeedbackModal = document.getElementById('modal-feedback-pane');
+        const textFeedbackVerdict = document.getElementById('lbl-feedback-verdict');
+        const textFeedbackExplanation = document.getElementById('lbl-feedback-explanation');
+        
+        const viewportCanvas = document.getElementById('viewport-canvas-frame');
+        const audioGameMusic = document.getElementById('sound-game-music');
+        const soundRightNode = document.getElementById('sound-right');
+        const soundWrongNode = document.getElementById('sound-wrong');
+
+        function handleLogoError(imgElement) {
+            imgElement.style.display = 'none';
+            const textFallback = document.createElement('div');
+            textFallback.innerText = "INNOVINE";
+            textFallback.style.cssText = "font-size:32px; font-weight:900; color:var(--tech-cyan); letter-spacing:4px; margin-bottom:20px;";
+            imgElement.parentNode.insertBefore(textFallback, imgElement);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupActiveLevelIntroductionText();
+
+            document.body.addEventListener('touchstart', initializeBrowserAudioTrackPipe, { once: true });
+            document.body.addEventListener('click', initializeBrowserAudioTrackPipe, { once: true });
+
+            setTimeout(() => {
+                const overlayElement = document.getElementById('branding-overlay');
+                if(overlayElement) {
+                    overlayElement.style.opacity = '0';
+                    setTimeout(() => {
+                        overlayElement.remove();
+                        actionBtnLaunch.removeAttribute('disabled');
+                        actionBtnLaunch.innerText = "Begin Level Navigation";
+                    }, 500);
+                }
+            }, 5000);
+        });
+
+        function setupActiveLevelIntroductionText() {
+            document.getElementById('lbl-intro-current-level').innerText = `Target Node: Level ${currentActiveLevel}`;
+            const descriptionContainer = document.getElementById('lbl-level-intro-desc');
+            
+            if(currentActiveLevel === 1) {
+                descriptionContainer.innerHTML = `Welcome to <strong>Level 1: Cloud Basics & Space Metrics</strong>.<br>Identify baseline architectures, data server metaphors, and storage infrastructure parameters. Every question points to a different correct category! Reach 75% accuracy to unlock Level 2.`;
+            } else if (currentActiveLevel === 2) {
+                descriptionContainer.innerHTML = `Welcome to <strong>Level 2: Google Productivity Applications</strong>.<br>Sort active assets concerning web modules like Forms, uneditable backups, and identity phishing alerts. Reach 75% accuracy to unlock Level 3.`;
+            } else {
+                descriptionContainer.innerHTML = `Welcome to <strong>Level 3: Cloud Infrastructure Security Threats</strong>.<br>Analyze high-stakes risk matrices like structural leakage variables alongside productivity suite applications. Pass this final firewall sector to complete your mastery!`;
+            }
+        }
+
+        function initializeBrowserAudioTrackPipe() {
+            audioGameMusic.load();
+            soundRightNode.load();
+            soundWrongNode.load();
+        }
+
+        actionBtnLaunch.addEventListener('click', () => {
+            changeActiveDisplayView(viewGameplayScreen);
+            activeTaskIndex = 0;
+            successfulActionsCount = 0;
+            loadNextSecurityNode();
+            
+            if (!systemAudioMuted) {
+                audioGameMusic.volume = 0.25;
+                audioGameMusic.play().catch(err => console.log("Audio pipeline initialized inside user context stream."));
+            }
+        });
+
+        actionBtnRestart.addEventListener('click', () => {
+            const levelDatasetArray = gameLevelsDataset[currentActiveLevel];
+            const levelYieldPercent = (successfulActionsCount / levelDatasetArray.length) * 100;
+            
+            if (levelYieldPercent >= 75 && currentActiveLevel < 3) {
+                currentActiveLevel++;
+                setupActiveLevelIntroductionText();
+                changeActiveDisplayView(viewIntroScreen);
+            } else {
+                setupActiveLevelIntroductionText();
+                changeActiveDisplayView(viewIntroScreen);
+            }
+        });
+
+        actionBtnAdvance.addEventListener('click', () => {
+            blockFeedbackModal.style.display = 'none';
+            activeTaskIndex++;
+            const activeLevelDataList = gameLevelsDataset[currentActiveLevel];
+            
+            if (activeTaskIndex < activeLevelDataList.length) {
+                loadNextSecurityNode();
+            } else {
+                compileSimulationResults();
+            }
+        });
+
+        actionBtnMuteToggle.addEventListener('click', () => {
+            systemAudioMuted = !systemAudioMuted;
+            if(systemAudioMuted) {
+                document.getElementById('svg-on').style.display = 'none';
+                document.getElementById('svg-off').style.display = 'block';
+                audioGameMusic.pause();
+            } else {
+                document.getElementById('svg-on').style.display = 'block';
+                document.getElementById('svg-off').style.display = 'none';
+                audioGameMusic.play().catch(()=>{});
+            }
+        });
+
+        document.querySelectorAll('#container-control-matrix .ctrl-btn').forEach(buttonElement => {
+            buttonElement.addEventListener('click', (e) => {
+                if (blockFeedbackModal.style.display === 'flex') return;
+                const selectedIndex = parseInt(buttonElement.getAttribute('data-index'));
+                evaluateRoutingAction(selectedIndex);
+            });
+        });
+
+        function changeActiveDisplayView(targetViewNode) {
+            document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
+            targetViewNode.classList.add('active');
+        }
+
+        function startTaskCountdownTimer() {
+            clearInterval(runningTimerIntervalHandle);
+            trackingCountdownValue = 45;
+            visualTimerBarNode.style.transform = 'scaleX(1)';
+            visualTimerBarNode.style.backgroundColor = 'var(--tech-cyan)';
+
+            runningTimerIntervalHandle = setInterval(() => {
+                trackingCountdownValue--;
+                
+                let elapsedPercentage = trackingCountdownValue / 45;
+                visualTimerBarNode.style.transform = `scaleX(${elapsedPercentage})`;
+
+                if(trackingCountdownValue <= 15) {
+                    visualTimerBarNode.style.backgroundColor = 'var(--error-pink)';
+                }
+
+                if (trackingCountdownValue <= 0) {
+                    clearInterval(runningTimerIntervalHandle);
+                    evaluateRoutingAction(-1); 
+                }
+            }, 1000);
+        }
+
+        function loadNextSecurityNode() {
+            blockFeedbackModal.style.display = 'none';
+            const currentLevelPayloads = gameLevelsDataset[currentActiveLevel];
+            
+            displayLabelProgress.innerText = `Lvl ${currentActiveLevel} - Packet ${activeTaskIndex + 1} of ${currentLevelPayloads.length}`;
+            displayLabelScore.innerText = `Secure Actions: ${successfulActionsCount}`;
+
+            const activePayloadObject = currentLevelPayloads[activeTaskIndex];
+            displayLabelAsset.innerText = activePayloadObject.item;
+
+            masterSectors.forEach((sectorName, index) => {
+                const buttonWidget = document.getElementById(`btn-opt-${index}`);
+                if(buttonWidget) {
+                    buttonWidget.innerHTML = `${sectorName} <span>Execute Deployment Directive</span>`;
+                }
+            });
+
+            startTaskCountdownTimer();
+        }
+
+        function evaluateRoutingAction(selectedSectorIndex) {
+            clearInterval(runningTimerIntervalHandle);
+            const currentLevelPayloads = gameLevelsDataset[currentActiveLevel];
+            
+            const currentItemObject = currentLevelPayloads[activeTaskIndex];
+            const intendedTargetNameString = currentItemObject.category;
+            const chosenSectorNameString = masterSectors[selectedSectorIndex];
+            
+            let targetCheckMatched = (chosenSectorNameString === intendedTargetNameString);
+
+            if (selectedSectorIndex === -1) {
+                textFeedbackVerdict.innerText = "Security Timeline Expired";
+                textFeedbackVerdict.className = "status-header fail";
+                if (!systemAudioMuted) { soundWrongNode.play().catch(()=>{}); }
+            } else if (targetCheckMatched) {
+                successfulActionsCount++;
+                displayLabelScore.innerText = `Secure Actions: ${successfulActionsCount}`;
+                
+                textFeedbackVerdict.innerText = "Routing Protocol Validated";
+                textFeedbackVerdict.className = "status-header success";
+                
+                if (!systemAudioMuted) { soundRightNode.play().catch(()=>{}); }
+                trigger3DExplosiveSparklersEffect();
+            } else {
+                textFeedbackVerdict.innerText = "Configuration Override Error";
+                textFeedbackVerdict.className = "status-header fail";
+                
+                if (!systemAudioMuted) { soundWrongNode.play().catch(()=>{}); }
+            }
+
+            textFeedbackExplanation.innerHTML = `
+                <div style="margin-bottom:8px;">Analyzed Payload: <strong style="color:var(--text-main);">"${currentItemObject.item}"</strong></div>
+                <div style="margin-bottom:12px; font-weight:700; color:var(--tech-blue);">Correct Class: ${intendedTargetNameString}</div>
+                <div style="font-size:13px; border-top:1px solid #e2e8f0; padding-top:10px; color:var(--text-muted); font-weight:500;">${currentItemObject.explanation}</div>
+            `;
+
+            blockFeedbackModal.style.display = 'flex';
+        }
+
+        function trigger3DExplosiveSparklersEffect() {
+            const widthOffset = viewportCanvas.clientWidth / 2;
+            const heightOffset = viewportCanvas.clientHeight * 0.5;
+
+            for (let i = 0; i < 40; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'sparkler-particle';
+                drop.style.left = `${widthOffset}px`;
+                drop.style.top = `${heightOffset}px`;
+                
+                const randomHueRange = 170 + Math.random() * 60;
+                drop.style.background = `hsl(${randomHueRange}deg, 95%, 50%)`;
+
+                const angleVector = Math.random() * Math.PI * 2;
+                const distanceRadius = 30 + Math.random() * 110;
+                const projectedX = Math.cos(angleVector) * distanceRadius;
+                const projectedY = Math.sin(angleVector) * distanceRadius;
+
+                drop.style.setProperty('--cx', `${projectedX}px`);
+                drop.style.setProperty('--cy', `${projectedY}px`);
+
+                viewportCanvas.appendChild(drop);
+                setTimeout(() => drop.remove(), 800);
+            }
+        }
+
+        function compileSimulationResults() {
+            clearInterval(runningTimerIntervalHandle);
+            const activeLevelDataList = gameLevelsDataset[currentActiveLevel];
+            const finalYieldPercent = (successfulActionsCount / activeLevelDataList.length) * 100;
+            
+            document.getElementById('lbl-summary-total').innerText = activeLevelDataList.length;
+            document.getElementById('lbl-summary-correct').innerText = successfulActionsCount;
+            document.getElementById('lbl-summary-percent').innerText = `${Math.round(finalYieldPercent)}%`;
+
+            const resultsTitle = document.getElementById('lbl-results-title');
+            const badgeDisplay = document.getElementById('lbl-res-badge');
+            const verdictDisplay = document.getElementById('lbl-res-verdict');
+            const summaryDisplay = document.getElementById('lbl-res-desc');
+            
+            resultsTitle.innerText = `Level ${currentActiveLevel} Results`;
+
+            if (finalYieldPercent >= 75) {
+                badgeDisplay.innerText = "🏆";
+                verdictDisplay.innerText = "Good job";
+                verdictDisplay.style.color = "var(--success-green)";
+                
+                if (currentActiveLevel < 3) {
+                    summaryDisplay.innerText = `Fantastic! You cleared Level ${currentActiveLevel} requirements with perfect category variety. Tap below to prepare for Level ${currentActiveLevel + 1}.`;
+                    actionBtnRestart.innerText = `Unlock Level ${currentActiveLevel + 1}`;
+                } else {
+                    summaryDisplay.innerText = "Ultimate Mastery Sequence Achieved! You have flawlessly decoded all 3 distinct target zones across Chapter 4 cloud directories.";
+                    actionBtnRestart.innerText = "Re-Initialize Security Matrix";
+                    actionBtnRestart.onclick = function() { currentActiveLevel = 1; window.location.reload(); }
+                }
+            } else {
+                badgeDisplay.innerText = "🔄";
+                verdictDisplay.style.color = "var(--error-pink)";
+                actionBtnRestart.innerText = `Retry Level ${currentActiveLevel}`;
+                
+                if (finalYieldPercent >= 40) {
+                    verdictDisplay.innerText = "Review this chapter and try again";
+                    summaryDisplay.innerText = "Access security clearance blocked. You missed a few varied category matches on this grid structure. Review the material and re-authenticate!";
+                } else {
+                    verdictDisplay.innerText = "Let’s practise more";
+                    summaryDisplay.innerText = "Critical security alert. Low correlation integrity across your choices. Let's study the differences between tools, threats, and backups, then try again!";
+                }
+            }
+
+            changeActiveDisplayView(viewResultsScreen);
+        }
+    </script>
+</body>
+</html>
