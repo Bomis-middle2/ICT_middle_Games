@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Web Architect: Table Challenge</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; margin: 0; }
+        
+        /* Logo Screen */
+        #logo-screen { text-align: center; margin-top: 100px; }
+        
+        /* Centered Intro Screen */
+        #intro-screen { 
+            display: none; text-align: center; position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.9); 
+            padding: 40px; border-radius: 15px; width: 90%; max-width: 400px;
+        }
+
+        /* Game Screen with Background */
+        #game-container { 
+            display: none; background: url('assets/background.png') no-repeat center center fixed; 
+            background-size: cover; padding: 20px; border-radius: 10px; 
+        }
+
+        #toolbox { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        #workspace { min-height: 120px; border: 2px solid #333; padding: 15px; margin-bottom: 10px; background: #fff; font-family: monospace; white-space: pre-wrap; }
+        #preview { min-height: 120px; border: 2px dashed #007bff; padding: 15px; background: #f9f9f9; }
+        #error-msg { color: #d9534f; font-weight: bold; margin-bottom: 10px; min-height: 20px; }
+        #result-msg { font-weight: bold; margin-top: 10px; font-size: 1.2em; color: #333; }
+        
+        button { padding: 12px 20px; cursor: pointer; border: 1px solid #ccc; background: #eee; font-size: 16px; }
+        button:hover { background: #ddd; }
+    </style>
+</head>
+<body>
+
+    <div id="logo-screen">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" style="max-width: 300px;">
+    </div>
+
+    <div id="intro-screen">
+        <h1>HTML Web Architect</h1>
+        <p><strong>Grade:</strong> 8</p>
+        <p><strong>Subject:</strong> ICT</p>
+        <p><strong>Topic:</strong> Advanced HTML (Tables)</p>
+        <p><strong>Number of questions:</strong> 1</p>
+        <button onclick="showGame()" style="font-weight: bold; background: #007bff; color: white;">Start Game</button>
+    </div>
+
+    <div id="game-container">
+        <h2>Table Challenge: Build a table with 1 header row (2 columns) and 2 data rows (2 columns each)</h2>
+        <p><strong>Note:</strong> Click the appropriate tags in sequence.</p>
+        
+        <div id="error-msg"></div>
+
+        <div id="toolbox">
+            <button onclick="addTag('<html>')">&lt;html&gt;</button>
+            <button onclick="addTag('</html>')">&lt;/html&gt;</button>
+            <button onclick="addTag('<body>')">&lt;body&gt;</button>
+            <button onclick="addTag('</body>')">&lt;/body&gt;</button>
+            <button onclick="addTag('<table border=1>')">&lt;table&gt;</button>
+            <button onclick="addTag('</table>')">&lt;/table&gt;</button>
+            <button onclick="addTag('<tr>')">&lt;tr&gt;</button>
+            <button onclick="addTag('</tr>')">&lt;/tr&gt;</button>
+            <button onclick="addTag('<th>Header</th>')">&lt;th&gt;</button>
+            <button onclick="addTag('<td>Data</td>')">&lt;td&gt;</button>
+            <button onclick="clearWorkspace()" style="background: #f8d7da;">Clear Workspace</button>
+        </div>
+
+        <div id="workspace"></div>
+
+        <button onclick="compileCode()" style="background: #28a745; color: white; font-weight: bold;">Compile & Render</button>
+
+        <h3>Live Browser Preview:</h3>
+        <div id="preview"></div>
+
+        <div id="result-msg"></div>
+    </div>
+
+    <script>
+        let codeBuffer = [];
+        const errorDiv = document.getElementById('error-msg');
+        const resultDiv = document.getElementById('result-msg');
+
+        window.onload = function() {
+            setTimeout(function() {
+                document.getElementById('logo-screen').style.display = 'none';
+                document.getElementById('intro-screen').style.display = 'block';
+            }, 5000);
+        };
+
+        function showGame() {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+        }
+
+        function addTag(tag) {
+            codeBuffer.push(tag);
+            document.getElementById('workspace').innerText = codeBuffer.join('\n');
+        }
+
+        function clearWorkspace() {
+            codeBuffer = [];
+            document.getElementById('workspace').innerText = "";
+            document.getElementById('preview').innerHTML = "";
+            errorDiv.innerText = "";
+            resultDiv.innerText = "";
+        }
+
+        function compileCode() {
+            errorDiv.innerText = "";
+            resultDiv.innerText = "";
+            const codeString = codeBuffer.join('');
+            
+            if (!codeBuffer.includes('<html>') || !codeBuffer.includes('</html>')) {
+                errorDiv.innerText = "Error: Every HTML program requires <html> tags.";
+                resultDiv.innerText = "Result: Let’s practise more";
+            } else if (!codeBuffer.includes('<table border=1>') || !codeBuffer.includes('</table>')) {
+                errorDiv.innerText = "Error: Ensure your table is properly defined.";
+                resultDiv.innerText = "Result: Review this chapter and try again";
+            } else {
+                document.getElementById('preview').innerHTML = codeString;
+                resultDiv.innerText = "Result: Good job";
+            }
+        }
+    </script>
+</body>
+</html>
