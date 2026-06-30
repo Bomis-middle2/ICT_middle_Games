@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Database Architect: MS Access Quest - Grade 6</title>
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Verdana,sans-serif;margin:0;padding:0;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;color:#0f172a;background:linear-gradient(180deg,#e0f2fe 0%,#e0e7ff 50%,#ccfbf1 100%);display:flex;justify-content:center;align-items:center}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.4;background:radial-gradient(circle at 10% 10%,rgba(99,102,241,.15),transparent 25%),radial-gradient(circle at 90% 80%,rgba(20,184,166,.15),transparent 25%),linear-gradient(90deg,rgba(99,102,241,.05) 1px,transparent 1px),linear-gradient(rgba(99,102,241,.05) 1px,transparent 1px);background-size:auto,auto,40px 40px,40px 40px}
+#root{width:100%;max-width:980px;height:100%;max-height:780px;display:flex;flex-direction:column;padding:clamp(10px,2vw,16px);gap:clamp(8px,1.4vh,12px);opacity:0;transition:opacity .5s ease;position:relative}
+
+/* Fixed Logo Splash Screen Layout */
+#logo-splash{position:fixed;inset:0;background:#ffffff;z-index:10005;display:flex;justify-content:center;align-items:center;opacity:1;transition:opacity .5s ease}
+#logo-splash img{max-width:320px;width:85%;height:auto;object-fit:contain;display:block}
+
+#splash{position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:opacity .5s ease;display:none}
+#splash h1{font-size:2rem;color:#4f46e5;font-weight:900;margin-bottom:10px}
+.loadbox{width:200px;height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin-top:10px}.loadfill{width:0%;height:100%;background:linear-gradient(90deg,#4f46e5,#14b8a6)}
+#intro{position:absolute;inset:0;background:rgba(243,244,246,.97);z-index:5000;display:flex;justify-content:center;align-items:center;padding:20px;text-align:center;border-radius:18px}
+.pop{background:#fff;border:3px solid #4f46e5;padding:clamp(20px,4vw,32px);border-radius:24px;box-shadow:0 20px 40px rgba(79,70,229,.15);max-width:560px}.pop h2{font-size:clamp(1.4rem,4vw,1.9rem);color:#4f46e5;font-weight:900;margin-bottom:14px}.pop p{font-size:clamp(.9rem,2.5vw,1.05rem);color:#475569;line-height:1.6;margin-bottom:24px}
+.top{display:flex;justify-content:space-between;gap:10px;color:#4338ca;font-weight:900;font-size:clamp(.9rem,2.4vw,1.05rem);background:rgba(255,255,255,.6);padding:8px 16px;border-radius:12px;border:1px solid #c7d2fe}
+
+/* Rebalanced Grid: Expanded Question Panel, Smaller Scene Panel */
+.grid{display:grid;grid-template-columns:1.4fr 0.8fr;gap:14px;min-height:0;flex:1}
+.panel{background:rgba(255,255,255,.92);border:2px solid #cbd5e1;border-radius:20px;padding:clamp(12px,2vw,16px);box-shadow:0 12px 28px rgba(15,23,42,.06);display:flex;flex-direction:column}
+.qpanel{gap:12px}
+.taskbox{background:#f5f3ff;border:2px solid #818cf8;border-radius:16px;padding:clamp(12px,2.2vw,16px);text-align:center;position:relative}.tag{font-size:clamp(.65rem,1.8vw,.75rem);letter-spacing:2px;text-transform:uppercase;color:#4f46e5;font-weight:900;margin-bottom:4px}.task覆{font-size:clamp(1rem,2.8vw,1.18rem);font-weight:800;color:#1e293b;line-height:1.4;margin-top:4px}.visual{font-size:clamp(1.8rem,6vw,2.5rem);line-height:1;margin-top:6px;color:#6366f1}
+.hint{font-size:clamp(.78rem,2.2vw,.92rem);font-weight:700;color:#64748b;text-align:center;line-height:1.35;margin-top:2px}
+.opts{display:grid;grid-template-columns:1fr;gap:8px;margin-top:auto;position:relative;z-index:10}.opt{border:2px solid #e2e8f0;background:#fff;border-radius:14px;padding:clamp(10px,2vw,13px) 12px;text-align:left;font-size:clamp(.85rem,2.4vw,.95rem);font-weight:700;color:#334155;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.02);transition:all .2s ease;position:relative;z-index:10}.opt.selected{background:#eff6ff;border-color:#3b82f6;color:#1d4ed8}.opt.correct{background:#ecfdf5!important;border-color:#10b981!important;color:#065f46!important}.opt.wrong{background:#fef2f2!important;border-color:#ef4444!important;color:#991b1b!important}
+.scene{position:relative;overflow:hidden;min-height:300px;padding:0;border-color:#a5b4fc;background:#fafafa}canvas{display:block;width:100%;height:100%}
+.status{font-size:clamp(.85rem,2.3vw,.98rem);font-weight:800;text-align:center;color:#475569;min-height:48px;line-height:1.4;padding:8px;background:rgba(255,255,255,.5);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:y-auto}
+.btn{width:100%;border:0;border-radius:14px;padding:clamp(12px,2.6vw,15px);background:linear-gradient(135deg,#4f46e5,#0d9488);color:#fff;font-size:clamp(.92rem,2.7vw,1.05rem);font-weight:900;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 16px rgba(79,70,229,.25);transition:all .2s ease}.btn:disabled{background:#cbd5e1;color:#64748b;box-shadow:none;cursor:not-allowed}
+.confetti{position:fixed;top:-10px;width:8px;height:8px;pointer-events:none;animation:fall 1.5s linear forwards}@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:0}}
+@media(max-width:768px){#root{max-width:520px;height:auto;max-height:none;overflow-y:auto}.grid{grid-template-columns:1fr;grid-template-rows:auto 1fr}.scene{min-height:220px}}
+@media(max-height:620px){#root{max-height:none;overflow-y:auto}.panel{padding:10px}.taskbox{padding:10px}.scene{min-height:180px}.opt{padding:8px}.btn{padding:10px}}
+</style>
+</head>
+<body>
+<audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+<audio id="s-claps" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+<div id="logo-splash">
+  <img src="assets/innovine-logo.png" alt="Innovine Logo">
+</div>
+
+<div id="splash">
+  <h1>DATABASE ARCHITECT</h1>
+  <div class="loadbox"><div id="fill" class="loadfill"></div></div>
+</div>
+
+<div id="root">
+  <div id="intro">
+    <div class="pop">
+      <h2>🗄️ MS Access Quest</h2>
+      <p>Become a Database Architect! Answer information technology challenges based on Chapter 9 to process data packets and build the perfect database schema.</p>
+      <button class="btn" onclick="closeIntro()">Start Quest</button>
+    </div>
+  </div>
+
+  <div class="top">
+    <span>Record Field: <span id="qnum">1</span>/10</span>
+    <span id="top-status">Score: 💾 <span id="score">0</span> MB</span>
+  </div>
+
+  <div class="grid">
+    <div class="panel qpanel">
+      <div class="taskbox">
+        <div class="tag" id="tag">Database Elements</div>
+        <div class="task" id="task">Loading...</div>
+        <div class="visual" id="visual">🗄️</div>
+      </div>
+      <div class="hint" id="hint">Select the best schema configuration.</div>
+      <div class="opts">
+        <button class="opt" id="o0" onclick="pick(0)">A</button>
+        <button class="opt" id="o1" onclick="pick(1)">B</button>
+        <button class="opt" id="o2" onclick="pick(2)">C</button>
+        <button class="opt" id="o3" onclick="pick(3)">D</button>
+      </div>
+    </div>
+
+    <div class="panel scene">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <button class="btn" id="go" onclick="executePacket()">Execute Data Packet</button>
+</div>
+
+<script>
+let canvas,ctx,current,chosen=0,choices=[],qIndex=0,score=0,locked=false;
+let packet={progress:0,moving:false,fail:false,success:false,timer:0,angle:0,target:0};
+let nodeLocked=[];
+let attempts=0;
+let drawFailText = false;
+
+const qs=[
+{tag:'Database Concept',q:'Simran wants to link student profiles, teacher details, and sports performance tables cleanly without messing up data duplicates. What should she build?',visual:'📁',ans:'A relational database with logically organized, connected tables.',w:['A single plain text document containing unstructured notes.','A spreadsheet containing completely separate, random text files.','A temporary cloud backup folder of browser bookmarks.'],exp:'A database tracks interrelated information collaboratively inside clean, linked structures.'},
+{tag:'System Software',q:'A school administrator needs a solution that dynamically manages structural connections, queries records, and automates input rules. What tool fits this exact description?',visual:'⚙️',ans:'Database Management System (DBMS)',w:['Computer Operating System (OS)','Word Processing Application','Standalone Graphical Presentation Software'],exp:'A DBMS handles complex structures, processing actions, and targeted query configurations.'},
+{tag:'Table Structure',q:'In a "Library" table layout, looking straight across a single line reveals Book_ID "B12", its title, author name, and date issued altogether. This row represents a:',visual:'☰',ans:'Record / Tuple',w:['Field / Attribute','Primary Key Indicator','Data Type Constraint'],exp:'A horizontal line containing all characteristics for a single item is a record or tuple.'},
+{tag:'Table Elements',q:'You are planning a "Student" table and decide to label column headers explicitly as First_Name, Contact_Number, and Grade. Each individual category header is a:',visual:'📋',ans:'Field',w:['Tuple Record','Target Sheet','Relational Diagram'],exp:'Columns represent structural properties known as fields, which isolate unique datatypes.'},
+{tag:'Data Types',q:'Karan wants MS Access to assign a completely unique number to each member automatically when they sign up, avoiding human typing errors. Which type should he pick?',visual:'🔢',ans:'AutoNumber',w:['Standard Number','Short Text','Currency Standard'],exp:'AutoNumber increments sequentially by 1 automatically whenever a new row is generated.'},
+{tag:'Unique Identifier',q:'Why is "Admission_Number" assigned as the identifying structural anchor instead of "Student_First_Name" in a school database platform?',visual:'🔑',ans:'Names can easily duplicate, but a Primary Key must strictly be unique and never null.',w:['Primary Keys only accept number formats.','Names require too much virtual memory storage.','MS Access cannot scan text characters.'],exp:'Primary Keys must hold totally unique data markers so records can be parsed accurately.'},
+{tag:'Access Window',q:'Aman opened his database but cannot find where his "Inventory" table and "Sales" forms are listed for quick launching. Where where should he navigate?',visual:'🧭',ans:'Navigation Pane',w:['Quick Access Command Ribbon','Status Information Footer Bar','Object View Selection Tabs'],exp:'The Navigation Pane shows all components such as tables, forms, and reports along the left edge.'},
+{tag:'Access Views',q:'If you are instructed to create a brand-new column named "Discount_Rate" and change its validation properties to "Percentage", which workspace must you open?',visual:'📐',ans:'Design View',w:['Datasheet View','PivotChart Panel','Layout Canvas'],exp:'Design View is where the actual table framework fields and criteria values are explicitly built.'},
+{tag:'Data Ingestion',q:'After designing the entire table layout framework, the manual data operator needs to start keying in actual participant names and ages into rows. They must switch to:',visual:'⌨️',ans:'Datasheet View',w:['Design View Workspace','Macro Development Editor','Relationship Blueprint Map'],exp:'Datasheet view displays the active tabular grid interface ready for row input operations.'},
+{tag:'Data Operations',q:'A store manager wishes to isolate and view only products priced over $50 while hiding all cheaper alternatives temporarily. What action achieves this?',visual:'🔍',ans:'Filtering Records',w:['Deleting Fields','Sorting Alpha-Numerically','Reconfiguring Structural Schemas'],exp:'Filtering separates specific rows matching target parameters while masking unrelated entries.'}
+];
+
+// Triggers the 5-second initial intro logo sequence, then shows and starts loading bar sequence
+setTimeout(() => {
+  let ls = document.getElementById('logo-splash');
+  if(ls) {
+    ls.style.opacity = '0';
+    setTimeout(() => {
+      ls.remove();
+      let s = document.getElementById('splash');
+      if(s) s.style.display = 'flex';
+      startLoadingAnimation();
+    }, 500);
+  }
+}, 5000);
+
+function startLoadingAnimation(){
+  let p=0;let sp=setInterval(()=> {
+   p+=4;document.getElementById('fill').style.width=p+'%';
+   if(p>=100){
+    clearInterval(sp);
+    let s=document.getElementById('splash');
+    s.style.opacity='0';
+    setTimeout(()=>{
+     s.remove();
+     document.getElementById('root').style.opacity='1';
+     init();
+    },400);
+   }
+  },80);
+}
+
+function init(){canvas=document.getElementById('canvas');ctx=canvas.getContext('2d');resize();window.addEventListener('resize',resize);nodeLocked=Array(qs.length).fill(false);loadQ();loop();}
+function resize(){let r=canvas.getBoundingClientRect();canvas.width=Math.max(200,Math.floor(r.width));canvas.height=Math.max(220,Math.floor(r.height));}
+function closeIntro(){let m=document.getElementById('intro');if(m)m.remove();}
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function loadQ(){
+ locked=false;current=qs[qIndex];attempts=0;drawFailText=false;
+ document.getElementById('qnum').innerText=qIndex+1;
+ document.getElementById('tag').innerText=current.tag;
+ document.getElementById('task').innerText=current.q;
+ document.getElementById('visual').innerText=current.visual || '🗄️';
+ document.getElementById('hint').innerText='Select the best schema configuration.';
+ document.getElementById('status').innerText='';
+ document.getElementById('status').style.color='#475569';
+ document.getElementById('top-status').innerHTML='Score: 💾 <span id="score">' + score + '</span> MB';
+ document.getElementById('top-status').style.color='#4338ca';
+ document.getElementById('go').disabled=false;
+ choices=shuffle([{text:current.ans,correct:true},...current.w.map(x=>({text:x,correct:false}))]);
+ for(let i=0;i<4;i++){let b=document.getElementById('o'+i);b.className='opt';b.innerText=String.fromCharCode(65+i)+'. '+choices[i].text;}
+ packet={progress:0,moving:false,fail:false,success:false,timer:0,angle:0,target:0};
+ pick(0);
+}
+
+function pick(i){if(packet.moving||packet.fail||locked)return;chosen=i;for(let k=0;k<4;k++)document.getElementById('o'+k).classList.toggle('selected',k===i);}
+
+function executePacket(){
+ if(packet.moving||packet.fail||locked)return;
+ packet.target=chosen;
+ document.getElementById('go').disabled=true;
+ packet.moving=true;
+ document.getElementById('status').innerText='Routing data packet to targeted table cluster...';
+ document.getElementById('status').style.color='#2563eb';
+}
+
+function update(){
+ packet.angle+=0.1;
+ if(packet.moving){packet.progress+=0.022;if(packet.progress>=1){packet.progress=1;packet.moving=false;check();}}
+ if(packet.fail){packet.timer++;packet.progress=Math.max(0,packet.progress-0.03);if(packet.timer>40){packet.fail=false;packet.timer=0;packet.progress=0;document.getElementById('go').disabled=false;}}
+}
+
+function check(){
+ let st=document.getElementById('status');
+ if(choices[chosen].correct){
+   drawFailText = false;
+   document.getElementById('s-correct').play().catch(()=>{});
+   score+=10;document.getElementById('score').innerText=score;
+   document.getElementById('o'+chosen).classList.add('correct');
+   st.innerText=(attempts > 0)?current.exp:'Success! '+current.exp;
+   st.style.color='#059669';
+   nodeLocked[qIndex]=true;packet.success=true;locked=true;confetti();
+   setTimeout(()=>{qIndex++;if(qIndex>=qs.length)finish();else loadQ();},2200);
+ }else{
+   document.getElementById('s-wrong').play().catch(()=>{});
+   document.getElementById('o'+chosen).classList.add('wrong');
+   attempts++;
+   
+   if(attempts===1){
+     drawFailText = true;
+     document.getElementById('hint').innerText='Hint: '+current.exp;
+     st.innerText='';
+     packet.fail=true;
+   }else{
+     for(let i=0;i<4;i++){
+       if(choices[i].correct){
+         document.getElementById('o'+i).classList.add('correct');
+       }
+     }
+     st.innerText='';
+     locked=true;
+     setTimeout(()=>{qIndex++;if(qIndex>=qs.length)finish();else loadQ();},2500);
+   }
+ }
+}
+
+function render(){
+   ctx.clearRect(0,0,canvas.width,canvas.height);
+   let w=canvas.width,h=canvas.height;
+   let bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#f8fafc');bg.addColorStop(1,'#e2e8f0');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+   
+   let cX=w*0.5,cY=h*0.25;
+   ctx.strokeStyle='#cbd5e1';ctx.lineWidth=4;
+   let targetY=h*0.75;
+   let slotXs=[w*0.15,w*0.38,w*0.62,w*0.85];
+   
+   ctx.beginPath();
+   for(let i=0;i<4;i++){ctx.moveTo(cX,cY);ctx.lineTo(slotXs[i],targetY);}
+   ctx.stroke();
+   
+   ctx.fillStyle='#4f46e5';ctx.beginPath();ctx.arc(cX,cY,20,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#ffffff';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('CORE',cX,cY+4);
+   
+   if(drawFailText){
+     ctx.fillStyle='#ef4444';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+     ctx.fillText('Routing Failed',cX,cY-26);
+   }
+   
+   for(let i=0;i<4;i++){
+     let isSel=(i===chosen);
+     let isSaved=(i===chosen && (packet.success||nodeLocked[qIndex])) || nodeLocked[i];
+     
+     ctx.lineWidth=isSel?3:1.5;
+     ctx.strokeStyle=isSel?(isSaved?'#10b981':'#3b82f6'):'#94a3b8';
+     ctx.fillStyle=isSaved?'#ecfdf5':(isSel?'#eff6ff':'#ffffff');
+     
+     roundRect(slotXs[i]-28,targetY-15,56,48,8,true,true);
+     
+     ctx.fillStyle=isSaved?'#065f46':'#334155';
+     ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('SLOT '+String.fromCharCode(65+i),slotXs[i],targetY+6);
+     
+     ctx.fillStyle='#64748b';ctx.font='8px sans-serif';
+     let txt=choices[i]?choices[i].text:'';
+     if(txt.length>8)txt=txt.substring(0,7)+'..';
+     ctx.fillText(txt,slotXs[i],targetY+22);
+   }
+   
+   let start={x:cX,y:cY};
+   let target={x:slotXs[packet.target],y:targetY-15};
+   let posX=start.x+(target.x-start.x)*packet.progress;
+   let posY=start.y+(target.y-start.y)*packet.progress;
+   
+   if(packet.moving||packet.fail||packet.success){
+     ctx.fillStyle=packet.fail?'#ef4444':(packet.success?'#10b981':'#3b82f6');
+     ctx.beginPath();ctx.arc(posX,posY,8,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle='#ffffff';ctx.lineWidth=1.5;ctx.stroke();
+   }
+   
+   if(packet.success){
+     ctx.fillStyle='#10b981';ctx.font='16px sans-serif';
+     ctx.fillText('✓',slotXs[packet.target],targetY-22);
+   }
+   if(packet.fail){
+     ctx.fillStyle='#ef4444';ctx.font='14px sans-serif';
+     ctx.fillText('⚠️',posX,posY-12);
+   }
+}
+
+function roundRect(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();if(fill)ctx.fill();if(stroke)ctx.stroke();}
+function loop(){update();render();requestAnimationFrame(loop);}
+function finish(){document.getElementById('root').innerHTML='<div class="pop" style="margin:auto;text-align:center"><h2>💾 Database Architecture Configured!</h2><p>Excellent job, Architect! You successfully populated all schema parameters.<br><b>Final Storage Capacity: '+score+' MB</b></p><button class="btn" onclick="location.reload()">Reboot Quest</button></div>';}
+function confetti(){for(let i=0;i<15;i++){let p=document.createElement('div');p.className='confetti';p.style.left=Math.random()*100+'vw';p.style.background=['#4f46e5','#10b981','#3b82f6','#facc15'][Math.floor(Math.random()*4)];document.body.appendChild(p);setTimeout(()=>p.remove(),1500);}}
+</script>
+</body>
+</html>
