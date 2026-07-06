@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Quest: Playzone Area</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --playzone-bg: #f0fdf4; 
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --accent: #f59e0b; 
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Prevents body from scrolling and keeps everything in frame */
+        body {
+            background-color: var(--playzone-bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        /* Fixed container that scales smoothly without overflowing the screen */
+        #playzone-container {
+            width: 100%;
+            max-width: 680px;
+            max-height: 94vh;
+            background: var(--card-bg);
+            border: 5px solid var(--primary); 
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 20px;
+            background-image: radial-gradient(var(--playzone-bg) 1px, transparent 0);
+            background-size: 20px 20px; 
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        #splash-screen img {
+            width: 50%;
+            max-width: 180px;
+            height: auto;
+            object-fit: contain;
+            animation: pulse 1.5s infinite;
+        }
+
+        #splash-screen p {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .zone-badge {
+            background-color: var(--accent);
+            color: white;
+            padding: 3px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 50px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .diff-tag {
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .diff-easy { background: #dcfce7; color: #16a34a; }
+        .diff-medium { background: #fef3c7; color: #d97706; }
+        .diff-difficult { background: #fee2e2; color: #dc2626; }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            max-width: 480px;
+            line-height: 1.4;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 250px;
+            box-shadow: 0 4px 0px var(--primary-dark); 
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px var(--primary-dark);
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px var(--primary-dark);
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            padding: 8px 16px;
+            background: var(--playzone-bg);
+            border-radius: 10px;
+            border: 2px dashed var(--primary);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
+        .hud-item span {
+            color: var(--primary);
+        }
+
+        #question-text {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            line-height: 1.4;
+            max-width: 500px;
+            font-weight: 700;
+        }
+
+        #hint-text {
+            font-size: 0.9rem;
+            color: var(--warning);
+            font-weight: 700;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            max-width: 500px;
+            width: 100%;
+            display: none; 
+        }
+
+        #input-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1.1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-main);
+            background-color: var(--playzone-bg);
+        }
+
+        .text-input:focus {
+            border-color: var(--primary);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        #answer-feedback {
+            font-size: 1.05rem;
+            font-weight: 800;
+            min-height: 24px;
+            margin-top: 2px;
+        }
+
+        .text-success { color: var(--secondary); }
+        .text-danger { color: var(--danger); }
+        .text-warning { color: var(--warning); }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.95; }
+            50% { transform: scale(1.04); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.95; }
+        }
+
+        #feedback-text {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        /* Responsive scaling down for smaller screens to eliminate scroll */
+        @media (max-width: 640px) {
+            #playzone-container {
+                padding: 16px 12px;
+                border-width: 4px;
+                border-radius: 16px;
+                max-height: 96vh;
+            }
+            h1 { font-size: 1.7rem; }
+            .subtitle { font-size: 0.95rem; margin-bottom: 18px; }
+            #question-text { font-size: 1rem; margin-bottom: 10px; }
+            .text-input { padding: 10px 14px; font-size: 1rem; }
+            .btn { padding: 10px 24px; font-size: 1rem; max-width: 220px; }
+            #hud { padding: 6px 12px; font-size: 0.85rem; margin-bottom: 12px; }
+            #hint-text { font-size: 0.8rem; padding: 4px 10px; margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="playzone-container">
+        
+        <div id="splash-screen" class="screen active">
+            <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('logo-placeholder').style.display='block';">
+            <div id="logo-placeholder" style="display:none; font-size: 2.3rem; font-weight: 900; color: var(--primary); margin-bottom: 15px;">INNOVINE</div>
+            <p>Entering the Computational Thinking Arena...</p>
+        </div>
+
+        <div id="menu-screen" class="screen">
+            <div class="zone-badge">CT PLAYZONE AREA</div>
+            <h1>CIRCUIT QUEST</h1>
+            <p class="subtitle">Put your logic to the test! Analyze loops, map grid coordinates, and compute electrical states.</p>
+            <button class="btn" onclick="startGame()">ENTER ARENA</button>
+        </div>
+
+        <div id="gameplay-screen" class="screen">
+            <div class="zone-badge">PLAYZONE ARENA</div>
+            <div id="difficulty-indicator" class="diff-tag">Easy</div>
+            <div id="hud">
+                <div class="hud-item">CHALLENGE: <span id="q-number">1/10</span></div>
+                <div class="hud-item">SCORE: <span id="score">0</span></div>
+            </div>
+            <div id="question-text">Loading puzzle...</div>
+            <div id="hint-text">💡 Hint placeholder</div>
+            
+            <div id="input-container">
+                <input type="text" id="user-answer" class="text-input" placeholder="Type answer here..." autocomplete="off">
+                <button class="btn" id="submit-btn" onclick="checkAnswer()">SUBMIT</button>
+                <div id="answer-feedback"></div>
+            </div>
+        </div>
+
+        <div id="end-screen" class="screen">
+            <div class="zone-badge">ZONE SCORE DECK</div>
+            <h1 id="feedback-text">Mission Complete!</h1>
+            <p class="subtitle" id="final-score-text">You earned 0 points.</p>
+            <button class="btn" onclick="resetGame()">PLAY AGAIN</button>
+        </div>
+
+    </div>
+
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        const ctQuestions = [
+            // --- 60% EASY QUESTIONS ---
+            {
+                difficulty: "easy",
+                clue: "A circuit is powered by a 10V battery and includes a resistor providing 2Ω of resistance. Applying Ohm's Law (I = V / R), how many Amperes of current flow through it?",
+                acceptedAnswers: ["5", "five", "5a", "5 amperes", "5 amps"],
+                hint: "Divide the voltage (10) by the resistance (2)."
+            },
+            {
+                difficulty: "easy",
+                clue: "If a circuit loop contains an accidental break or loose wire that leaves the pathway incomplete, what specific term describes this type of inactive state?",
+                acceptedAnswers: ["open circuit", "open"],
+                hint: "It is the opposite of a 'closed' circuit."
+            },
+            {
+                difficulty: "easy",
+                clue: "A breadboard row section has exactly 5 pinholes. If an engineer has already plugged 4 separate components into this row section, how many open spaces are left?",
+                acceptedAnswers: ["1", "one"],
+                hint: "Subtract the plugged components (4) from the total spaces available (5)."
+            },
+            {
+                difficulty: "easy",
+                clue: "An engineer wants to restrict an alternating layout so that current only passes in one single direction. What semiconductor device should they add?",
+                acceptedAnswers: ["diode"],
+                hint: "This component functions like a one-way street valve for electrical current."
+            },
+            {
+                difficulty: "easy",
+                clue: "You need a constant current of 2A to traverse a circuit linked up to a 4V power cell. Using Ohm's Law (R = V / I), how many Ohms of resistance are needed?",
+                acceptedAnswers: ["2", "two", "2 ohms", "2 Ω", "2ohm"],
+                hint: "Divide the total voltage (4V) by the target current (2A)."
+            },
+            {
+                difficulty: "easy",
+                clue: "What do we call a fully unbroken and continuous circuit path that allows electrical current to flow across its entire track smoothly?",
+                acceptedAnswers: ["closed circuit", "closed"],
+                hint: "It represents a complete connection path loop."
+            },
+            
+            // --- 30% MEDIUM QUESTIONS ---
+            {
+                difficulty: "medium",
+                clue: "A breadboard pinhole is indexed at grid coordinate 'b5'. If you trace directly downwards along that identical column by exactly 4 rows, what coordinate do you arrive at?",
+                acceptedAnswers: ["b9"],
+                hint: "Keep the letter 'b' exactly the same and add 4 to the row value 5."
+            },
+            {
+                difficulty: "medium",
+                clue: "In a series circuit containing three light bulbs on a single track, one bulb burns out. How many of the remaining bulbs will stay illuminated?",
+                acceptedAnswers: ["0", "none", "zero"],
+                hint: "In a series circuit, any broken bulb opens the entire path track."
+            },
+            {
+                difficulty: "medium",
+                clue: "In a parallel configuration, three bulbs are mounted on independent branch paths. If one branch path is cut entirely, how many bulbs will stay lit?",
+                acceptedAnswers: ["2", "two"],
+                hint: "The other branches still maintain complete independent loops."
+            },
+            
+            // --- 10% DIFFICULT QUESTION ---
+            {
+                difficulty: "difficult",
+                clue: "An engineer accidentally attaches a direct, low-resistance copper link from a battery's positive terminal directly into its negative terminal without any load. What dangerous circuit fault did they create?",
+                acceptedAnswers: ["short circuit", "short"],
+                hint: "It causes an uncontrolled high current spike by bypassing all circuit resistances."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedQuestions = [];
+        let canAnswer = true;
+        let attemptsCount = 0; 
+
+        const audioCorrect = document.getElementById('audio-correct');
+        const audioWrong = document.getElementById('audio-wrong');
+        const answerInput = document.getElementById('user-answer');
+        const feedbackDiv = document.getElementById('answer-feedback');
+        const hintBox = document.getElementById('hint-text');
+        const diffIndicator = document.getElementById('difficulty-indicator');
+
+        answerInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        setTimeout(() => {
+            switchScreen('menu-screen');
+        }, 5000);
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            selectedQuestions = [...ctQuestions];
+            switchScreen('gameplay-screen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            canAnswer = true;
+            attemptsCount = 0;
+            feedbackDiv.innerHTML = "";
+            hintBox.style.display = "none";
+            answerInput.value = "";
+            answerInput.disabled = false;
+            document.getElementById('submit-btn').disabled = false;
+            document.getElementById('submit-btn').innerText = "SUBMIT";
+            
+            const currentItem = selectedQuestions[currentQuestionIndex];
+            
+            diffIndicator.innerText = currentItem.difficulty;
+            diffIndicator.className = `diff-tag diff-${currentItem.difficulty}`;
+            
+            document.getElementById('q-number').innerText = `${currentQuestionIndex + 1}/${selectedQuestions.length}`;
+            document.getElementById('score').innerText = score;
+            document.getElementById('question-text').innerText = currentItem.clue;
+            
+            answerInput.focus();
+        }
+
+        function checkAnswer() {
+            if (!canAnswer) return;
+            
+            const userInput = answerInput.value.trim().toLowerCase();
+            if (userInput === "") return;
+            
+            const currentItem = selectedQuestions[currentQuestionIndex];
+            attemptsCount++;
+
+            if (currentItem.acceptedAnswers.includes(userInput)) {
+                canAnswer = false;
+                answerInput.disabled = true;
+                document.getElementById('submit-btn').disabled = true;
+                feedbackDiv.className = "text-success";
+                feedbackDiv.innerText = "⭐ EXCELLENT! CORRECT LOGIC! ⭐";
+                
+                score += (attemptsCount === 1) ? 10 : 5;
+                document.getElementById('score').innerText = score;
+                audioCorrect.play().catch(e => console.log("Audio exception handled"));
+
+                setTimeout(() => {
+                    advanceGame();
+                }, 2200);
+            } else {
+                if (attemptsCount === 1) {
+                    feedbackDiv.className = "text-warning";
+                    feedbackDiv.innerText = "❌ INCORRECT. TRY YOUR 2ND ATTEMPT!";
+                    hintBox.innerText = `💡 Hint: ${currentItem.hint}`;
+                    hintBox.style.display = "block";
+                    answerInput.value = "";
+                    answerInput.focus();
+                    document.getElementById('submit-btn').innerText = "RETRY SUBMIT";
+                    audioWrong.play().catch(e => console.log("Audio exception handled"));
+                } else {
+                    canAnswer = false;
+                    answerInput.disabled = true;
+                    document.getElementById('submit-btn').disabled = true;
+                    feedbackDiv.className = "text-danger";
+                    feedbackDiv.innerText = `🔍 OOPS! EXPECTED ANSWER: ${currentItem.acceptedAnswers[0].toUpperCase()}`;
+                    audioWrong.play().catch(e => console.log("Audio exception handled"));
+
+                    setTimeout(() => {
+                        advanceGame();
+                    }, 3000);
+                }
+            }
+        }
+
+        function advanceGame() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < selectedQuestions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            switchScreen('end-screen');
+            const mainFeedback = document.getElementById('feedback-text');
+            if (score === 100) {
+                mainFeedback.innerText = "Flawless Grandmaster! ⚡🏆";
+            } else if (score >= 70) {
+                mainFeedback.innerText = "Superb Problem Solving! 🔋✨";
+            } else {
+                mainFeedback.innerText = "Try Another Run! 🛠️🏅";
+            }
+            document.getElementById('final-score-text').innerText = `You finished the playzone with ${score} out of 100 points.`;
+        }
+
+        function resetGame() {
+            switchScreen('menu-screen');
+        }
+    </script>
+</body>
+</html>
