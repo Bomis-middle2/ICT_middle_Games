@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowchart Challenge</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 20px; }
+        
+        /* Attractive Screens */
+        .screen { 
+            display: none; padding: 40px 20px; max-width: 500px; margin: 50px auto; 
+            background: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        #logo-screen { display: block; background: #ffffff; }
+        #branding { width: 200px; }
+        
+        h1 { color: #4f46e5; }
+        .btn-main { 
+            background: linear-gradient(135deg, #4f46e5, #818cf8); color: white; 
+            padding: 15px 40px; border: none; border-radius: 50px; cursor: pointer; 
+            font-size: 18px; font-weight: bold; transition: 0.3s; margin-top: 20px;
+        }
+        .btn-main:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4); }
+        
+        .step-btn { display: block; width: 100%; margin: 10px auto; padding: 15px; background: #e0e7ff; color: #312e81; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .revealed { background: #22c55e !important; color: white; cursor: default; }
+        
+        #timer { font-size: 20px; color: #dc2626; font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="logo-screen" class="screen"><img id="branding" src="assets/innovine-logo.png" alt="Innovine Logo"></div>
+
+    <div id="intro-screen" class="screen">
+        <h1>Flowchart Challenge</h1>
+        <p><Strong>Subject:</strong> ICT</p>
+        <p><Strong>Chapter:</strong> 9</p>
+	<p><Strong>Topic:</strong> Algorithm and Flowchart</p>
+        <p>Master the logic of the <strong>Triangle Possibility</strong> flowchart.</p>
+        <p>You have <strong>60 seconds</strong> to order the steps correctly!</p>
+        <button class="btn-main" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="timer">Time Left: 60s</div>
+        <div id="game-area"></div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h1 id="result-msg"></h1>
+        <p id="final-score" style="font-size: 1.2em;"></p>
+        <button class="btn-main" onclick="location.reload()">Restart Game</button>
+    </div>
+
+    <script>
+        const correctSound = new Audio('assets/correct.mp3');
+        const wrongSound = new Audio('assets/wrong.mp3');
+        const steps = ["Start", "Input angles A, B, and C", "Calculate Sum = A + B + C", "Decision: Is Sum == 180?", "Yes: Display 'Triangle possible'", "No: Display 'Triangle not possible'", "Stop"];
+        
+        let userSequence = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+
+        window.onload = () => { setTimeout(() => { document.getElementById('logo-screen').style.display = 'none'; document.getElementById('intro-screen').style.display = 'block'; }, 5000); };
+
+        function startGame() {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            [...steps].sort(() => Math.random() - 0.5).forEach(step => {
+                const btn = document.createElement('button');
+                btn.className = 'step-btn';
+                btn.innerText = step;
+                btn.onclick = () => checkStep(step, btn);
+                document.getElementById('game-area').appendChild(btn);
+            });
+            timerInterval = setInterval(() => { timeLeft--; document.getElementById('timer').innerText = "Time Left: " + timeLeft + "s"; if (timeLeft <= 0) endGame(); }, 1000);
+        }
+
+        function checkStep(step, element) {
+            if (step === steps[userSequence]) {
+                correctSound.play();
+                score += Math.round(100 / steps.length);
+                element.innerText = "Step " + (userSequence + 1) + ": " + step;
+                element.classList.add('revealed');
+                userSequence++;
+                if (userSequence === steps.length) endGame();
+            } else { wrongSound.play(); }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('game-screen').style.display = 'none';
+            const resultScreen = document.getElementById('result-screen');
+            resultScreen.style.display = 'block';
+            let msg = score >= 75 ? "Good job!" : (score >= 40 ? "Review this chapter and try again." : "Let’s practise more.");
+            document.getElementById('result-msg').innerText = msg;
+            document.getElementById('final-score').innerText = "Final Score: " + score + "%";
+        }
+    </script>
+</body>
+</html>
