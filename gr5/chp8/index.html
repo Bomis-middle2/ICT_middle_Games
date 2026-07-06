@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Mine | G5 ICT</title>
+    <style>
+        body { background: #1a1a1a; color: #fff; font-family: 'Verdana', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; font-size: 15px; }
+        
+        /* Logo Splash Screen */
+        #logo-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; z-index: 200; }
+        
+        /* Intro Screen */
+        #intro-screen { text-align: center; margin-top: 50px; max-width: 600px; }
+        .hidden { display: none !important; }
+        
+        /* Layout: Mines on left, Qs in middle, Progress on right */
+        .game-layout { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 20px; width: 100%; max-width: 1000px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(2, 70px); gap: 10px; width: 160px; }
+        .tile { aspect-ratio: 1 / 1; background: #2c3e50; border: 2px solid #f1c40f; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; font-weight: bold; }
+        .tile.disabled { background: #555; cursor: not-allowed; border-color: #7f8c8d; }
+        
+        #mining-box { display: none; border: 5px double #f1c40f; padding: 25px; width: 400px; background: #34495e; text-align: center; }
+        
+        #sidebar { width: 200px; border: 1px solid #fff; padding: 15px; }
+        
+        .option-btn { display: block; width: 100%; margin: 10px 0; padding: 15px; cursor: pointer; background: #1a1a1a; color: white; border: 1px solid #f1c40f; font-size: 0.9rem; }
+        button#start-btn { padding: 15px 30px; font-size: 1.1rem; background: #f1c40f; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="logo-screen"><img src="assets/innovine-logo.png" alt="Logo" style="max-width: 60%;"></div>
+
+    <div id="intro-screen" class="hidden">
+        <h1>Digital Mine</h1>
+        <h3>Grade: 5 | Subject: ICT | Topic: Chapter 8 - Google Applications</h3>
+        <h3>Number of questions: 10</h3>
+        <div style="text-align: left; background: #2c3e50; padding: 20px; border-radius: 10px;">
+            <h4>How to Play:</h4>
+            <ul>
+                <li>Click on any numbered mine tile to reveal a question.</li>
+                <li>You have 2 attempts to choose the correct answer for each question.</li>
+                <li>Selecting the correct answer on your first try earns you a point.</li>
+                <li>Your progress will be tracked in the sidebar on the right.</li>
+            </ul>
+        </div>
+        <br>
+        <button id="start-btn" onclick="startMine()">START GAME</button>
+    </div>
+
+    <div id="game-ui" class="hidden">
+        <h1>DIGITAL MINE</h1>
+        <div class="game-layout">
+            <div id="grid" class="grid"></div>
+            <div id="mining-box">
+                <h3 id="question-text"></h3>
+                <div id="options-container"></div>
+            </div>
+            <div id="sidebar">
+                <h3>Progress</h3>
+                <ul id="log" style="font-size: 0.8rem;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <audio id="s-correct" src="assets/correct.mp3"></audio>
+    <audio id="s-wrong" src="assets/wrong.mp3"></audio>
+
+    <script>
+        const questions = [
+            { q: "Your teacher has posted a new research project. Where do you go to find the assignment instructions and submit your work?", o: ["Classroom", "Drive", "Keep", "Maps"], a: "Classroom" },
+            { q: "You are working on a project at school but want to finish it at home. Where must you save the file so it is accessible from any device?", o: ["Drive", "Chrome", "Meet", "Forms"], a: "Drive" },
+            { q: "You and a classmate are writing a group report. What feature allows you both to type in the same document at the same time?", o: ["Docs", "Slides", "Sheets", "Sites"], a: "Docs" },
+            { q: "You are sending an email to a guest speaker and need to include your teacher, but you don't want the speaker to see your teacher's email address. Which field do you use?", o: ["Bcc", "Cc", "Subject", "Body"], a: "Bcc" },
+            { q: "Your school is organizing a virtual meeting with an expert from another country. Which tool provides the best interface for this live video interaction?", o: ["Meet", "Gmail", "Keep", "Drive"], a: "Meet" },
+            { q: "You want to find out which fruit your classmates prefer for a healthy snack. What is the most efficient way to collect and visualize this data?", o: ["Forms", "Docs", "Slides", "Gmail"], a: "Forms" },
+            { q: "You are preparing a summary of your science experiment to show to the class. Which tool helps you display these points visually?", o: ["Slides", "Docs", "Sheets", "Forms"], a: "Slides" },
+            { q: "You want to open a web page to search for your project. Which tool allows to browse the data?", o: ["Keep", "Drive", "Meet", "Chrome"], a: "Chrome" },
+            { q: "You finish your work on a library computer. Why is it essential to click 'Sign out' before you walk away?", o: ["To protect your private data", "To restart the computer", "To speed up the internet", "To save battery"], a: "To protect your private data" },
+            { q: "You are ready to send your completed project to your teacher. What is the first step to open a new message window?", o: ["Compose", "Inbox", "Sent", "Drafts"], a: "Compose" }
+        ];
+
+        let score = 0, answered = 0;
+
+        setTimeout(() => {
+            document.getElementById('logo-screen').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+        }, 5000);
+
+        function startMine() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            const grid = document.getElementById('grid');
+            questions.forEach((item, i) => {
+                const div = document.createElement('div');
+                div.className = 'tile';
+                div.innerText = i + 1;
+                div.onclick = () => { if(!div.classList.contains('disabled')) showBox(i, div); };
+                grid.appendChild(div);
+            });
+        }
+
+        function showBox(idx, tile) {
+            document.getElementById('mining-box').style.display = 'block';
+            document.getElementById('question-text').innerText = questions[idx].q;
+            
+            let options = [...questions[idx].o];
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+
+            const cont = document.getElementById('options-container');
+            cont.innerHTML = '';
+            let attempts = 0;
+            options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'option-btn';
+                b.innerText = opt;
+                b.onclick = () => {
+                    attempts++;
+                    if(opt === questions[idx].a) {
+                        if(attempts === 1) score++;
+                        document.getElementById('s-correct').play();
+                        document.getElementById('log').innerHTML += `<li>Mine ${idx+1}: Correct ✅</li>`;
+                        closeAndFinish(tile);
+                    } else {
+                        document.getElementById('s-wrong').play();
+                        b.style.display = 'none';
+                        if(attempts >= 2) {
+                            document.getElementById('log').innerHTML += `<li>Mine ${idx+1}: Failed ❌</li>`;
+                            closeAndFinish(tile);
+                        }
+                    }
+                };
+                cont.appendChild(b);
+            });
+        }
+
+        function closeAndFinish(tile) {
+            tile.classList.add('disabled');
+            document.getElementById('mining-box').style.display = 'none';
+            answered++;
+            if(answered === 10) showResult();
+        }
+
+        function showResult() {
+            let percentage = (score / 10) * 100;
+            let msg = "";
+            if (percentage >= 75) msg = "Good job";
+            else if (percentage >= 40) msg = "Review this chapter and try again";
+            else msg = "Let’s practise more";
+            
+            document.body.innerHTML = `<h1>Final Score: ${score}/10 (${percentage}%)</h1><h2>${msg}</h2><button onclick="location.reload()" style="padding:20px 40px; font-size:1.5rem; cursor:pointer;">Restart Game</button>`;
+        }
+    </script>
+</body>
+</html>
