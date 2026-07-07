@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 8: App Development - Interactive Game</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --container-bg: #ffffff;
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --accent-hover: #1d4ed8;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --error: #ef4444;
+            --error-bg: #fef2f2;
+            --text: #334155;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        #game-container {
+            background: var(--container-bg);
+            width: 100%;
+            max-width: 680px;
+            border-radius: 24px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            min-height: 540px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        /* Audio Control */
+        .audio-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: #f1f5f9;
+            color: var(--text);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 13px;
+            z-index: 10;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+        .audio-toggle:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+        }
+
+        /* Splash Screen overlay */
+        #splash-screen {
+            position: absolute;
+            top:0; left:0; width:100%; height:100%;
+            background: #ffffff;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #splash-screen img {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            margin-bottom: 24px;
+        }
+
+        .loader-bar {
+            width: 180px;
+            height: 6px;
+            background: #f1f5f9;
+            border-radius: 9999px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .loader-progress {
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            animation: load 5s linear forwards;
+        }
+        @keyframes load {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Intro Screen */
+        #intro-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-grow: 1;
+            padding-top: 20px;
+        }
+
+        .meta-tag {
+            background: #eff6ff;
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            color: var(--text-light);
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 32px;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 32px;
+            font-size: 15px;
+            width: 100%;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+            width: 100%;
+            max-width: 260px;
+            touch-action: manipulation;
+        }
+        .btn:hover { 
+            background: #1e293b; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Score Tracker */
+        #score-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 20px;
+            letter-spacing: 0.02em;
+        }
+
+        /* Game Screens */
+        .game-stage { display: none; flex-direction: column; flex-grow: 1; }
+        .game-stage.active { display: flex; }
+
+        .instruction {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* Dynamic Game Layout Elements */
+        .drop-zone-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .drop-row {
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 16px;
+            min-height: 90px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            gap: 10px;
+        }
+        .drop-row:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+        .drop-row.selected-target {
+            border-color: var(--accent);
+            background: #eff6ff;
+            border-style: solid;
+        }
+
+        .drop-label {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--primary);
+            letter-spacing: -0.01em;
+        }
+
+        .drop-slot {
+            width: 100%;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            background: transparent;
+        }
+
+        .options-pool {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: auto;
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            min-height: 90px;
+            align-items: stretch;
+        }
+
+        .token {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 12px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02);
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            line-height: 1.4;
+            touch-action: manipulation;
+        }
+        .token:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(15, 23, 42, 0.05);
+        }
+        .token.selected-token {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Placed state inside drop slots */
+        .placed-item {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            width: 100%;
+            line-height: 1.4;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+            animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Feedback UI */
+        .feedback-box {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .feedback-box.info { background: #f0fdfa; color: #0f766e; display: block; border: 1px solid #ccfbf1; }
+        .feedback-box.error { background: var(--error-bg); color: #b91c1c; display: block; border: 1px solid #fee2e2; }
+        .feedback-box.success { background: var(--success-bg); color: #047857; display: block; border: 1px solid #d1fae5; }
+
+        .action-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Summary results */
+        .summary-card {
+            text-align: center;
+            padding: 20px 10px;
+        }
+        .score-big {
+            font-size: 56px;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 24px 0;
+            letter-spacing: -0.03em;
+        }
+        .result-msg {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: var(--text);
+        }
+
+        /* Confetti Overlay */
+        #confetti-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        /* Media Queries for Tablets and Desktop view adjustments */
+        @media (min-width: 520px) {
+            #game-container {
+                padding: 40px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            .drop-row {
+                flex-direction: row;
+                align-items: center;
+                min-height: 76px;
+                gap: 20px;
+                padding: 14px 20px;
+            }
+            .drop-label {
+                width: 30%;
+                font-size: 15px;
+            }
+            .drop-slot {
+                width: 70%;
+            }
+            .options-pool {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                padding: 20px;
+            }
+            .token {
+                width: auto;
+            }
+            .placed-item {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <button class="audio-toggle" id="audio-btn" onclick="toggleMute()">🔊 Mute</button>
+        <canvas id="confetti-canvas"></canvas>
+
+        <div id="splash-screen">
+            <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('alt-logo').style.display='block';">
+            <h2 id="alt-logo" style="display:none; color: var(--primary); font-weight:800; margin-bottom:20px; letter-spacing:0.05em;">INNOVINE</h2>
+            <div class="loader-bar"><div class="loader-progress"></div></div>
+        </div>
+
+        <div id="intro-screen" style="display: none;">
+            <span class="meta-tag">Grade 7 • ICT</span>
+            <h1>Chapter 8: App Development</h1>
+            <h2>Interactive Knowledge Challenge</h2>
+            <div class="info-card">
+                <p><strong>Total Frameworks to Resolve:</strong> 3 Concepts</p>
+                <p style="margin-top: 8px; font-size: 14px; color: var(--text-light);">Master MIT App Inventor workflows by selecting configuration choices and linking them with their target destinations.</p>
+            </div>
+            <button class="btn" onclick="startGame()">Start Game</button>
+        </div>
+
+        <div id="play-screen" class="game-stage">
+            <div id="score-bar">
+                <div id="progress-indicator">Challenge 1 of 3</div>
+                <div id="score-display">Score: 0</div>
+            </div>
+
+            <div class="instruction" id="game-instruction">Match the concept to its correct development context.</div>
+
+            <div class="drop-zone-container" id="drop-zone-container">
+                </div>
+
+            <div class="options-pool" id="options-pool">
+                </div>
+
+            <div class="feedback-box" id="feedback-message"></div>
+
+            <div class="action-container">
+                <button class="btn" id="action-btn" onclick="evaluateSubmission()" style="display: none;">Submit Answer</button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="game-stage">
+            <div class="summary-card">
+                <h1>Challenge Complete!</h1>
+                <div class="score-big" id="final-score-view">0%</div>
+                <div class="result-msg" id="final-status-msg">Processing performance data...</div>
+                <button class="btn" onclick="resetGame()">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datasets meticulously pulled from the uploaded G7 Chapter 8 context
+        const gameData = [
+            {
+                instruction: "Match the App Development Guideline phase to its structural description:",
+                pairs: [
+                    { label: "Define Your Idea", choice: "Identify the problem, target audience, and feature list", hint: "Defining the idea checks what problem the app addresses and who its key consumers are." },
+                    { label: "Design & Develop", choice: "Create basic layouts and choose tools like MIT App Inventor", hint: "This stage outlines user interface arrangements before configuring block components." },
+                    { label: "Testing & Launch", choice: "Gather feedback from small external groups and deploy to stores", hint: "Testing handles code validation with external test cohorts prior to final marketplace release." }
+                ]
+            },
+            {
+                instruction: "Correlate the distinct panels found within the MIT App Inventor Designer Workspace:",
+                pairs: [
+                    { label: "Components Palette", choice: "Holds structural building elements like canvas, buttons, and text fields", hint: "The palette sits on the left side and offers layout or drawing items to drag over." },
+                    { label: "Viewer & Tree Panel", choice: "Gives a live interface representation and structural hierarchy tree view", hint: "The center viewer shows app interface physics, while the tree manages structural hierarchies." },
+                    { label: "Properties Panel", choice: "Adjusts component customization elements like size, color, and label strings", hint: "Properties sit on the right and update parameters like Height, Width, or PaintColor." }
+                ]
+            },
+            {
+                instruction: "Map live deployment options and code compilation techniques:",
+                pairs: [
+                    { label: "AI Companion", choice: "Syncs over standard Wi-Fi network protocols using a QR scan", hint: "AI Companion pairs real-time desktop revisions over matching wireless network nodes." },
+                    { label: "Emulator Mode", choice: "Spawns a mock virtual mobile interface on your computer window screen", hint: "Emulators offer mock digital environments on desktops without external hardware items." },
+                    { label: "APK Packaging", choice: "Builds a standalone application file that runs disconnected", hint: "Packaging creates independent files so apps persist when development instances close." }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let runningScore = 0;
+        let attemptsCount = 0;
+        let selectedTokenIndex = null;
+        let userAssignments = {}; 
+        let isMuted = false;
+        let animationFrameId = null;
+
+        const soundCorrect = new Audio('assets/correct.mp3');
+        const soundWrong = new Audio('assets/wrong.mp3');
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            document.getElementById('audio-btn').innerText = isMuted ? "🔇 Unmute" : "🔊 Mute";
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            if (type === 'correct') {
+                soundCorrect.currentTime = 0;
+                soundCorrect.play().catch(() => {});
+            } else if (type === 'wrong') {
+                soundWrong.currentTime = 0;
+                soundWrong.play().catch(() => {});
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    document.getElementById('intro-screen').style.display = 'flex';
+                }, 500);
+            }, 5000);
+        });
+
+        function startGame() {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('play-screen').classList.add('active');
+            currentQuestionIndex = 0;
+            runningScore = 0;
+            loadQuestion();
+        }
+
+        function clearConfetti() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function loadQuestion() {
+            clearConfetti();
+            attemptsCount = 0;
+            selectedTokenIndex = null;
+            userAssignments = {};
+            
+            const feedbackBox = document.getElementById('feedback-message');
+            feedbackBox.className = "feedback-box";
+            feedbackBox.style.display = "none";
+            document.getElementById('action-btn').style.display = "none";
+
+            const stepData = gameData[currentQuestionIndex];
+            document.getElementById('progress-indicator').innerText = `Challenge ${currentQuestionIndex + 1} of ${gameData.length}`;
+            document.getElementById('score-display').innerText = `Score: ${runningScore}`;
+            document.getElementById('game-instruction').innerText = stepData.instruction;
+
+            const targetContainer = document.getElementById('drop-zone-container');
+            targetContainer.innerHTML = '';
+            stepData.pairs.forEach(pair => {
+                const row = document.createElement('div');
+                row.className = 'drop-row';
+                row.onclick = () => selectTarget(pair.label);
+                row.setAttribute('data-label', pair.label);
+
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'drop-label';
+                labelDiv.innerText = pair.label;
+
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'drop-slot';
+                slotDiv.id = `slot-${btoa(pair.label).replace(/=/g, '')}`;
+                slotDiv.innerHTML = `<span style="color:#94a3b8; font-size:13px; font-weight:500;">Tap a choice below, then tap here</span>`;
+
+                row.appendChild(labelDiv);
+                row.appendChild(slotDiv);
+                targetContainer.appendChild(row);
+            });
+
+            const poolContainer = document.getElementById('options-pool');
+            poolContainer.innerHTML = '';
+            
+            let choices = stepData.pairs.map((p, idx) => ({ text: p.choice, origIdx: idx }));
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach((choice, index) => {
+                const token = document.createElement('div');
+                token.className = 'token';
+                token.innerText = choice.text;
+                token.id = `token-${index}`;
+                token.onclick = (e) => {
+                    e.stopPropagation();
+                    selectToken(index, choice.text);
+                };
+                poolContainer.appendChild(token);
+            });
+        }
+
+        function selectToken(index, text) {
+            const currentSelected = document.querySelector('.token.selected-token');
+            if (currentSelected) currentSelected.classList.remove('selected-token');
+
+            selectedTokenIndex = index;
+            document.getElementById(`token-${index}`).classList.add('selected-token');
+            document.querySelectorAll('.drop-row').forEach(row => row.classList.add('selected-target'));
+        }
+
+        function selectTarget(label) {
+            if (selectedTokenIndex === null) return;
+            
+            const tokenEl = document.getElementById(`token-${selectedTokenIndex}`);
+            const text = tokenEl.innerText;
+
+            userAssignments[label] = text;
+
+            const slotId = `slot-${btoa(label).replace(/=/g, '')}`;
+            document.getElementById(slotId).innerHTML = `<div class="placed-item">${text}</div>`;
+
+            tokenEl.style.visibility = 'hidden';
+
+            selectedTokenIndex = null;
+            document.querySelectorAll('.drop-row').forEach(row => row.classList.remove('selected-target'));
+            if (tokenEl.classList.contains('selected-token')) tokenEl.classList.remove('selected-token');
+
+            if (Object.keys(userAssignments).length === gameData[currentQuestionIndex].pairs.length) {
+                document.getElementById('action-btn').style.display = "block";
+            }
+        }
+
+        function evaluateSubmission() {
+            const stepData = gameData[currentQuestionIndex];
+            let mistakesCount = 0;
+            let criticalExplanation = "";
+
+            stepData.pairs.forEach(pair => {
+                if (userAssignments[pair.label] !== pair.choice) {
+                    mistakesCount++;
+                    criticalExplanation += `• <strong>${pair.label}</strong>: ${pair.hint}<br>`;
+                }
+            });
+
+            const feedbackBox = document.getElementById('feedback-message');
+
+            if (mistakesCount === 0) {
+                playSound('correct');
+                triggerConfetti(); 
+                runningScore += 10;
+                document.getElementById('score-display').innerText = `Score: ${runningScore}`;
+                feedbackBox.className = "feedback-box success";
+                feedbackBox.innerHTML = "<strong>Outstanding alignment!</strong> All App Inventor configurations are correct.";
+                proceedToNextStepDelay();
+            } else {
+                attemptsCount++;
+                playSound('wrong');
+                if (attemptsCount === 1) {
+                    feedbackBox.className = "feedback-box error";
+                    feedbackBox.innerHTML = "<strong>Mismatches identified.</strong> Check panel and deployment behaviors. <br><br><em>Try once again!</em> Elements have been reset to your selection tray.";
+                    resetCurrentTokens();
+                } else {
+                    feedbackBox.className = "feedback-box info";
+                    feedbackBox.innerHTML = `<strong>Concept Insights:</strong><br>${criticalExplanation}<br>Advancing workspace to the next stage context.`;
+                    showCorrectAnswersAndMove();
+                }
+            }
+        }
+
+        function resetCurrentTokens() {
+            document.getElementById('action-btn').style.display = "none";
+            userAssignments = {};
+            selectedTokenIndex = null;
+            
+            document.querySelectorAll('.drop-slot').forEach(slot => {
+                slot.innerHTML = `<span style="color:#94a3b8; font-size:13px; font-weight:500;">Tap a choice below, then tap here</span>`;
+            });
+            
+            document.querySelectorAll('.token').forEach(token => {
+                token.style.visibility = 'visible';
+                token.classList.remove('selected-token');
+            });
+        }
+
+        function showCorrectAnswersAndMove() {
+            document.getElementById('action-btn').style.display = "none";
+            const stepData = gameData[currentQuestionIndex];
+            
+            stepData.pairs.forEach(pair => {
+                const slotId = `slot-${btoa(pair.label).replace(/=/g, '')}`;
+                document.getElementById(slotId).innerHTML = `<div class="placed-item" style="border-color: var(--success); background: #f0fff4; color: #047857;">${pair.choice}</div>`;
+            });
+
+            document.querySelectorAll('.token').forEach(token => token.style.visibility = 'hidden');
+            proceedToNextStepDelay();
+        }
+
+        function proceedToNextStepDelay() {
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < gameData.length) {
+                    loadQuestion();
+                } else {
+                    displayFinalEvaluation();
+                }
+            }, 4500);
+        }
+
+        function displayFinalEvaluation() {
+            clearConfetti();
+            document.getElementById('play-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.add('active');
+
+            const maxAvailablePoints = gameData.length * 10;
+            const scoringRatio = (runningScore / maxAvailablePoints) * 100;
+            
+            document.getElementById('final-score-view').innerText = `${Math.round(scoringRatio)}%`;
+            
+            const msgEl = document.getElementById('final-status-msg');
+            if (scoringRatio >= 75) {
+                msgEl.innerText = "Good job! You've mastered app development flows.";
+                msgEl.style.color = "var(--success)";
+                triggerConfetti();
+            } else if (scoringRatio >= 40) {
+                msgEl.innerText = "Review this chapter and try again";
+                msgEl.style.color = "#b45309";
+            } else {
+                msgEl.innerText = "Let’s practice more with block code and designers";
+                msgEl.style.color = "var(--error)";
+            }
+        }
+
+        function resetGame() {
+            clearConfetti();
+            document.getElementById('result-screen').classList.remove('active');
+            document.getElementById('intro-screen').style.display = 'flex';
+        }
+
+        // Native dynamic canvas confetti engine
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            let particles = [];
+            for (let i = 0; i < 75; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 4 + 2,
+                    d: Math.random() * canvas.height,
+                    color: ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"][Math.floor(Math.random() * 5)],
+                    tilt: Math.random() * 8 - 4
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let processing = false;
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.lineWidth = p.r;
+                    ctx.strokeStyle = p.color;
+                    ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                    ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                    ctx.stroke();
+
+                    p.y += Math.random() * 2 + 2;
+                    p.x += Math.sin(p.d) * 0.5;
+                    
+                    if (p.y < canvas.height) {
+                        processing = true;
+                    }
+                });
+                if (processing) {
+                    animationFrameId = requestAnimationFrame(draw);
+                }
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>
