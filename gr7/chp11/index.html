@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>MS Access Database Learning Game</title>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e3a8a;
+      --accent: #14b8a6;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning-bg: #fff7ed;
+      --warning-text: #9a3412;
+      --text: #1f2937;
+      --muted: #64748b;
+      --card: #ffffff;
+      --border: #bfdbfe;
+      --soft-blue: #eff6ff;
+      --soft-teal: #ccfbf1;
+      --soft-green: #ecfdf5;
+      --soft-red: #fef2f2;
+      --soft-yellow: #fef9c3;
+      --shadow: 0 14px 34px rgba(30, 58, 138, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #bfdbfe 0, transparent 35%),
+        radial-gradient(circle at bottom right, #99f6e4 0, transparent 35%),
+        linear-gradient(135deg, #f8fafc, #ecfeff);
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    img,
+    video,
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app {
+      width: min(100%, 1040px);
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Splash Screen */
+    .splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(135deg, #ffffff, #eff6ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .splash img {
+      width: min(72%, 280px);
+      height: auto;
+      animation: logoFloat 1.8s ease-in-out infinite;
+    }
+
+    .splash p {
+      margin-top: 18px;
+      padding: 0 16px;
+      text-align: center;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: 0.3px;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+
+      50% {
+        transform: translateY(-8px) scale(1.03);
+      }
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 950;
+      color: var(--primary-dark);
+    }
+
+    .brand-mini span {
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .brand-mini img {
+      width: 44px;
+      height: auto;
+      flex: 0 0 auto;
+    }
+
+    .score-box {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: var(--soft-teal);
+      color: #115e59;
+      font-weight: 950;
+      white-space: nowrap;
+      border: 1px solid #5eead4;
+    }
+
+    .mute-btn {
+      min-height: 44px;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-weight: 950;
+      color: white;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      white-space: nowrap;
+    }
+
+    .screen,
+    .question-card,
+    .result-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    /*
+      Different introductory screen design:
+      This intro is not a simple stacked title layout.
+      It uses a dashboard-style hero with side cards, badges,
+      learning tiles, and a call-to-action panel.
+    */
+    .intro-dashboard {
+      padding: 0;
+      overflow: hidden;
+      border-radius: 30px;
+      background:
+        linear-gradient(135deg, rgba(30, 58, 138, 0.98), rgba(37, 99, 235, 0.94)),
+        radial-gradient(circle at top right, #14b8a6, transparent 40%);
+      color: white;
+      border: none;
+      box-shadow: var(--shadow);
+    }
+
+    .intro-hero {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 0;
+      min-height: 420px;
+    }
+
+    .intro-left {
+      padding: 34px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .chapter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 9px 14px;
+      margin-bottom: 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      font-weight: 950;
+      backdrop-filter: blur(8px);
+      overflow-wrap: anywhere;
+    }
+
+    .intro-title {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 1.08;
+      letter-spacing: -0.5px;
+      overflow-wrap: anywhere;
+    }
+
+    .subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .intro-dashboard .subtitle {
+      color: rgba(255, 255, 255, 0.86);
+      max-width: 680px;
+    }
+
+    .intro-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .intro-note {
+      margin: 0;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.45;
+      max-width: 430px;
+    }
+
+    .intro-right {
+      background: rgba(255, 255, 255, 0.12);
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .dashboard-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--primary-dark);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+    }
+
+    .dashboard-card-row {
+      margin-bottom: 12px;
+    }
+    
+    .dashboard-card-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .dashboard-card small {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.78rem;
+    }
+
+    .dashboard-card strong {
+      display: block;
+      font-size: 1.15rem;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .learning-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 0 34px 34px;
+    }
+
+    .learning-tile {
+      min-width: 0;
+      padding: 15px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--primary-dark);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .learning-tile span {
+      display: block;
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+
+    .learning-tile strong {
+      display: block;
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    .learning-tile p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .big-btn {
+      min-height: 52px;
+      min-width: 150px;
+      max-width: 100%;
+      border: none;
+      border-radius: 18px;
+      padding: 14px 22px;
+      cursor: pointer;
+      color: white;
+      font-size: 1.02rem;
+      font-weight: 950;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+    }
+
+    .intro-dashboard .big-btn {
+      background: linear-gradient(135deg, #ffffff, #ccfbf1);
+      color: var(--primary-dark);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+    }
+
+    .big-btn:hover {
+      filter: brightness(0.96);
+    }
+
+    .secondary-btn {
+      background: linear-gradient(135deg, #475569, #0f172a);
+    }
+
+    .big-btn:active,
+    .mute-btn:active,
+    .option-btn:active,
+    .chip-btn:active,
+    .match-item:active,
+    .category-box:active {
+      transform: scale(0.98);
+    }
+
+    .question-number {
+      margin-bottom: 8px;
+      color: var(--primary);
+      font-weight: 950;
+    }
+
+    .attempt-box {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      font-weight: 950;
+      border: 1px solid #fed7aa;
+    }
+
+    .question-title {
+      margin: 0 0 8px;
+      font-size: clamp(1.25rem, 4vw, 1.75rem);
+      line-height: 1.25;
+      color: var(--primary-dark);
+      overflow-wrap: anywhere;
+    }
+
+    .instruction {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    #questionContent {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .tap-options,
+    .chips-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .option-btn,
+    .chip-btn {
+      width: 100%;
+      min-width: 0;
+      border: 2px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      min-height: 58px;
+      padding: 14px 12px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 900;
+      transition: 0.15s ease;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .option-btn:hover,
+    .chip-btn:hover,
+    .match-item:hover,
+    .category-box:hover {
+      border-color: var(--primary);
+      background: var(--soft-blue);
+    }
+
+    .selected {
+      background: var(--soft-blue) !important;
+      border-color: var(--primary) !important;
+      color: var(--primary-dark) !important;
+    }
+
+    .correct-choice {
+      background: var(--soft-green) !important;
+      border-color: var(--success) !important;
+      color: var(--success) !important;
+    }
+
+    .wrong-choice {
+      background: var(--soft-red) !important;
+      border-color: var(--danger) !important;
+      color: var(--danger) !important;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 16px;
+      padding: 15px;
+      border-radius: 16px;
+      font-weight: 800;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.correct {
+      background: var(--soft-green);
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    .feedback.wrong {
+      background: var(--soft-red);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .feedback.try-again {
+      background: var(--warning-bg);
+      border: 1px solid #fed7aa;
+      color: var(--warning-text);
+    }
+
+    .action-row {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sentence-card {
+      padding: 17px;
+      border: 2px dashed #93c5fd;
+      border-radius: 20px;
+      background: var(--soft-blue);
+      font-size: 1.08rem;
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
+
+    .blank {
+      display: inline-block;
+      min-width: 145px;
+      max-width: 100%;
+      padding: 3px 10px;
+      margin: 0 4px;
+      text-align: center;
+      border-bottom: 3px solid var(--primary);
+      color: var(--primary-dark);
+      font-weight: 950;
+      overflow-wrap: anywhere;
+    }
+
+    .panel-card {
+      width: 100%;
+      min-width: 0;
+      padding: 16px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #f8fafc, #eff6ff);
+      border: 2px dashed #93c5fd;
+    }
+
+    .slots-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 12px 0 16px;
+    }
+
+    .slot {
+      min-width: 150px;
+      min-height: 62px;
+      border: 2px dashed #60a5fa;
+      border-radius: 18px;
+      padding: 12px;
+      background: white;
+      color: var(--muted);
+      font-weight: 950;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-wrap: anywhere;
+    }
+
+    .slot.filled {
+      border-style: solid;
+      border-color: var(--primary);
+      background: var(--soft-blue);
+      color: var(--primary-dark);
+    }
+
+    .arrow {
+      align-self: center;
+      color: var(--primary);
+      font-size: 1.25rem;
+      font-weight: 950;
+    }
+
+    .chip-btn.used {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .match-wrap {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+      width: 100%;
+    }
+
+    .match-column {
+      min-width: 0;
+      padding: 14px;
+      border-radius: 20px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+    }
+
+    .match-column h3 {
+      margin: 0 0 12px;
+      color: var(--primary-dark);
+      font-size: 1rem;
+    }
+
+    .match-item {
+      width: 100%;
+      min-width: 0;
+      margin-bottom: 10px;
+      padding: 13px;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      background: white;
+      cursor: pointer;
+      font-weight: 900;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      user-select: none;
+    }
+
+    .pairs-list {
+      margin-top: 13px;
+      padding: 13px;
+      border-radius: 16px;
+      background: var(--soft-teal);
+      color: #115e59;
+      border: 1px solid #5eead4;
+      font-weight: 850;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .category-box {
+      min-width: 0;
+      min-height: 130px;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+
+    .category-box h3 {
+      margin: 0 0 10px;
+      text-align: center;
+      color: var(--primary-dark);
+      font-size: 1rem;
+      overflow-wrap: anywhere;
+    }
+
+    .pill {
+      display: inline-block;
+      max-width: 100%;
+      margin: 4px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--soft-yellow);
+      color: #854d0e;
+      font-weight: 950;
+      overflow-wrap: anywhere;
+    }
+
+    .result-card {
+      text-align: center;
+    }
+
+    .result-title {
+      margin: 0 0 10px;
+      color: var(--primary-dark);
+      font-size: clamp(1.8rem, 5vw, 2.55rem);
+    }
+
+    .result-score {
+      font-size: 1.25rem;
+      font-weight: 950;
+    }
+
+    .result-message {
+      display: inline-block;
+      margin: 10px 0 18px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 1.18rem;
+      font-weight: 950;
+    }
+
+    .good {
+      background: var(--soft-green);
+      color: var(--success);
+    }
+
+    .review {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+    .practice {
+      background: var(--soft-red);
+      color: var(--danger);
+    }
+
+    .confetti-piece {
+      position: fixed;
+      top: -20px;
+      width: 9px;
+      height: 15px;
+      z-index: 999;
+      border-radius: 4px;
+      animation: fall 950ms linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(105vh) rotate(540deg);
+        opacity: 0.85;
+      }
+    }
+
+    .pop {
+      animation: pop 0.42s ease;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.025);
+        box-shadow: 0 0 28px rgba(37, 99, 235, 0.35);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .app {
+        max-width: 960px;
+        padding: 14px;
+      }
+
+      .screen,
+      .question-card,
+      .result-card {
+        padding: 22px;
+      }
+
+      .intro-dashboard {
+        padding: 0;
+      }
+
+      .learning-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        align-items: stretch;
+        flex-wrap: wrap;
+      }
+
+      .brand-mini {
+        flex: 1 1 100%;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .score-box,
+      .mute-btn {
+        flex: 1 1 auto;
+        text-align: center;
+      }
+
+      .intro-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .intro-right {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .tap-options,
+      .chips-row {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 10px;
+      }
+
+      .topbar {
+        justify-content: center;
+        border-radius: 18px;
+      }
+
+      .match-wrap,
+      .category-grid,
+      .learning-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .screen,
+      .question-card,
+      .result-card {
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .intro-dashboard {
+        padding: 0;
+      }
+
+      .intro-left,
+      .intro-right {
+        padding: 22px;
+      }
+
+      .learning-strip {
+        padding: 0 22px 22px;
+      }
+
+      .big-btn,
+      .option-btn,
+      .chip-btn {
+        width: 100%;
+      }
+
+      .action-row {
+        flex-direction: column;
+      }
+
+      .slot {
+        min-width: 100%;
+      }
+
+      .arrow {
+        width: 100%;
+        text-align: center;
+        transform: rotate(90deg);
+      }
+
+      .match-column {
+        padding: 12px;
+      }
+
+      .category-box {
+        min-height: 105px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        padding: 8px;
+      }
+
+      .splash img {
+        width: min(78%, 220px);
+      }
+
+      .splash p {
+        font-size: 0.92rem;
+      }
+
+      .brand-mini {
+        font-size: 0.9rem;
+      }
+
+      .brand-mini img {
+        width: 36px;
+      }
+
+      .score-box,
+      .mute-btn {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+
+      .screen,
+      .question-card,
+      .result-card {
+        padding: 13px;
+        border-radius: 18px;
+      }
+
+      .intro-dashboard {
+        padding: 0;
+      }
+
+      .intro-left,
+      .intro-right {
+        padding: 18px;
+      }
+
+      .learning-strip {
+        padding: 0 18px 18px;
+      }
+
+      .intro-title {
+        font-size: 1.75rem;
+      }
+
+      .subtitle,
+      .instruction,
+      .intro-note {
+        font-size: 0.94rem;
+      }
+
+      .question-title {
+        font-size: 1.16rem;
+      }
+
+      .attempt-box {
+        font-size: 0.85rem;
+        padding: 7px 11px;
+      }
+
+      .sentence-card {
+        padding: 13px;
+        font-size: 0.95rem;
+        border-radius: 16px;
+      }
+
+      .blank {
+        min-width: 105px;
+        margin-top: 4px;
+      }
+
+      .panel-card {
+        padding: 12px;
+        border-radius: 16px;
+      }
+
+      .option-btn,
+      .chip-btn,
+      .match-item,
+      .big-btn {
+        min-height: 50px;
+        padding: 11px 12px;
+        font-size: 0.92rem;
+        border-radius: 14px;
+      }
+
+      .match-column {
+        border-radius: 16px;
+      }
+
+      .match-column h3,
+      .category-box h3 {
+        font-size: 0.95rem;
+      }
+
+      .slot {
+        min-height: 54px;
+        padding: 10px;
+        border-radius: 14px;
+        font-size: 0.9rem;
+      }
+
+      .feedback,
+      .pairs-list {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
+
+      .result-score {
+        font-size: 1.05rem;
+      }
+
+      .result-message {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .intro-title {
+        font-size: 1.5rem;
+      }
+
+      .question-title {
+        font-size: 1.05rem;
+      }
+
+      .option-btn,
+      .chip-btn,
+      .match-item,
+      .big-btn {
+        font-size: 0.86rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="splash" class="splash">
+    <img src="assets/innovine-logo.png" alt="Innovine Logo" />
+    <p>Loading MS Access database activity...</p>
+  </div>
+
+  <audio id="correctSound" src="assets/correct.mp3" preload="auto"></audio>
+  <audio id="wrongSound" src="assets/wrong.mp3" preload="auto"></audio>
+
+  <main class="app">
+    <header class="topbar hidden" id="topbar">
+      <div class="brand-mini">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" />
+        <span>MS Access: Query, Report & Relationships</span>
+      </div>
+
+      <div class="score-box" id="scoreTracker">Score: 0 / 5</div>
+
+      <button class="mute-btn" id="muteBtn" type="button">🔊 Sound On</button>
+    </header>
+
+    <section id="introScreen" class="screen intro-dashboard hidden">
+      <div class="intro-hero">
+        <div class="intro-left">
+     
+          <h1 class="intro-title">
+            MS Access Database Explorer
+          </h1>
+
+          <p class="subtitle">
+            Learn how queries, reports, sorting, relational databases, operators,
+            and table relationships help users search, organise, analyse, and display
+            database information effectively.
+          </p>
+
+          <div class="intro-actions">
+            <button class="big-btn" id="startBtn" type="button">Start Game</button>
+
+            <p class="intro-note">
+              You will answer 5 interactive questions. Each question gives two attempts.
+              After the second incorrect attempt, the correct answer will be shown.
+            </p>
+          </div>
+        </div>
+
+        <div class="intro-right">
+          <div class="dashboard-card">
+            <div class="dashboard-card-row">
+              <small>Grade</small>
+              <strong>7</strong>
+            </div>
+            <div class="dashboard-card-row">
+              <small>Subject</small>
+              <strong>ICT</strong>
+            </div>
+            <div class="dashboard-card-row">
+              <small>Chapter 11</small>
+              <strong>Advanced DBMS in MS Access</strong>
+            </div>
+            <div class="dashboard-card-row">
+              <small>Task Count</small>
+              <strong>5 Interactive Questions</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="learning-strip"></div>
+    </section>
+
+    <section id="questionScreen" class="question-card hidden">
+      <div class="question-number" id="questionNumber"></div>
+      <div class="attempt-box" id="attemptBox">Attempt 1 of 2</div>
+
+      <h2 class="question-title" id="questionTitle"></h2>
+      <p class="instruction" id="questionInstruction"></p>
+
+      <div id="questionContent"></div>
+
+      <div id="feedback" class="feedback"></div>
+
+      <div class="action-row">
+        <button class="big-btn secondary-btn hidden" id="resetBtn" type="button">
+          Reset
+        </button>
+
+        <button class="big-btn" id="checkBtn" type="button">
+          Check Answer
+        </button>
+
+        <button class="big-btn hidden" id="nextBtn" type="button">
+          Next
+        </button>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="result-card hidden">
+      <h2 class="result-title">Activity Complete!</h2>
+      <p class="result-score" id="finalScore"></p>
+      <div class="result-message" id="resultMessage"></div>
+
+      <p class="subtitle">
+        Remember: A query helps search specific information, a report organises
+        data for viewing or printing, sorting arranges records, and relationships
+        link tables using common fields.
+      </p>
+
+      <button class="big-btn" id="playAgainBtn" type="button">Play Again</button>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL_QUESTIONS = 5;
+    const MAX_ATTEMPTS = 2;
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let muted = false;
+    let locked = false;
+    let attempts = 0;
+
+    let selectedAnswer = null;
+    let sequence = [];
+    let selectedLeft = null;
+    let selectedRight = null;
+    let pairs = {};
+    let classifyMap = {};
+    let activeItem = null;
+
+    const splash = document.getElementById("splash");
+    const topbar = document.getElementById("topbar");
+    const introScreen = document.getElementById("introScreen");
+    const questionScreen = document.getElementById("questionScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const scoreTracker = document.getElementById("scoreTracker");
+    const muteBtn = document.getElementById("muteBtn");
+    const startBtn = document.getElementById("startBtn");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+
+    const questionNumber = document.getElementById("questionNumber");
+    const attemptBox = document.getElementById("attemptBox");
+    const questionTitle = document.getElementById("questionTitle");
+    const questionInstruction = document.getElementById("questionInstruction");
+    const questionContent = document.getElementById("questionContent");
+    const feedback = document.getElementById("feedback");
+
+    const checkBtn = document.getElementById("checkBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
+
+    const questions = [
+      {
+        type: "fill",
+        title: "Complete the definition of a query",
+        instruction: "Tap the correct word to complete the sentence.",
+        sentenceStart: "Searching in a database to find specific information is known as a",
+        sentenceMiddle: ".",
+        options: [
+          { text: "query", value: "query" },
+          { text: "report", value: "report" },
+          { text: "relationship", value: "relationship" },
+          { text: "sorting", value: "sorting" }
+        ],
+        answer: "query",
+        answerText: "query",
+        correctFeedback: "Correct! A query is used to search a database and find specific information.",
+        firstWrongFeedback: "Try once again. Hint: it is used to search records using criteria.",
+        wrongFeedback: "The correct answer is query. A query searches a database to find specific information."
+      },
+      {
+        type: "tap",
+        title: "Identify the correct use of a report",
+        instruction: "Tap the best description of a report in MS Access.",
+        options: [
+          { text: "It organises and summarises data for online viewing or printing", value: "organise-print" },
+          { text: "It permanently deletes all database records", value: "delete-records" },
+          { text: "It is used only to type letters", value: "type-letters" },
+          { text: "It changes the computer wallpaper", value: "wallpaper" }
+        ],
+        answer: "organise-print",
+        answerText: "It organises and summarises data for online viewing or printing",
+        correctFeedback: "Correct! Reports organise and summarise data for viewing or printing.",
+        firstWrongFeedback: "Try once again. Hint: reports help present database results neatly.",
+        wrongFeedback: "The correct answer is: A report organises and summarises data for online viewing or printing."
+      },
+      {
+        type: "match",
+        title: "Match database terms with their meanings",
+        instruction: "Tap one item from Column A and then its correct meaning from Column B.",
+        leftItems: [
+          { text: "Query", value: "query" },
+          { text: "Report", value: "report" },
+          { text: "Sorting", value: "sorting" },
+          { text: "Relational Database", value: "relational" }
+        ],
+        rightItems: [
+          { text: "Searches for specific information using criteria", value: "search-specific" },
+          { text: "Organises and summarises data for viewing or printing", value: "summarise-print" },
+          { text: "Arranges records in ascending or descending order", value: "arrange-order" },
+          { text: "Contains two or more tables linked by relationships", value: "linked-tables" }
+        ],
+        answer: {
+          query: "search-specific",
+          report: "summarise-print",
+          sorting: "arrange-order",
+          relational: "linked-tables"
+        },
+        answerText: "Query = search information; Report = organise and summarise data; Sorting = arrange records; Relational Database = linked tables",
+        correctFeedback: "Excellent! You correctly matched the database terms with their meanings.",
+        firstWrongFeedback: "Try once again. Hint: Query searches, Report presents, Sorting arranges, and Relationships link tables.",
+        wrongFeedback: "Correct matches: Query = searches information; Report = organises data; Sorting = arranges records; Relational Database = linked tables."
+      },
+      {
+        type: "sequence",
+        title: "Arrange the steps to create a query in MS Access",
+        instruction: "Tap the steps in the correct order.",
+        items: [
+          { text: "Click Create tab and select Query Design", value: "query-design" },
+          { text: "Select the table and click Add", value: "add-table" },
+          { text: "Choose fields for the query", value: "choose-fields" },
+          { text: "Enter criteria and click Run", value: "criteria-run" }
+        ],
+        answer: ["query-design", "add-table", "choose-fields", "criteria-run"],
+        answerText: "Click Create tab and Query Design → Add table → Choose fields → Enter criteria and Run",
+        correctFeedback: "Correct! These are the proper steps to create and run a query in MS Access.",
+        firstWrongFeedback: "Try once again. Hint: first open Query Design, then add the table.",
+        wrongFeedback: "The correct order is: Click Create tab and Query Design → Select table and Add → Choose fields → Enter criteria and click Run."
+      },
+      {
+        type: "classify",
+        title: "Classify operators used in queries",
+        instruction: "Tap an operator first, then tap the correct category box.",
+        items: [
+          { text: ">", value: "greater-than" },
+          { text: "And", value: "and" },
+          { text: "<>", value: "not-equal" },
+          { text: "Or", value: "or" },
+          { text: "<=", value: "less-equal" },
+          { text: "Not", value: "not" }
+        ],
+        categories: [
+          { text: "Relational Operator", value: "relational" },
+          { text: "Logical Operator", value: "logical" }
+        ],
+        answer: {
+          "greater-than": "relational",
+          and: "logical",
+          "not-equal": "relational",
+          or: "logical",
+          "less-equal": "relational",
+          not: "logical"
+        },
+        answerText: "> , <> , <= are relational operators; And, Or, Not are logical operators",
+        correctFeedback: "Great! You correctly classified relational and logical operators.",
+        firstWrongFeedback: "Try once again. Hint: symbols like > and <= compare values, while And, Or, Not combine conditions.",
+        wrongFeedback: "Correct classification: >, <>, <= are relational operators. And, Or, Not are logical operators."
+      }
+    ];
+
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        splash.classList.add("hidden");
+        // Keep topbar hidden during the introductory dashboard screen
+        topbar.classList.add("hidden");
+        introScreen.classList.remove("hidden");
+      }, 5000);
+    });
+
+    startBtn.addEventListener("click", startGame);
+    playAgainBtn.addEventListener("click", startGame);
+
+    muteBtn.addEventListener("click", () => {
+      muted = !muted;
+      muteBtn.textContent = muted ? "🔇 Sound Off" : "🔊 Sound On";
+    });
+
+    checkBtn.addEventListener("click", checkAnswer);
+    nextBtn.addEventListener("click", nextQuestion);
+    resetBtn.addEventListener("click", resetCurrentAttempt);
+
+    function startGame() {
+      score = 0;
+      currentQuestionIndex = 0;
+      updateScore();
+
+      introScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      
+      // Reveal the topbar (and its score box) once active gameplay starts
+      topbar.classList.remove("hidden");
+      questionScreen.classList.remove("hidden");
+
+      renderQuestion();
+    }
+
+    function updateScore() {
+      scoreTracker.textContent = `Score: ${score} / ${TOTAL_QUESTIONS}`;
+    }
+
+    function updateAttemptBox() {
+      attemptBox.textContent = `Attempt ${attempts + 1} of ${MAX_ATTEMPTS}`;
+    }
+
+    function clearState() {
+      locked = false;
+      selectedAnswer = null;
+      sequence = [];
+      selectedLeft = null;
+      selectedRight = null;
+      pairs = {};
+      classifyMap = {};
+      activeItem = null;
+    }
+
+    /*
+      Fisher-Yates shuffle.
+      This randomizes choices so answers do not appear in obvious positions.
+    */
+    function shuffleArray(array) {
+      const shuffled = [...array];
+
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+
+        [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+      }
+
+      return shuffled;
+    }
+
+    function renderQuestion() {
+      clearState();
+      attempts = 0;
+
+      const q = questions[currentQuestionIndex];
+
+      questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${TOTAL_QUESTIONS}`;
+      updateAttemptBox();
+
+      questionTitle.textContent = q.title;
+      questionInstruction.textContent = q.instruction;
+
+      questionContent.innerHTML = "";
+      feedback.className = "feedback";
+      feedback.textContent = "";
+
+      checkBtn.classList.remove("hidden");
+      nextBtn.classList.add("hidden");
+      resetBtn.classList.add("hidden");
+
+      if (q.type === "tap") renderTapQuestion(q);
+      if (q.type === "fill") renderFillQuestion(q);
+      if (q.type === "sequence") renderSequenceQuestion(q);
+      if (q.type === "match") renderMatchQuestion(q);
+      if (q.type === "classify") renderClassifyQuestion(q);
+      if (q.type === "sort") renderClassifyQuestion(q);
+    }
+
+    function resetCurrentAttempt() {
+      const q = questions[currentQuestionIndex];
+
+      clearState();
+      questionContent.innerHTML = "";
+      feedback.className = "feedback";
+      feedback.textContent = "";
+
+      checkBtn.classList.remove("hidden");
+      nextBtn.classList.add("hidden");
+
+      if (q.type === "tap") renderTapQuestion(q);
+      if (q.type === "fill") renderFillQuestion(q);
+      if (q.type === "sequence") renderSequenceQuestion(q);
+      if (q.type === "match") renderMatchQuestion(q);
+      if (q.type === "classify") renderClassifyQuestion(q);
+      if (q.type === "sort") renderClassifyQuestion(q);
+
+      updateAttemptBox();
+    }
+
+    function renderTapQuestion(q) {
+      const wrap = document.createElement("div");
+      wrap.className = "tap-options";
+
+      const shuffledOptions = shuffleArray(q.options);
+
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.type = "button";
+        btn.textContent = option.text;
+        btn.dataset.value = option.value;
+
+        btn.addEventListener("click", () => {
+          if (locked) return;
+
+          selectedAnswer = option.value;
+
+          document.querySelectorAll(".option-btn").forEach(b => {
+            b.classList.remove("selected");
+          });
+
+          btn.classList.add("selected");
+        });
+
+        wrap.appendChild(btn);
+      });
+
+      questionContent.appendChild(wrap);
+    }
+
+    function renderFillQuestion(q) {
+      const sentence = document.createElement("div");
+      sentence.className = "sentence-card";
+      sentence.innerHTML = `
+        ${q.sentenceStart}
+        <span class="blank" id="blankWord">______</span>
+        ${q.sentenceMiddle}
+      `;
+
+      questionContent.appendChild(sentence);
+
+      const wrap = document.createElement("div");
+      wrap.className = "tap-options";
+
+      const shuffledOptions = shuffleArray(q.options);
+
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.type = "button";
+        btn.textContent = option.text;
+        btn.dataset.value = option.value;
+
+        btn.addEventListener("click", () => {
+          if (locked) return;
+
+          selectedAnswer = option.value;
+          document.getElementById("blankWord").textContent = option.text;
+
+          document.querySelectorAll(".option-btn").forEach(b => {
+            b.classList.remove("selected");
+          });
+
+          btn.classList.add("selected");
+        });
+
+        wrap.appendChild(btn);
+      });
+
+      questionContent.appendChild(wrap);
+    }
+
+    function renderSequenceQuestion(q) {
+      resetBtn.classList.remove("hidden");
+
+      const area = document.createElement("div");
+      area.className = "panel-card";
+
+      const slots = document.createElement("div");
+      slots.className = "slots-row";
+
+      for (let i = 0; i < q.answer.length; i++) {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        slot.textContent = `Step ${i + 1}`;
+        slots.appendChild(slot);
+
+        if (i < q.answer.length - 1) {
+          const arrow = document.createElement("div");
+          arrow.className = "arrow";
+          arrow.textContent = "➜";
+          slots.appendChild(arrow);
+        }
+      }
+
+      const chips = document.createElement("div");
+      chips.className = "chips-row";
+
+      const shuffledItems = shuffleArray(q.items);
+
+      shuffledItems.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "chip-btn";
+        btn.type = "button";
+        btn.textContent = item.text;
+        btn.dataset.value = item.value;
+
+        btn.addEventListener("click", () => {
+          if (locked || btn.classList.contains("used")) return;
+          if (sequence.length >= q.answer.length) return;
+
+          sequence.push(item.value);
+          btn.classList.add("used");
+          updateSequenceSlots(q);
+        });
+
+        chips.appendChild(btn);
+      });
+
+      area.appendChild(slots);
+      area.appendChild(chips);
+      questionContent.appendChild(area);
+    }
+
+    function updateSequenceSlots(q) {
+      const slots = [...document.querySelectorAll(".slot")];
+
+      sequence.forEach((value, index) => {
+        const item = q.items.find(i => i.value === value);
+        slots[index].textContent = item ? item.text : value;
+        slots[index].classList.add("filled");
+      });
+    }
+
+    function renderMatchQuestion(q) {
+      resetBtn.classList.remove("hidden");
+
+      const wrap = document.createElement("div");
+      wrap.className = "match-wrap";
+
+      const leftCol = document.createElement("div");
+      leftCol.className = "match-column";
+      leftCol.innerHTML = "<h3>Column A</h3>";
+
+      const rightCol = document.createElement("div");
+      rightCol.className = "match-column";
+      rightCol.innerHTML = "<h3>Column B</h3>";
+
+      const shuffledRightItems = shuffleArray(q.rightItems);
+
+      q.leftItems.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "match-item left-match";
+        div.textContent = item.text;
+        div.dataset.value = item.value;
+
+        div.addEventListener("click", () => {
+          if (locked) return;
+
+          selectedLeft = item.value;
+
+          document.querySelectorAll(".left-match").forEach(el => {
+            el.classList.remove("selected");
+          });
+
+          div.classList.add("selected");
+          tryCreatePair(q);
+        });
+
+        leftCol.appendChild(div);
+      });
+
+      shuffledRightItems.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "match-item right-match";
+        div.textContent = item.text;
+        div.dataset.value = item.value;
+
+        div.addEventListener("click", () => {
+          if (locked) return;
+
+          selectedRight = item.value;
+
+          document.querySelectorAll(".right-match").forEach(el => {
+            el.classList.remove("selected");
+          });
+
+          div.classList.add("selected");
+          tryCreatePair(q);
+        });
+
+        rightCol.appendChild(div);
+      });
+
+      wrap.appendChild(leftCol);
+      wrap.appendChild(rightCol);
+
+      const list = document.createElement("div");
+      list.className = "pairs-list";
+      list.id = "pairsList";
+      list.textContent = "Pairs created: none yet";
+
+      questionContent.appendChild(wrap);
+      questionContent.appendChild(list);
+    }
+
+    function tryCreatePair(q) {
+      if (!selectedLeft || !selectedRight) return;
+
+      pairs[selectedLeft] = selectedRight;
+
+      selectedLeft = null;
+      selectedRight = null;
+
+      document.querySelectorAll(".match-item").forEach(el => {
+        el.classList.remove("selected");
+      });
+
+      updatePairsList(q);
+    }
+
+    function updatePairsList(q) {
+      const list = document.getElementById("pairsList");
+      const entries = Object.entries(pairs);
+
+      if (entries.length === 0) {
+        list.textContent = "Pairs created: none yet";
+        return;
+      }
+
+      const readable = entries.map(([left, right]) => {
+        const leftText = q.leftItems.find(i => i.value === left)?.text || left;
+        const rightText = q.rightItems.find(i => i.value === right)?.text || right;
+        return `${leftText} → ${rightText}`;
+      });
+
+      list.innerHTML = "Pairs created:<br>" + readable.join("<br>");
+    }
+
+    function renderClassifyQuestion(q) {
+      resetBtn.classList.remove("hidden");
+
+      const area = document.createElement("div");
+      area.className = "panel-card";
+
+      const itemChoices = document.createElement("div");
+      itemChoices.className = "chips-row";
+
+      const shuffledItems = shuffleArray(q.items);
+      const shuffledCategories = shuffleArray(q.categories);
+
+      shuffledItems.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "chip-btn item-choice";
+        btn.type = "button";
+        btn.textContent = item.text;
+        btn.dataset.value = item.value;
+
+        btn.addEventListener("click", () => {
+          if (locked || btn.classList.contains("used")) return;
+
+          activeItem = item.value;
+
+          document.querySelectorAll(".item-choice").forEach(b => {
+            b.classList.remove("selected");
+          });
+
+          btn.classList.add("selected");
+        });
+
+        itemChoices.appendChild(btn);
+      });
+
+      const categories = document.createElement("div");
+      categories.className = "category-grid";
+
+      shuffledCategories.forEach(category => {
+        const box = document.createElement("div");
+        box.className = "category-box";
+        box.dataset.value = category.value;
+        box.innerHTML = `<h3>${category.text}</h3>`;
+
+        box.addEventListener("click", () => {
+          if (locked || !activeItem) return;
+
+          classifyMap[activeItem] = category.value;
+
+          const activeButton = document.querySelector(`.item-choice[data-value="${activeItem}"]`);
+          const itemText = activeButton ? activeButton.textContent : activeItem;
+
+          if (activeButton) {
+            activeButton.classList.add("used");
+            activeButton.classList.remove("selected");
+          }
+
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = itemText;
+          box.appendChild(pill);
+
+          activeItem = null;
+        });
+
+        categories.appendChild(box);
+      });
+
+      area.appendChild(itemChoices);
+      area.appendChild(categories);
+      questionContent.appendChild(area);
+    }
+
+    function checkAnswer() {
+      if (locked) return;
+
+      const q = questions[currentQuestionIndex];
+      let isCorrect = false;
+
+      if (q.type === "tap" || q.type === "fill") {
+        if (!selectedAnswer) {
+          showFeedback("try-again", "Tap an answer first. Then check your response.");
+          playWrong();
+          return;
+        }
+
+        isCorrect = selectedAnswer === q.answer;
+      }
+
+      if (q.type === "sequence") {
+        if (sequence.length !== q.answer.length) {
+          showFeedback("try-again", "Complete all steps first.");
+          playWrong();
+          return;
+        }
+
+        isCorrect = arraysEqual(sequence, q.answer);
+      }
+
+      if (q.type === "match") {
+        const keys = Object.keys(q.answer);
+
+        if (Object.keys(pairs).length !== keys.length) {
+          showFeedback("try-again", "Create all pairs first.");
+          playWrong();
+          return;
+        }
+
+        isCorrect = keys.every(key => pairs[key] === q.answer[key]);
+      }
+
+      if (q.type === "classify" || q.type === "sort") {
+        const keys = Object.keys(q.answer);
+
+        if (Object.keys(classifyMap).length !== keys.length) {
+          showFeedback("try-again", "Place all items into categories first.");
+          playWrong();
+          return;
+        }
+
+        isCorrect = keys.every(key => classifyMap[key] === q.answer[key]);
+      }
+
+      if (isCorrect) {
+        handleCorrectAnswer(q);
+      } else {
+        handleWrongAnswer(q);
+      }
+    }
+
+    function handleCorrectAnswer(q) {
+      locked = true;
+      score++;
+      updateScore();
+
+      markChoices(q);
+
+      checkBtn.classList.add("hidden");
+      resetBtn.classList.add("hidden");
+      nextBtn.classList.remove("hidden");
+
+      showFeedback("correct", q.correctFeedback);
+      playCorrect();
+      launchConfetti();
+
+      questionScreen.classList.add("pop");
+      setTimeout(() => {
+        questionScreen.classList.remove("pop");
+      }, 450);
+    }
+
+    function handleWrongAnswer(q) {
+      attempts++;
+      playWrong();
+
+      if (attempts < MAX_ATTEMPTS) {
+        updateAttemptBox();
+        showFeedback("try-again", q.firstWrongFeedback || "Try once again.");
+
+        setTimeout(() => {
+          resetCurrentAttempt();
+        }, 1100);
+
+        return;
+      }
+
+      locked = true;
+      markChoices(q);
+
+      checkBtn.classList.add("hidden");
+      resetBtn.classList.add("hidden");
+      nextBtn.classList.remove("hidden");
+
+      showFeedback("wrong", q.wrongFeedback);
+    }
+
+    function markChoices(q) {
+      if (q.type === "tap" || q.type === "fill") {
+        const buttons = [...document.querySelectorAll(".option-btn")];
+
+        buttons.forEach(btn => {
+          const value = btn.dataset.value;
+
+          if (value === q.answer) {
+            btn.classList.add("correct-choice");
+          } else if (value === selectedAnswer) {
+            btn.classList.add("wrong-choice");
+          }
+        });
+      }
+
+      if (q.type === "sequence") {
+        const slots = [...document.querySelectorAll(".slot")];
+
+        slots.forEach((slot, index) => {
+          const userValue = sequence[index];
+          const correctValue = q.answer[index];
+
+          if (userValue === correctValue) {
+            slot.style.borderColor = "var(--success)";
+            slot.style.background = "var(--soft-green)";
+            slot.style.color = "var(--success)";
+          } else {
+            slot.style.borderColor = "var(--danger)";
+            slot.style.background = "var(--soft-red)";
+            slot.style.color = "var(--danger)";
+          }
+        });
+      }
+
+      if (q.type === "match") {
+        document.querySelectorAll(".match-item").forEach(item => {
+          item.style.pointerEvents = "none";
+        });
+      }
+
+      if (q.type === "classify" || q.type === "sort") {
+        document.querySelectorAll(".chip-btn, .category-box").forEach(item => {
+          item.style.pointerEvents = "none";
+        });
+      }
+    }
+
+    function showFeedback(type, message) {
+      feedback.className = `feedback show ${type}`;
+      feedback.textContent = message;
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex >= TOTAL_QUESTIONS) {
+        showResults();
+      } else {
+        renderQuestion();
+      }
+    }
+
+    function showResults() {
+      questionScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      const percent = Math.round((score / TOTAL_QUESTIONS) * 100);
+
+      document.getElementById("finalScore").textContent =
+        `You scored ${score} out of ${TOTAL_QUESTIONS} (${percent}%).`;
+
+      const resultMessage = document.getElementById("resultMessage");
+
+      if (percent >= 75) {
+        resultMessage.textContent = "Good job";
+        resultMessage.className = "result-message good";
+        launchConfetti();
+      } else if (percent >= 40) {
+        resultMessage.textContent = "Review this chapter and try again";
+        resultMessage.className = "result-message review";
+      } else {
+        resultMessage.textContent = "Let’s practise more";
+        resultMessage.className = "result-message practice";
+      }
+    }
+
+    function arraysEqual(a, b) {
+      if (a.length !== b.length) return false;
+
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+
+      return true;
+    }
+
+    function playCorrect() {
+      if (muted) return;
+
+      correctSound.currentTime = 0;
+      correctSound.play().catch(() => {});
+    }
+
+    function playWrong() {
+      if (muted) return;
+
+      wrongSound.currentTime = 0;
+      wrongSound.play().catch(() => {});
+    }
+
+    function launchConfetti() {
+      const colors = ["#2563eb", "#14b8a6", "#16a34a", "#f59e0b", "#dc2626"];
+
+      for (let i = 0; i < 38; i++) {
+        const piece = document.createElement("div");
+
+        piece.className = "confetti-piece";
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 0.25 + "s";
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+        document.body.appendChild(piece);
+
+        setTimeout(() => {
+          piece.remove();
+        }, 1250);
+      }
+    }
+  </script>
+</body>
+</html>
