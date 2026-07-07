@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GIMP Tools Interactive Activity</title>
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #3b0764;
+      --secondary: #06b6d4;
+      --accent: #f59e0b;
+      --green: #16a34a;
+      --red: #dc2626;
+      --text: #1f2937;
+      --muted: #64748b;
+      --border: #ddd6fe;
+      --card: #ffffff;
+      --soft-purple: #f5f3ff;
+      --soft-cyan: #ecfeff;
+      --soft-yellow: #fffbeb;
+      --soft-green: #ecfdf5;
+      --soft-red: #fef2f2;
+      --shadow: 0 18px 45px rgba(59, 7, 100, 0.18);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      width: 100%;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.16), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(6, 182, 212, 0.18), transparent 34%),
+        linear-gradient(135deg, #faf5ff, #ecfeff);
+      overflow-x: hidden;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* SPLASH SCREEN */
+    .splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .splash-screen img {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: containment;
+    }
+
+    .app {
+      width: min(100%, 1120px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* INTRO SCREEN */
+    .intro-screen {
+      width: 100%;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 34%),
+        linear-gradient(135deg, #3b0764, #7c3aed 48%, #0891b2);
+      color: white;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px;
+      gap: 30px;
+    }
+
+    .intro-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      gap: 20px;
+    }
+
+    .intro-badge {
+      width: fit-content;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(8px);
+    }
+
+    .intro-title {
+      margin: 0;
+      font-size: clamp(2rem, 2vw, 3.2rem);
+      line-height: 1.1;
+      letter-spacing: -0.8px;
+    }
+
+    .intro-subtitle {
+      margin: 0;
+      max-width: 800px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 1.15rem;
+      line-height: 1.6;
+    }
+
+    .intro-details {
+      width: 100%;
+      max-width: 800px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      box-shadow: 0 18px 34px rgba(15, 23, 42, 0.22);
+      margin: 10px auto;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #e9d5ff;
+      text-align: left;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: var(--primary-dark);
+      font-weight: 950;
+    }
+
+    .detail-value {
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    /* ACTIVITY SCREEN */
+    .activity-screen {
+      min-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 16px;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      color: var(--primary-dark);
+      font-weight: 950;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 1.4rem;
+      flex: 0 0 auto;
+    }
+
+    .brand-text {
+      line-height: 1.2;
+    }
+
+    .score-pill,
+    .mini-pill {
+      min-height: 44px;
+      border-radius: 999px;
+      padding: 10px 15px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .score-pill {
+      background: var(--soft-yellow);
+      color: #92400e;
+      border: 1px solid #fcd34d;
+    }
+
+    .mini-pill {
+      background: #eef2ff;
+      color: var(--primary-dark);
+      border: 1px solid #c4b5fd;
+    }
+
+    .activity-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 16px;
+    }
+
+    .progress-panel,
+    .question-card,
+    .result-card {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .progress-panel {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .progress-panel h3 {
+      margin: 0;
+      color: var(--primary-dark);
+      font-size: 1.25rem;
+    }
+
+    .progress-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .progress-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px;
+      border-radius: 16px;
+      background: var(--soft-purple);
+      border: 1px solid #e9d5ff;
+      color: var(--primary-dark);
+      font-weight: 900;
+    }
+
+    .progress-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: white;
+      border: 2px solid #c4b5fd;
+      font-size: 0.88rem;
+      flex: 0 0 auto;
+    }
+
+    .progress-item.active {
+      background: linear-gradient(135deg, #ede9fe, #cffafe);
+      border-color: var(--primary);
+    }
+
+    .progress-item.done {
+      background: var(--soft-green);
+      border-color: #86efac;
+      color: #166534;
+    }
+
+    .progress-item.done .progress-dot {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .question-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .question-meta {
+      margin-bottom: 8px;
+      color: var(--primary);
+      font-weight: 950;
+    }
+
+    .attempt-pill {
+      width: fit-content;
+      margin-bottom: 10px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--soft-yellow);
+      color: #92400e;
+      font-weight: 950;
+      border: 1px solid #fcd34d;
+      font-size: 0.9rem;
+    }
+
+    .question-title {
+      margin: 0 0 12px;
+      font-size: clamp(1.25rem, 4vw, 1.65rem);
+      color: var(--primary-dark);
+      line-height: 1.25;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .tf-card {
+      padding: 16px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: white;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .tf-card p {
+      margin: 0;
+      color: var(--text);
+      font-weight: 850;
+      line-height: 1.45;
+    }
+
+    .tf-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .tf-choice {
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #c4b5fd;
+      text-align: center;
+      font-weight: 950;
+      color: var(--primary-dark);
+      background: #eef2ff;
+    }
+
+    .tf-choice.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-color: transparent;
+    }
+
+    .scenario-box,
+    .case-box,
+    .category-box {
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #faf5ff, #ecfeff);
+      border: 2px dashed #c4b5fd;
+      color: var(--text);
+      font-weight: 850;
+      line-height: 1.5;
+    }
+
+    .option-card {
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      color: var(--text);
+      padding: 14px;
+      cursor: pointer;
+      font-weight: 950;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .option-card small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .hotspot-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .hotspot {
+      padding: 15px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: white;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-align: center;
+    }
+
+    .hotspot .icon {
+      font-size: 1.8rem;
+    }
+
+    .hotspot strong {
+      color: var(--primary-dark);
+    }
+
+    .hotspot span {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .selected {
+      background: #eef2ff !important;
+      border-color: var(--primary) !important;
+      color: var(--primary-dark) !important;
+    }
+
+    .correct-choice {
+      background: var(--soft-green) !important;
+      border-color: var(--green) !important;
+      color: var(--green) !important;
+    }
+
+    .wrong-choice {
+      background: var(--soft-red) !important;
+      border-color: var(--red) !important;
+      color: var(--red) !important;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 16px;
+      padding: 15px;
+      border-radius: 16px;
+      font-weight: 850;
+      line-height: 1.45;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.correct {
+      background: var(--soft-green);
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    .feedback.wrong {
+      background: var(--soft-red);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .feedback.try {
+      background: var(--soft-yellow);
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .actions {
+      margin-top: auto;
+      padding-top: 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .main-btn {
+      min-height: 52px;
+      min-width: 160px;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 14px 24px;
+      cursor: pointer;
+      color: white;
+      font-size: 1.02rem;
+      font-weight: 950;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 8px 18px rgba(124, 58, 237, 0.25);
+    }
+
+    .main-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* RESULT */
+    .result-card {
+      padding: 34px;
+      text-align: center;
+      margin: auto;
+      width: min(100%, 760px);
+    }
+
+    .result-title {
+      margin: 0 0 10px;
+      color: var(--primary-dark);
+      font-size: clamp(1.8rem, 5vw, 2.55rem);
+    }
+
+    .result-score {
+      font-size: 1.25rem;
+      font-weight: 950;
+    }
+
+    .result-message {
+      display: inline-block;
+      margin: 10px 0 18px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 1.12rem;
+      font-weight: 950;
+    }
+
+    .good { background: var(--soft-green); color: var(--green); }
+    .review { background: var(--soft-yellow); color: #92400e; }
+    .practice { background: var(--soft-red); color: var(--red); }
+
+    .summary {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      background: var(--soft-cyan);
+      color: var(--muted);
+      text-align: left;
+      line-height: 1.6;
+      border: 1px solid #a5f3fc;
+      font-weight: 700;
+    }
+
+    .summary strong {
+      color: #164e63;
+    }
+
+    /* RESPONSIVE LAYOUT */
+    @media (max-width: 980px) {
+      .activity-layout {
+        grid-template-columns: 1fr;
+      }
+      .progress-panel {
+        order: 2;
+      }
+      .question-card {
+        order: 1;
+      }
+      .progress-list {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+      .progress-item {
+        justify-content: center;
+      }
+      .progress-item span:last-child {
+        display: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 10px;
+      }
+      .intro-screen {
+        padding: 24px 16px;
+      }
+      .detail-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+        border-radius: 18px;
+      }
+      .brand {
+        justify-content: center;
+      }
+      .score-pill, .mini-pill {
+        text-align: center;
+      }
+      .hotspot-board {
+        grid-template-columns: 1fr;
+      }
+      .actions {
+        flex-direction: column;
+      }
+      .main-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="splashScreen" class="splash-screen">
+    <img src="assets/innovine-logo.png" alt="Innovine Logo" />
+  </div>
+
+  <main class="app">
+
+    <section id="introScreen" class="intro-screen hidden">
+      <div class="intro-hero">
+        <div class="intro-badge">
+          ICT Activity • GIMP • Paint Tools • Transform Tools • Layers
+        </div>
+
+        <h3 class="intro-title">
+          GIMP: More Paint Tools, Transform Tools and Layers
+        </h3>
+
+        
+        <div class="intro-details">
+          <div class="detail-row">
+            <span class="detail-label">Subject</span>
+            <span class="detail-value">ICT</span>
+          </div>
+<div class="detail-row">
+            <span class="detail-label">Grade</span>
+            <span class="detail-value">8</span>
+          </div>
+                   
+ <div class="detail-row">
+            <span class="detail-label">Chapter 8</span>
+            <span class="detail-value">
+              Some More Paint Tools, Transform Tools and Layers in GIMP
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Topics</span>
+            <span class="detail-value">
+              Clone, Heal, Blur/Sharpen, Dodge/Burn, Rotate, Scale, Layers,
+              Alpha Channel and Exporting Images
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Attempts</span>
+            <span class="detail-value">Max 2 attempts allowed per question</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        <button class="main-btn" onclick="startGame()">
+          Start Activity
+        </button>
+      </div>
+    </section>
+
+    <section id="activityScreen" class="activity-screen hidden">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-icon">🖌️</div>
+          <div class="brand-text">GIMP Activity</div>
+        </div>
+        <div id="scoreTracker" class="score-pill">Score: 0 / 5</div>
+        <div id="questionTypePill" class="mini-pill">Question Type</div>
+      </header>
+
+      <div class="activity-layout">
+        <aside class="progress-panel">
+          <h3>Progress</h3>
+          <div id="progressList" class="progress-list"></div>
+        </aside>
+
+        <section id="questionScreen" class="question-card">
+          <div id="questionNumber" class="question-meta"></div>
+          <div id="attemptBox" class="attempt-pill">Attempt 1 of 2</div>
+          <h2 id="questionTitle" class="question-title"></h2>
+
+          <div id="questionContent"></div>
+          <div id="feedback" class="feedback"></div>
+
+          <div class="actions">
+            <button id="checkBtn" class="main-btn" type="button" onclick="checkAnswer()">
+              Check Answer
+            </button>
+            <button id="nextBtn" class="main-btn hidden" type="button" onclick="nextQuestion()">
+              Next
+            </button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="result-card hidden">
+      <h2 class="result-title">Activity Complete!</h2>
+      <p id="finalScore" class="result-score"></p>
+      <div id="resultMessage" class="result-message"></div>
+
+      <div class="summary">
+        <strong>Quick Revision:</strong>
+        Clone reproduces selected pixels. Heal repairs small defects. Sharpen
+        improves clarity. Blur softens. Dodge lightens. Burn darkens. Rotate
+        changes angle. Scale changes size. Layers allow independent editing.
+        Alpha Channel stores transparency information. XCF keeps layer
+        information, while exported formats such as JPEG, PNG, GIF and TIFF are
+        final image formats.
+      </div>
+
+      <br />
+      <button class="main-btn" type="button" onclick="startGame()">
+        Play Again
+      </button>
+    </section>
+
+  </main>
+
+  <script>
+    const questions = [
+      {
+        type: "trueFalse",
+        typeLabel: "True / False",
+        title: "Mark each statement as True or False",
+        statements: [
+          { id: "clone", text: "Clone Tool reproduces the selected portions of an image.", answer: true },
+          { id: "burn", text: "The Burn Tool lightens colours in an image.", answer: false },
+          { id: "alpha", text: "Alpha Channel contains transparency information for a layer.", answer: true },
+          { id: "boundary", text: "Layer Boundary Size scales the contents of a layer.", answer: false }
+        ],
+        firstHint: "Try again. Hint: Burn darkens colours, and Layer Boundary Size changes dimensions without scaling the contents.",
+        finalHint: "Incorrect. Correct answers: Clone = True, Burn lightens = False, Alpha Channel = True, Layer Boundary Size scales = False."
+      },
+      {
+        type: "single",
+        typeLabel: "Tool Picker",
+        title: "Choose the best tool for the editing task",
+        scenario: "A photographer wants to remove small pimples, wrinkles and spots from a portrait while blending the correction naturally with the surrounding area.",
+        options: [
+          { text: "Heal Tool", value: "heal", desc: "Repairs small defects by blending pixels." },
+          { text: "Rotate Tool", value: "rotate", desc: "Changes the angle of an image." },
+          { text: "Bucket Fill Tool", value: "bucket", desc: "Fills an area with colour." },
+          { text: "Scale Tool", value: "scale", desc: "Changes the size of an image." }
+        ],
+        answer: "heal",
+        firstHint: "Try again. Hint: This tool repairs small defects by blending sampled pixels.",
+        finalHint: "Incorrect. The correct answer is Heal Tool."
+      },
+      {
+        type: "single",
+        typeLabel: "Odd One Out",
+        title: "Find the odd one out among GIMP Transform Tools",
+        scenario: "Identify the tool that does NOT belong to the Transform Tools group:",
+        options: [
+          { text: "Rotate", value: "rotate", desc: "A transform tool." },
+          { text: "Scale", value: "scale", desc: "A transform tool." },
+          { text: "Flip", value: "flip", desc: "A transform tool." },
+          { text: "Heal", value: "heal", desc: "A paint or retouching tool." }
+        ],
+        answer: "heal",
+        firstHint: "Try again. Hint: Think which tool focuses on retouching rather than repositioning or resizing.",
+        finalHint: "Incorrect. The correct odd one out is Heal."
+      },
+      {
+        type: "hotspot",
+        typeLabel: "Hotspot Selector",
+        title: "Select the correct layer concept",
+        prompt: "Which GIMP concept is visually indicated by a checkerboard background and stores transparency information?",
+        options: [
+          { icon: "⬚", text: "Alpha Channel", value: "alpha", desc: "Stores transparency info." },
+          { icon: "👁️", text: "Eyeball Icon", value: "eye", desc: "Controls layer visibility." },
+          { icon: "📏", text: "Scale Layer", value: "scale-layer", desc: "Resizes a layer." },
+          { icon: "🧱", text: "Layer Mode", value: "mode", desc: "Controls layer blend interactions." }
+        ],
+        answer: "alpha",
+        firstHint: "Try again. Hint: This channel holds the transparency definitions.",
+        finalHint: "Incorrect. The correct answer is Alpha Channel."
+      },
+      {
+        type: "single",
+        typeLabel: "Case Study",
+        title: "Make the correct saving decision",
+        scenario: "Ravi created a multi-layer collage. He needs an editable format for future modifications and a standard format ready for web deployment.",
+        options: [
+          { text: "Save as XCF first, then export as JPEG or PNG", value: "xcf-export", desc: "Retains layers and yields a web-friendly output." },
+          { text: "Only export as JPEG and delete the XCF file", value: "jpeg-only", desc: "Flattens and loses layer editing controls." },
+          { text: "Use Layer Boundary Size and close GIMP", value: "boundary-close", desc: "Does not export or produce the final image file." },
+          { text: "Only duplicate all layers", value: "duplicate-only", desc: "Does not produce a web-ready compressed asset." }
+        ],
+        answer: "xcf-export",
+        firstHint: "Try again. Hint: Think about preserving multi-layer working states via internal formats.",
+        finalHint: "Incorrect. The ideal action is to save working states to XCF and export target layouts to JPEG/PNG."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let attempts = 0;
+    let selectedAnswer = null;
+    let selectedMap = {};
+    let locked = false;
+
+    const correctAudio = new Audio('assets/correct.mp3');
+    const wrongAudio = new Audio('assets/wrong.mp3');
+
+    const splashScreen = document.getElementById("splashScreen");
+    const introScreen = document.getElementById("introScreen");
+    const activityScreen = document.getElementById("activityScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const scoreTracker = document.getElementById("scoreTracker");
+    const questionTypePill = document.getElementById("questionTypePill");
+    const progressList = document.getElementById("progressList");
+
+    const questionNumber = document.getElementById("questionNumber");
+    const attemptBox = document.getElementById("attemptBox");
+    const questionTitle = document.getElementById("questionTitle");
+    const questionContent = document.getElementById("questionContent");
+    const feedback = document.getElementById("feedback");
+
+    const checkBtn = document.getElementById("checkBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    // Handle 5-second initial splash screen
+    window.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        splashScreen.classList.add("hidden");
+        introScreen.classList.remove("hidden");
+      }, 5000);
+    });
+
+    function startGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+
+      introScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      activityScreen.classList.remove("hidden");
+
+      updateScore();
+      renderProgress();
+      loadQuestion();
+    }
+
+    function updateScore() {
+      scoreTracker.textContent = `Score: ${score} / ${questions.length}`;
+    }
+
+    function shuffleArray(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[randomIndex]] = [copy[randomIndex], copy[i]];
+      }
+      return copy;
+    }
+
+    function resetState() {
+      attempts = 0;
+      selectedAnswer = null;
+      selectedMap = {};
+      locked = false;
+
+      feedback.className = "feedback";
+      feedback.textContent = "";
+
+      checkBtn.classList.remove("hidden");
+      nextBtn.classList.add("hidden");
+    }
+
+    function renderProgress() {
+      progressList.innerHTML = "";
+      questions.forEach((question, index) => {
+        const item = document.createElement("div");
+        item.className = "progress-item";
+
+        if (index === currentQuestionIndex) item.classList.add("active");
+        if (index < currentQuestionIndex) item.classList.add("done");
+
+        item.innerHTML = `
+          <span class="progress-dot">${index < currentQuestionIndex ? "✓" : index + 1}</span>
+          <span>Q${index + 1}</span>
+        `;
+        progressList.appendChild(item);
+      });
+    }
+
+    function loadQuestion() {
+      resetState();
+      const question = questions[currentQuestionIndex];
+
+      questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+      questionTypePill.textContent = question.typeLabel;
+      attemptBox.textContent = `Attempt ${attempts + 1} of 2`;
+      questionTitle.textContent = question.title;
+
+      questionContent.innerHTML = "";
+
+      if (question.type === "trueFalse") {
+        renderTrueFalse(question);
+      } else if (question.type === "hotspot") {
+        renderHotspot(question);
+      } else {
+        renderSingleChoice(question);
+      }
+
+      renderProgress();
+    }
+
+    function renderTrueFalse(question) {
+      const grid = document.createElement("div");
+      grid.className = "content-grid";
+
+      shuffleArray(question.statements).forEach(statement => {
+        const card = document.createElement("div");
+        card.className = "tf-card";
+        card.dataset.id = statement.id;
+
+        const statementText = document.createElement("p");
+        statementText.textContent = statement.text;
+
+        const toggle = document.createElement("div");
+        toggle.className = "tf-toggle";
+
+        const trueBtn = document.createElement("div");
+        trueBtn.className = "tf-choice";
+        trueBtn.textContent = "True";
+
+        const falseBtn = document.createElement("div");
+        falseBtn.className = "tf-choice";
+        falseBtn.textContent = "False";
+
+        trueBtn.onclick = () => {
+          if (locked) return;
+          selectedMap[statement.id] = true;
+          trueBtn.classList.add("active");
+          falseBtn.classList.remove("active");
+        };
+
+        falseBtn.onclick = () => {
+          if (locked) return;
+          selectedMap[statement.id] = false;
+          falseBtn.classList.add("active");
+          trueBtn.classList.remove("active");
+        };
+
+        toggle.appendChild(trueBtn);
+        toggle.appendChild(falseBtn);
+        card.appendChild(statementText);
+        card.appendChild(toggle);
+        grid.appendChild(card);
+      });
+
+      questionContent.appendChild(grid);
+    }
+
+    function renderSingleChoice(question) {
+      const box = document.createElement("div");
+      box.className = currentQuestionIndex === 4 ? "case-box" : "scenario-box";
+      box.textContent = question.scenario;
+
+      const grid = document.createElement("div");
+      grid.className = "content-grid";
+
+      shuffleArray(question.options).forEach(option => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "option-card";
+        card.dataset.value = option.value;
+        card.innerHTML = `${option.text}<small>${option.desc}</small>`;
+
+        card.onclick = () => {
+          if (locked) return;
+          selectedAnswer = option.value;
+          document.querySelectorAll(".option-card").forEach(item => {
+            item.classList.remove("selected");
+          });
+          card.classList.add("selected");
+        };
+
+        grid.appendChild(card);
+      });
+
+      questionContent.appendChild(box);
+      questionContent.appendChild(grid);
+    }
+
+    function renderHotspot(question) {
+      const box = document.createElement("div");
+      box.className = "category-box";
+      box.textContent = question.prompt;
+
+      const board = document.createElement("div");
+      board.className = "hotspot-board";
+
+      shuffleArray(question.options).forEach(option => {
+        const hotspot = document.createElement("button");
+        hotspot.type = "button";
+        hotspot.className = "hotspot";
+        hotspot.dataset.value = option.value;
+
+        hotspot.innerHTML = `
+          <span class="icon">${option.icon}</span>
+          <strong>${option.text}</strong>
+          <span>${option.desc}</span>
+        `;
+
+        hotspot.onclick = () => {
+          if (locked) return;
+          selectedAnswer = option.value;
+          document.querySelectorAll(".hotspot").forEach(item => {
+            item.classList.remove("selected");
+          });
+          hotspot.classList.add("selected");
+        };
+
+        board.appendChild(hotspot);
+      });
+
+      questionContent.appendChild(box);
+      questionContent.appendChild(board);
+    }
+
+    function checkAnswer() {
+      if (locked) return;
+      const question = questions[currentQuestionIndex];
+
+      if (question.type === "trueFalse") {
+        checkTrueFalse(question);
+      } else {
+        checkSingleAnswer(question);
+      }
+    }
+
+    function checkTrueFalse(question) {
+      const answered = Object.keys(selectedMap).length;
+      if (answered < question.statements.length) {
+        showFeedback("Please answer all cards before checking.", "try");
+        return;
+      }
+
+      let isCorrect = true;
+      question.statements.forEach(statement => {
+        if (selectedMap[statement.id] !== statement.answer) {
+          isCorrect = false;
+        }
+      });
+
+      processAnswer(isCorrect, question);
+    }
+
+    function checkSingleAnswer(question) {
+      if (!selectedAnswer) {
+        showFeedback("Please select an option before checking.", "try");
+        return;
+      }
+
+      const isCorrect = selectedAnswer === question.answer;
+      processAnswer(isCorrect, question);
+    }
+
+    function processAnswer(isCorrect, question) {
+      attempts++;
+
+      if (isCorrect) {
+        score++;
+        updateScore();
+        locked = true;
+        markChoices(question);
+        correctAudio.play().catch(() => {});
+        showFeedback("Correct! Well done.", "correct");
+        showNextButton();
+      } else if (attempts < 2) {
+        attemptBox.textContent = `Attempt ${attempts + 1} of 2`;
+        wrongAudio.play().catch(() => {});
+        showFeedback(question.firstHint, "try");
+      } else {
+        locked = true;
+        markChoices(question);
+        wrongAudio.play().catch(() => {});
+        showFeedback(question.finalHint, "wrong");
+        showNextButton();
+      }
+    }
+
+    function markChoices(question) {
+      if (question.type === "trueFalse") {
+        document.querySelectorAll(".tf-card").forEach(card => {
+          const statement = question.statements.find(item => item.id === card.dataset.id);
+          if (selectedMap[statement.id] === statement.answer) {
+            card.classList.add("correct-choice");
+          } else {
+            card.classList.add("wrong-choice");
+          }
+        });
+        return;
+      }
+
+      const selector = question.type === "hotspot" ? ".hotspot" : ".option-card";
+      document.querySelectorAll(selector).forEach(item => {
+        const value = item.dataset.value;
+        if (value === question.answer) {
+          item.classList.add("correct-choice");
+        }
+        if (value === selectedAnswer && value !== question.answer) {
+          item.classList.add("wrong-choice");
+        }
+      });
+    }
+
+    function showFeedback(message, type) {
+      feedback.className = `feedback show ${type}`;
+      feedback.textContent = message;
+    }
+
+    function showNextButton() {
+      checkBtn.classList.add("hidden");
+      if (currentQuestionIndex === questions.length - 1) {
+        nextBtn.textContent = "Show Result";
+      } else {
+        nextBtn.textContent = "Next";
+      }
+      nextBtn.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      activityScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      document.getElementById("finalScore").textContent =
+        `Your final score is ${score} out of ${questions.length}.`;
+
+      const resultMessage = document.getElementById("resultMessage");
+      if (score >= 4) {
+        resultMessage.textContent = "Excellent! You understand GIMP tools very well.";
+        resultMessage.className = "result-message good";
+      } else if (score >= 3) {
+        resultMessage.textContent = "Good effort! Revise a few concepts once more.";
+        resultMessage.className = "result-message review";
+      } else {
+        resultMessage.textContent = "Keep practising. Review the chapter and try again.";
+        resultMessage.className = "result-message practice";
+      }
+    }
+  </script>
+</body>
+</html>
