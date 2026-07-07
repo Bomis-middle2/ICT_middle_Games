@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Grade 5 ICT - Robotics Mission</title>
+<style>
+:root{
+  --bg1:#e9fbff;--bg2:#f7fff1;--ink:#18324a;--blue:#1aa7ec;--green:#20c997;--red:#ff5b6e;
+}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:'Trebuchet MS',Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,var(--bg1),var(--bg2));overflow:hidden}.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:10px}.screen.active{display:flex}.panel{width:min(900px,96vw);background:rgba(255,255,255,.94);border:3px solid #b8def2;border-radius:20px;box-shadow:0 10px 30px rgba(41,105,150,.22);padding:20px;text-align:center}.logo{width:min(240px,60vw);animation:logoPulse 1.4s ease-in-out infinite alternate}h1{font-size:clamp(24px,4vw,40px);margin:10px 0;color:#0c4a6e}.sub{font-size:clamp(16px,2vw,20px);font-weight:900}.btn{border:0;border-radius:14px;background:linear-gradient(180deg,#21c4f3,#0b93d1);color:white;font-size:18px;font-weight:900;padding:12px 24px;cursor:pointer}.gameWrap{position:fixed;inset:0;padding:60px 10px 10px;display:flex;flex-direction:column;gap:8px;max-height:100vh}.scoreBoard{position:absolute;top:10px;left:0;right:0;text-align:center;font-weight:900;font-size:18px;color:#0c4a6e}.questionCard{width:min(900px,100%);margin:0 auto;padding:10px;border-radius:18px;background:white;border:3px solid #b8def2;text-align:center}.missionTitle{font-size:14px;text-transform:uppercase;color:#0ea5e9;font-weight:900}.qtext{font-size:clamp(18px,2.5vw,26px);margin:0;font-weight:900}.board{position:relative;flex-grow:1;width:min(900px,100%);margin:0 auto;background:#f9feff;border:3px solid #b8def2;border-radius:20px;min-height:150px;overflow:hidden}.lane{fill:none;stroke:#b7d8e8;stroke-width:10;stroke-linecap:round;cursor:pointer}.lane.active{stroke:#10b4f0}.lane.correct{stroke:#20c997}.lane.wrong{stroke:#ff5b6e}.vehicle{position:absolute;left:86px;top:50%;transform:translateY(-50%);font-size:36px;transition:all .7s ease}.laneLabel{position:absolute;right:120px;background:white;border:2px solid #b8def2;border-radius:12px;padding:4px 8px;font-size:clamp(12px,1.5vw,16px);font-weight:900;pointer-events:none}.l1{top:22%}.l2{top:45%}.l3{top:68%}.controls{width:min(900px,100%);margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.routeBtn{border:2px solid #b8def2;border-radius:14px;background:white;min-height:50px;font-size:clamp(14px,2vw,18px);font-weight:900;cursor:pointer}.routeBtn.selected{border-color:#0ea5e9;background:#e0f6ff}.routeBtn.correct{border-color:#20c997;background:#dbfff3}.routeBtn.wrong{border-color:#ff5b6e;background:#ffe3e8}.launch{width:min(900px,100%);margin:0 auto;display:flex;gap:10px;align-items:center}.launch .btn{flex:1}.feedback{font-size:16px;font-weight:900;color:#0c4a6e}
+@keyframes logoPulse{from{transform:scale(1)}to{transform:scale(1.1)}}
+</style>
+</head>
+<body>
+
+<section id="splash" class="screen active"><div class="panel" style="border:0;box-shadow:none"><img src="assets/innovine-logo.png" class="logo"></div></section>
+
+<section id="intro" class="screen"><div class="panel">
+  <h1>💡 Fun with LEDs: Robotics Mission</h1>
+	<p><strong>Grade: </Strong> 5</p>
+<p><strong>Chapter/Topic: </Strong> SBL Chapter 1/ Fun with Lights using LEDs</p>
+  <p class="sub">Complete the circuits to power up the robot lab!</p>
+  <p style="font-size:14px; margin:20px 0;">Rules: Select the correct component path to power the circuit. You have two attempts per question.</p>
+  <button class="btn" onclick="startGame()">Start Mission</button>
+</div></section>
+
+<section id="game" class="screen">
+  <div class="scoreBoard" id="scoreBoard">Score: 0</div>
+  <div class="gameWrap">
+    <div class="questionCard"><div class="missionTitle" id="title">Mission</div><div class="qtext" id="question"></div></div>
+    <div class="board" id="board">
+      <svg class="routeSvg" viewBox="0 0 1000 420" preserveAspectRatio="none">
+        <path id="lane1" class="lane" d="M90 210 C260 80, 560 70, 880 100" onclick="chooseLane(1)"></path>
+        <path id="lane2" class="lane" d="M90 210 C300 210, 560 210, 880 210" onclick="chooseLane(2)"></path>
+        <path id="lane3" class="lane" d="M90 210 C260 340, 560 350, 880 320" onclick="chooseLane(3)"></path>
+      </svg>
+      <div id="vehicle" class="vehicle">🤖</div>
+      <div class="labels"><div id="lab1" class="laneLabel l1"></div><div id="lab2" class="laneLabel l2"></div><div id="lab3" class="laneLabel l3"></div></div>
+    </div>
+    <div class="controls"><button class="routeBtn" id="b1" onclick="chooseLane(1)">Option 1</button><button class="routeBtn" id="b2" onclick="chooseLane(2)">Option 2</button><button class="routeBtn" id="b3" onclick="chooseLane(3)">Option 3</button></div>
+    <div class="launch"><div class="feedback" id="feedback">Select an option to activate.</div><button class="btn" onclick="launchFlow()">Launch Route</button></div>
+  </div>
+</section>
+
+<section id="finish" class="screen"><div class="panel">
+  <h1>Mission Complete!</h1>
+  <p class="sub" id="finalScore"></p>
+  <p class="sub" id="msg"></p>
+  <button class="btn" onclick="location.reload()">Restart</button>
+</div></section>
+
+<script>
+const questions = [
+ {t:'Circuit Logic', q:'You are building a robot arm. To make the motor move only when a button is pressed, which component do you use?', opts:['Resistor','Switch','LED'], ans:1},
+ {t:'Troubleshooting', q:'Your robot LED is not turning on. What is the first thing you should check?', opts:['If the battery is connected','If the wires are thin','If the table is level'], ans:0},
+ {t:'Design Thinking', q:'You want to protect an LED from too much power. Which component acts like a "speed bump" for electricity?', opts:['Battery','Switch','Resistor'], ans:2},
+ {t:'Robotics Application', q:'If you want your robot to signal that it finished a task, which device is most suitable?', opts:['LED','Battery','Resistor'], ans:0},
+ {t:'Circuit Analysis', q:'What allows electrical energy to travel from a battery to an LED?', opts:['Rubber insulation','Conductive wires','Plastic casing'], ans:1}
+];
+let order=[], idx=0, score=0, selected=null, locked=false, attempts=0;
+const $=id=>document.getElementById(id);
+
+setTimeout(()=>show('intro'), 5000);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function startGame(){order=[...questions].sort(()=>Math.random()-.5);idx=0;score=0;updateScore();render();show('game')}
+function updateScore(){$('scoreBoard').textContent='Score: '+score}
+function render(){locked=false;selected=null;attempts=0;const q=order[idx];$('title').textContent=q.t;$('question').textContent=q.q;['lane1','lane2','lane3','b1','b2','b3'].forEach(id=>$(id).classList.remove('active','correct','wrong','selected'));q.opts.forEach((op,i)=>{$('lab'+(i+1)).textContent=op;$('b'+(i+1)).textContent=op;});}
+function chooseLane(n){if(locked)return;selected=n-1;['lane1','lane2','lane3','b1','b2','b3'].forEach(id=>$(id).classList.remove('active','selected'));$('lane'+n).classList.add('active');$('b'+n).classList.add('selected');}
+function launchFlow(){if(locked||selected===null)return;attempts++;const q=order[idx];const laneNo=selected+1;if(selected===q.ans){locked=true;new Audio('assets/correct.mp3').play();$('lane'+laneNo).classList.add('correct');$('b'+laneNo).classList.add('correct');score++;updateScore();setTimeout(next,1000)}else if(attempts>=2){locked=true;new Audio('assets/wrong.mp3').play();$('lane'+laneNo).classList.add('wrong');$('b'+laneNo).classList.add('wrong');setTimeout(next,1000)}else{new Audio('assets/wrong.mp3').play();$('lane'+laneNo).classList.add('wrong');$('b'+laneNo).classList.add('wrong');setTimeout(()=>{locked=false;$('lane'+laneNo).classList.remove('wrong');$('b'+laneNo).classList.remove('wrong')},500)}}
+function next(){idx++; if(idx>=order.length) finish(); else render()}
+function finish(){show('finish');const pct=(score/order.length)*100;$('finalScore').textContent='Score: '+score+'/'+order.length;if(pct>=75)$('msg').textContent='Good job';else if(pct>=40)$('msg').textContent='Review this chapter and try again';else $('msg').textContent='Let’s practise more';}
+</script>
+</body>
+</html>
