@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 5 ICT: LED Circuit Master Game</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --text: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 850px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: max-width 0.3s ease;
+        }
+
+        #game-container.wide-mode {
+            max-width: 1050px;
+        }
+
+        /* Splash Screen Overlay for Logo */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #splash-screen img {
+            max-width: 80%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+
+        /* System Screens */
+        .screen { display: none; }
+        .active { display: block; }
+
+        h1, h2, h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .meta-info {
+            background: #eff6ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* UI Core Action Inputs */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+            touch-action: manipulation;
+        }
+
+        .btn:hover { background: var(--primary); }
+
+        .audio-ctrl {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #e2e8f0;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        /* Countdown Bars */
+        .timer-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .timer-fill {
+            height: 100%;
+            background: var(--danger);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .feedback {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        /* Prototyping Vector Graphic Formats */
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+            max-height: 160px;
+        }
+
+        /* Level 3 Specific Grid Interface Elements */
+        .blocks-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0 15px 0;
+            padding: 10px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .block-btn {
+            background: white;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            max-width: 200px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .block-btn:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: translateY(-2px);
+        }
+        .block-btn:disabled {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            min-height: 130px;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+        .lvl3-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .lvl3-controls .btn-small {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        /* Spline Confetti Particles */
+        .confetti {
+            position: absolute;
+            width: 8px; height: 8px;
+            animation: drop 1.5s infinite linear;
+            top: -10px;
+            z-index: 5;
+        }
+        @keyframes drop {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(500px) rotate(360deg); opacity: 0; }
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'neutral',
+            flowchart: { useMaxWidth: false, htmlLabels: true }
+        });
+        window.mermaid = mermaid;
+    </script>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo">
+    </div>
+
+    <audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="game-container">
+        <button class="audio-ctrl" id="mute-btn" onclick="toggleMute()">🔊 Sound: ON</button>
+
+        <div id="intro-screen" class="screen active">
+            <h1>Circuit Masters Game</h1>
+            <div class="meta-info">
+                <strong>Grade:</strong> Grade 5<br>
+                <strong>Subject:</strong> ICT<br>
+                <strong>Topic:</strong> Chapter 2: LED Circuit using Tinkercad<br>
+                <strong>Total Challenges:</strong> 3 Progressive Levels
+            </div>
+            <button class="btn" id="start-game-btn" onclick="startGame()">Start Game</button>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="header-bar">
+                <span id="level-title">Level 1</span>
+                <span>Score: <span id="score-display">0</span></span>
+            </div>
+            <div class="timer-bar"><div id="timer-fill" class="timer-fill"></div></div>
+            
+            <p id="question-text" style="font-size: 1rem; margin-bottom: 10px; font-weight: 600; text-align: center;"></p>
+            
+            <div id="visual-area"></div>
+            <div id="interaction-area"></div>
+
+            <div id="feedback-box" class="feedback"></div>
+            <button id="action-btn" class="btn" style="display:none; background:#10b981;"></button>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <h2>Game Completed!</h2>
+            <div class="meta-info" style="text-align: center; font-size: 1.1rem;">
+                Your Score: <span id="final-score">0</span>%
+                <p id="result-message" style="margin-top:10px; font-weight:bold;"></p>
+            </div>
+            <button class="btn" id="retry-game-btn" onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500); // Removes element cleanly after fade out transition
+                }
+            }, 5000); // Displays for exactly 5000 milliseconds (5 seconds)
+        });
+    </script>
+
+    <script>
+        // System States Mappings
+        let score = 0;
+        let currentLevel = 1;
+        let attemptsLeft = 2;
+        let timerInterval;
+        let timeLeft = 45;
+        let isMuted = false;
+        let clickedSequence = [];
+
+        // Exact Tinkercad Breadboard Small & LED Pin Vector Layout Sheets
+        const CUSTOM_ASSETS = {
+            tinkercadBreadboard: `
+                <svg width="460" height="180" viewBox="0 0 460 180" style="background:#e0e0e0; border-radius:6px; border:3px solid #b5b5b5;">
+                    <rect x="15" y="10" width="430" height="22" fill="#f0f0f0" rx="2" stroke="#d0d0d0"/>
+                    <rect x="15" y="148" width="430" height="22" fill="#f0f0f0" rx="2" stroke="#d0d0d0"/>
+                    <line x1="25" y1="15" x2="410" y2="15" stroke="#3b82f6" stroke-width="2"/>
+                    <line x1="25" y1="27" x2="410" y2="27" stroke="#ef4444" stroke-width="2"/>
+                    <line x1="25" y1="153" x2="410" y2="153" stroke="#3b82f6" stroke-width="2"/>
+                    <line x1="25" y1="165" x2="410" y2="165" stroke="#ef4444" stroke-width="2"/>
+                    <rect x="15" y="38" width="430" height="104" fill="#f5f5f5" rx="2" stroke="#d0d0d0"/>
+                    <rect x="15" y="87" width="430" height="6" fill="#d8d8d8"/>
+                    <g fill="#475569">
+                        <circle cx="40" cy="15" r="2.5"/><circle cx="75" cy="15" r="2.5"/><circle cx="110" cy="15" r="2.5"/><circle cx="145" cy="15" r="2.5"/><circle cx="180" cy="15" r="2.5"/><circle cx="215" cy="15" r="2.5"/><circle cx="250" cy="15" r="2.5"/><circle cx="285" cy="15" r="2.5"/>
+                        <circle cx="40" cy="27" r="2.5"/><circle cx="75" cy="27" r="2.5"/><circle cx="110" cy="27" r="2.5"/><circle cx="145" cy="27" r="2.5"/><circle cx="180" cy="27" r="2.5"/><circle cx="215" cy="27" r="2.5"/><circle cx="250" cy="27" r="2.5"/><circle cx="285" cy="27" r="2.5"/>
+                        <circle cx="40" cy="48" r="2.5"/><circle cx="40" cy="58" r="2.5"/><circle cx="40" cy="68" r="2.5"/><circle cx="40" cy="78" r="2.5"/><circle cx="40" cy="100" r="2.5"/><circle cx="40" cy="110" r="2.5"/><circle cx="40" cy="120" r="2.5"/>
+                        <circle cx="75" cy="48" r="2.5"/><circle cx="75" cy="58" r="2.5"/><circle cx="75" cy="68" r="2.5"/><circle cx="75" cy="78" r="2.5"/><circle cx="75" cy="100" r="2.5"/><circle cx="75" cy="110" r="2.5"/><circle cx="75" cy="120" r="2.5"/>
+                        <circle cx="110" cy="48" r="2.5"/><circle cx="110" cy="58" r="2.5"/><circle cx="110" cy="68" r="2.5"/><circle cx="110" cy="78" r="2.5"/><circle cx="110" cy="100" r="2.5"/><circle cx="110" cy="110" r="2.5"/><circle cx="110" cy="120" r="2.5"/>
+                        <circle cx="145" cy="48" r="2.5"/><circle cx="145" cy="58" r="2.5"/><circle cx="145" cy="68" r="2.5"/><circle cx="145" cy="78" r="2.5"/><circle cx="145" cy="100" r="2.5"/><circle cx="145" cy="110" r="2.5"/><circle cx="145" cy="120" r="2.5"/>
+                        <text x="22" y="52" font-size="9" fill="#94a3b8" font-family="monospace">a</text>
+                        <text x="22" y="62" font-size="9" fill="#94a3b8" font-family="monospace">b</text>
+                        <text x="22" y="72" font-size="9" fill="#94a3b8" font-family="monospace">c</text>
+                        <text x="22" y="82" font-size="9" fill="#94a3b8" font-family="monospace">d</text>
+                        <text x="22" y="104" font-size="9" fill="#94a3b8" font-family="monospace">f</text>
+                        <text x="22" y="114" font-size="9" fill="#94a3b8" font-family="monospace">g</text>
+                        <text x="38" y="142" font-size="8" fill="#94a3b8">1</text>
+                        <text x="73" y="142" font-size="8" fill="#94a3b8">5</text>
+                        <text x="106" y="142" font-size="8" fill="#94a3b8">10</text>
+                    </g>
+                    <text x="220" y="132" font-size="11" font-weight="bold" fill="#cbd5e1" letter-spacing="1">BREADBOARD SMALL</text>
+                </svg>`,
+
+            ledTerminals: `
+                <svg width="280" height="220" viewBox="0 0 280 220">
+                    <path d="M 110,95 A 35,35 0 0,1 170,95 L 170,110 L 110,110 Z" fill="#ef4444" opacity="0.85" stroke="#b91c1c" stroke-width="2"/>
+                    <rect x="106" y="110" width="68" height="6" fill="#dc2626" rx="1"/>
+                    <path d="M 125,110 L 132,92 L 140,110 Z" fill="#fca5a5"/>
+                    <rect x="145" y="88" width="12" height="22" fill="#fee2e2"/>
+                    
+                    <path d="M 152,116 L 152,150 L 168,195" fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M 128,116 L 128,195" fill="none" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+
+                    <circle cx="168" cy="195" r="12" fill="#1e3a8a"/>
+                    <text x="164" y="199" fill="white" font-weight="bold" font-size="12">A</text>
+
+                    <circle cx="128" cy="195" r="12" fill="#1e3a8a"/>
+                    <text x="124" y="199" fill="white" font-weight="bold" font-size="12">B</text>
+
+                    <text x="185" y="185" font-size="12" font-weight="bold" fill="#475569">Pin A (Bent Leg)</text>
+                    <text x="35" y="185" font-size="12" font-weight="bold" fill="#475569">Pin B (Straight)</text>
+                </svg>`
+        };
+
+        // Master Verification Rules for Level 3
+        const baseSteps = [
+            "Drag Breadboard Small to the workplane",
+            "Drag Battery and attach to Breadboard",
+            "Place Resistor on line 'b' of Breadboard",
+            "Place LED on line 'd' straight to Resistor",
+            "Connect wires & click Start Simulation"
+        ];
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            document.getElementById('mute-btn').innerText = isMuted ? "🔇 Sound: OFF" : "🔊 Sound: ON";
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            const snd = document.getElementById(type === 'right' ? 'snd-correct' : 'snd-wrong');
+            snd.currentTime = 0;
+            snd.play().catch(() => {});
+        }
+
+        function startTimer() {
+            timeLeft = 45;
+            clearInterval(timerInterval);
+            const fill = document.getElementById('timer-fill');
+            fill.style.width = "100%";
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                fill.style.width = (timeLeft / 45) * 100 + "%";
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleFailure("Time ran out for this level challenge!");
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            score = 0;
+            currentLevel = 1;
+            loadLevel();
+            showScreen('game-screen');
+        }
+
+        function loadLevel() {
+            attemptsLeft = 2;
+            clickedSequence = [];
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('feedback-box').style.display = 'none';
+            document.getElementById('action-btn').style.display = 'none';
+            
+            const visualArea = document.getElementById('visual-area');
+            const interactionArea = document.getElementById('interaction-area');
+            const containerFrame = document.getElementById('game-container');
+            
+            // Secure clean DOM state structure resetting rules
+            visualArea.innerHTML = '';
+            visualArea.className = 'svg-container';
+            interactionArea.innerHTML = '';
+            containerFrame.classList.remove('wide-mode');
+            
+            startTimer();
+
+            if (currentLevel === 1) {
+                setupLevel1();
+            } else if (currentLevel === 2) {
+                setupLevel2();
+            } else if (currentLevel === 3) {
+                setupLevel3();
+            }
+        }
+
+        // LEVEL 1: COMPONENT SELECTION WITH EXACTLY TWO ACTION BUTTONS
+        function setupLevel1() {
+            document.getElementById('level-title').innerText = "Level 1: Identification";
+            document.getElementById('question-text').innerText = "Identify this key Tinkercad prototyping platform tool:";
+            
+            const vArea = document.getElementById('visual-area');
+            vArea.className = "svg-container";
+            vArea.innerHTML = CUSTOM_ASSETS.tinkercadBreadboard;
+
+            const options = ["Breadboard", "Arduino Board"];
+            options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "btn";
+                b.style.background = "#475569";
+                b.innerText = opt;
+                b.onclick = () => checkLevel1(opt);
+                document.getElementById('interaction-area').appendChild(b);
+            });
+        }
+
+        function checkLevel1(choice) {
+            if (choice === "Breadboard") {
+                handleSuccess(25, "Correct! The Breadboard allows you to arrange wires and parts easily without permanent soldering.");
+            } else {
+                handleIncorrect("Incorrect. Hint: It features dynamic row socket tracks to lock components down.");
+            }
+        }
+
+        // LEVEL 2: COMPONENT LEADS IDENTIFICATION (ANODE & CATHODE)
+        function setupLevel2() {
+            document.getElementById('level-title').innerText = "Level 2: Diode Terminals Identification";
+            document.getElementById('question-text').innerText = "Observe the two legs of the LED light component below. Identify which terminal represents the Cathode and Anode pins:";
+            
+            const vArea = document.getElementById('visual-area');
+            vArea.className = "svg-container";
+            vArea.innerHTML = CUSTOM_ASSETS.ledTerminals;
+
+            const options = [
+                "Pin A is Anode (Positive) & Pin B is Cathode (Negative)",
+                "Pin A is Cathode (Negative) & Pin B is Anode (Positive)",
+                "Both Pin A and Pin B are identical positive terminals",
+                "Pin A is Ground connection & Pin B is VCC Power entry"
+            ];
+
+            options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "btn";
+                b.style.background = "#475569";
+                b.innerText = opt;
+                b.onclick = () => checkLevel2(opt);
+                document.getElementById('interaction-area').appendChild(b);
+            });
+        }
+
+        function checkLevel2(choice) {
+            if (choice.startsWith("Pin A is Anode")) {
+                handleSuccess(35, "Brilliant! In Tinkercad, the bent leg (long) is always the positive Anode terminal, while the short straight leg is the negative Cathode terminal.");
+            } else {
+                handleIncorrect("Incorrect response. Remember: The bent leg points to the positive side (Anode) while the short straight lead acts as the Cathode.");
+            }
+        }
+
+        // LEVEL 3: INTEGRATED RANDOMIZED INTERACTIVE HORIZONTAL FLOW PATH BUILDER
+        function setupLevel3() {
+            document.getElementById('game-container').classList.add('wide-mode'); 
+            document.getElementById('level-title').innerText = "Level 3: Prototyping Sequence Builder";
+            document.getElementById('question-text').innerText = "Click the randomized action blocks below in their proper horizontal order to reconstruct the diagram path:";
+
+            const vArea = document.getElementById('visual-area');
+            vArea.className = "mermaid";
+
+            const interactionArea = document.getElementById('interaction-area');
+
+            // Render Shuffled Inputs
+            const blockPool = document.createElement('div');
+            blockPool.className = "blocks-container";
+            blockPool.id = "blocks-pool";
+            
+            const shuffled = [...baseSteps].sort(() => Math.random() - 0.5);
+            shuffled.forEach((text, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'block-btn';
+                btn.innerText = text;
+                btn.id = `block-${index}`;
+                btn.onclick = () => {
+                    clickedSequence.push(text);
+                    btn.disabled = true;
+                    renderLiveDiagram();
+                };
+                blockPool.appendChild(btn);
+            });
+            interactionArea.appendChild(blockPool);
+
+            // Add Level 3 Controls 
+            const ctrlDiv = document.createElement('div');
+            ctrlDiv.className = "lvl3-controls";
+            
+            const resetBtn = document.createElement('button');
+            resetBtn.className = "btn-small";
+            resetBtn.style.background = "#64748b";
+            resetBtn.style.color = "white";
+            resetBtn.innerText = "Clear & Restart";
+            resetBtn.onclick = resetLevel3Selection;
+
+            const verifyBtn = document.createElement('button');
+            verifyBtn.className = "btn-small";
+            verifyBtn.style.background = "var(--success)";
+            verifyBtn.style.color = "white";
+            verifyBtn.innerText = "Verify Layout Path";
+            verifyBtn.onclick = checkLevel3;
+
+            ctrlDiv.appendChild(resetBtn);
+            ctrlDiv.appendChild(verifyBtn);
+            interactionArea.appendChild(ctrlDiv);
+
+            renderLiveDiagram();
+        }
+
+        function resetLevel3Selection() {
+            clickedSequence = [];
+            document.querySelectorAll('.block-btn').forEach(b => b.disabled = false);
+            renderLiveDiagram();
+        }
+
+        function renderLiveDiagram() {
+            const container = document.getElementById('visual-area');
+            if(!container) return;
+            container.removeAttribute('data-processed');
+            
+            if (clickedSequence.length === 0) {
+                container.innerHTML = `<span style="color:#94a3b8; font-style:italic; padding-top:40px;">Select your first step to start building your horizontal flow path...</span>`;
+                return;
+            }
+
+            let syntax = "graph LR\n";
+            clickedSequence.forEach((text, i) => {
+                const displayLabel = `<b>Step ${i+1}</b><br>${text.replace(' to ', '<br>to ')}`;
+                syntax += `    Node${i}["${displayLabel}"]\n`;
+                syntax += `    style Node${i} fill:#eff6ff,stroke:#3b82f6,stroke-width:2px;\n`;
+            });
+
+            for (let i = 0; i < clickedSequence.length - 1; i++) {
+                syntax += `    Node${i} --> Node${i+1}\n`;
+            }
+
+            if (window.mermaid) {
+                container.innerHTML = syntax;
+                window.mermaid.run({ nodes: [container] });
+            }
+        }
+
+        function checkLevel3() {
+            const fb = document.getElementById('feedback-box');
+            fb.style.display = "none";
+
+            if (clickedSequence.length !== baseSteps.length) {
+                playSound('wrong');
+                fb.style.display = "block";
+                fb.style.background = "#fee2e2";
+                fb.style.color = "#991b1b";
+                fb.innerText = `Incomplete Track! You must map out all ${baseSteps.length} sequence steps onto the flow grid layout first before validating.`;
+                return;
+            }
+
+            let isCorrect = true;
+            for (let i = 0; i < baseSteps.length; i++) {
+                if (clickedSequence[i] !== baseSteps[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            if (isCorrect) {
+                const container = document.getElementById('visual-area');
+                container.removeAttribute('data-processed');
+                let successSyntax = "graph LR\n";
+                clickedSequence.forEach((text, i) => {
+                    const displayLabel = `<b>Step ${i+1}</b><br>${text.replace(' to ', '<br>to ')}`;
+                    successSyntax += `    Node${i}["${displayLabel}"]\n`;
+                    successSyntax += `    style Node${i} fill:#d1fae5,stroke:#10b981,stroke-width:2px;\n`;
+                });
+                for (let i = 0; i < clickedSequence.length - 1; i++) {
+                    successSyntax += `    Node${i} --> Node${i+1}\n`;
+                }
+                container.innerHTML = successSyntax;
+                window.mermaid.run({ nodes: [container] });
+
+                handleSuccess(40, "Fantastic Work! You reconstructed the Tinkercad prototyping workflow sequence diagram layout cleanly and perfectly! 🎉");
+            } else {
+                handleIncorrect("Incorrect Sequence. Hint: Always set down structural baseline foundational parts (like your breadboard and battery blocks) before routing pin wire lines!");
+            }
+        }
+
+        // UNIFIED ENGINE CORE GRAPH VALIDATORS
+        function handleSuccess(points, msg) {
+            clearInterval(timerInterval);
+            playSound('right');
+            score += points;
+            document.getElementById('score-display').innerText = score;
+            
+            triggerConfetti();
+
+            const fb = document.getElementById('feedback-box');
+            fb.style.display = "block";
+            fb.style.background = "#d1fae5";
+            fb.style.color = "#065f46";
+            fb.innerText = msg;
+
+            document.getElementById('interaction-area').innerHTML = '';
+            
+            const nextBtn = document.getElementById('action-btn');
+            nextBtn.style.display = "block";
+            if (currentLevel < 3) {
+                nextBtn.innerText = "Advance to Next Level";
+                nextBtn.onclick = () => { currentLevel++; loadLevel(); };
+            } else {
+                nextBtn.innerText = "View Final Results Summary";
+                nextBtn.onclick = finishGame;
+            }
+        }
+
+        function handleIncorrect(educationalFeedback) {
+            attemptsLeft--;
+            playSound('wrong');
+            const fb = document.getElementById('feedback-box');
+            fb.style.display = "block";
+            fb.style.background = "#fee2e2";
+            fb.style.color = "#991b1b";
+
+            if (attemptsLeft > 0) {
+                fb.innerText = `${educationalFeedback} (You have 1 attempt remaining!)`;
+                if (currentLevel === 3) resetLevel3Selection(); 
+            } else {
+                clearInterval(timerInterval);
+                fb.innerText = `Out of attempts! Let's progress onward. ${educationalFeedback}`;
+                document.getElementById('interaction-area').innerHTML = '';
+                
+                const nextBtn = document.getElementById('action-btn');
+                nextBtn.style.display = "block";
+                if (currentLevel < 3) {
+                    nextBtn.innerText = "Move to Next Level";
+                    nextBtn.onclick = () => { currentLevel++; loadLevel(); };
+                } else {
+                    nextBtn.innerText = "View Final Results Summary";
+                    nextBtn.onclick = finishGame;
+                }
+            }
+        }
+
+        function handleFailure(reason) {
+            playSound('wrong');
+            const fb = document.getElementById('feedback-box');
+            fb.style.display = "block";
+            fb.style.background = "#fee2e2";
+            fb.style.color = "#991b1b";
+            fb.innerText = reason;
+            document.getElementById('interaction-area').innerHTML = '';
+            
+            const nextBtn = document.getElementById('action-btn');
+            nextBtn.style.display = "block";
+            if (currentLevel < 3) {
+                nextBtn.innerText = "Proceed to Next Level";
+                nextBtn.onclick = () => { currentLevel++; loadLevel(); };
+            } else {
+                nextBtn.innerText = "View Final Results Summary";
+                nextBtn.onclick = finishGame;
+            }
+        }
+
+        function triggerConfetti() {
+            const container = document.getElementById('game-container');
+            for(let i=0; i<35; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + "%";
+                conf.style.background = ['#3b82f6','#10b981','#f59e0b','#ef4444'][Math.floor(Math.random()*4)];
+                conf.style.animationDelay = Math.random() * 0.4 + "s";
+                container.appendChild(conf);
+                setTimeout(() => conf.remove(), 1500);
+            }
+        }
+
+        function finishGame() {
+            document.getElementById('game-container').classList.remove('wide-mode');
+            showScreen('result-screen');
+            document.getElementById('final-score').innerText = score;
+            const msgEl = document.getElementById('result-message');
+            
+            if (score >= 75) {
+                msgEl.innerText = "Good job! 🎉";
+                msgEl.style.color = "var(--success)";
+            } else if (score >= 40) {
+                msgEl.innerText = "Review this chapter and try again! 📚";
+                msgEl.style.color = "var(--secondary)";
+            } else {
+                msgEl.innerText = "Let’s practise more! 💪";
+                msgEl.style.color = "var(--danger)";
+            }
+        }
+
+        // FULL FIXED NAVIGATION RECOVERY ROUTE HOOK
+        function resetGame() {
+            score = 0;
+            currentLevel = 1;
+            showScreen('intro-screen');
+        }
+    </script>
+</body>
+</html>
