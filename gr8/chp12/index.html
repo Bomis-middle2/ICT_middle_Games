@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escape Sequences and Control Statements in Java Interactive Activity</title>
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #064e3b;
+      --secondary: #7c3aed;
+      --accent: #f59e0b;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --text: #1f2937;
+      --muted: #64748b;
+      --border: #d1fae5;
+      --card: #ffffff;
+      --soft-green: #ecfdf5;
+      --soft-purple: #f5f3ff;
+      --soft-blue: #f0f9ff;
+      --soft-yellow: #fffbeb;
+      --soft-red: #fef2f2;
+      --soft-cyan: #ecfeff;
+      --shadow: 0 18px 45px rgba(5, 150, 105, 0.16);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+    }
+    * { box-sizing: border-box; }
+    html { width: 100%; min-height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0; width: 100%; min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif; color: var(--text);
+      background: radial-gradient(circle at top left, rgba(5,150,105,0.14), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(124,58,237,0.12), transparent 35%),
+        linear-gradient(135deg, #ecfdf5, #f5f3ff);
+      overflow-x: hidden;
+    }
+    button, input { font: inherit; }
+    button { touch-action: manipulation; }
+    .hidden { display: none !important; }
+    .app { width: min(100%, 1180px); min-height: 100vh; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; }
+
+    .intro-screen {
+      min-height: calc(100vh - 32px); width: 100%; border-radius: var(--radius-xl); overflow: hidden; color: white;
+      background: radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.15), transparent 28%),
+        linear-gradient(135deg, #064e3b, #059669 46%, #7c3aed);
+      box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: center;
+    }
+    .intro-main { flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; padding: 34px; }
+    .intro-main > div { width: min(100%, 900px); }
+    .intro-badge { width: fit-content; max-width: 100%; margin: 0 auto 16px; padding: 9px 15px; border-radius: 999px; font-weight: 900; text-align: center; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); backdrop-filter: blur(8px); }
+    .intro-title { margin: 0 0 14px; font-size: clamp(2rem, 2vw, 3.55rem); line-height: 1.05; letter-spacing: -0.8px; text-align: center; }
+    .intro-subtitle { margin: 0 auto 22px; max-width: 760px; color: rgba(255,255,255,0.92); font-size: 1.05rem; line-height: 1.65; font-weight: 600; text-align: center; }
+    .intro-details { width: 100%; border-radius: 22px; overflow: hidden; background: rgba(255,255,255,0.97); color: var(--text); border: 1px solid rgba(255,255,255,0.55); box-shadow: 0 18px 34px rgba(15,23,42,0.22); }
+    .detail-row { display: grid; grid-template-columns: 175px 1fr; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #d1fae5; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--primary-dark); font-weight: 950; }
+    .detail-value { color: var(--muted); font-weight: 800; line-height: 1.45; }
+    .intro-main .main-btn { display: block; margin: 0 auto; }
+    .intro-footer { display: grid; grid-template-columns: minmax(0, 420px); justify-content: center; gap: 14px; padding: 0 34px 34px; }
+    .rule-card { display: flex; gap: 12px; min-width: 0; padding: 17px; border-radius: 22px; background: rgba(255,255,255,0.97); color: var(--text); box-shadow: 0 12px 26px rgba(15,23,42,0.15); }
+    .rule-icon { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 15px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; font-size: 1.45rem; }
+    .rule-card h3 { margin: 0 0 5px; color: var(--primary-dark); font-size: 1.05rem; }
+    .rule-card p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.45; font-weight: 700; }
+
+    .activity-screen { min-height: calc(100vh - 32px); display: flex; flex-direction: column; gap: 16px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; background: rgba(255,255,255,0.97); border: 1px solid var(--border); border-radius: 24px; box-shadow: var(--shadow); backdrop-filter: blur(8px); }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--primary-dark); font-weight: 950; }
+    .brand-icon { width: 46px; height: 46px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: grid; place-items: center; color: white; font-size: 1.3rem; flex: 0 0 auto; }
+    .brand-text { line-height: 1.2; overflow-wrap: anywhere; }
+    .score-pill, .type-pill { min-height: 44px; border-radius: 999px; padding: 10px 15px; font-weight: 950; white-space: nowrap; }
+    .score-pill { background: var(--soft-yellow); color: #92400e; border: 1px solid #fcd34d; }
+    .type-pill { background: var(--soft-green); color: var(--primary-dark); border: 1px solid #6ee7b7; }
+    .activity-layout { flex: 1; display: grid; grid-template-columns: 285px 1fr; gap: 16px; min-height: 0; }
+    .side-panel, .question-card, .result-card { background: rgba(255,255,255,0.98); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); }
+    .side-panel { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .side-panel h3 { margin: 0; color: var(--primary-dark); font-size: 1.25rem; }
+    .side-panel p { margin: 0; color: var(--muted); line-height: 1.45; font-weight: 700; }
+    .progress-list { display: grid; gap: 9px; margin-top: 8px; }
+    .progress-item { display: flex; align-items: center; gap: 10px; padding: 11px; border-radius: 16px; background: var(--soft-green); border: 1px solid #6ee7b7; color: var(--primary-dark); font-weight: 900; }
+    .progress-dot { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; background: white; border: 2px solid #34d399; font-size: 0.88rem; flex: 0 0 auto; }
+    .progress-item.active { background: linear-gradient(135deg, #d1fae5, #ede9fe); border-color: var(--primary); }
+    .progress-item.done { background: var(--soft-green); border-color: #86efac; color: #166534; }
+    .progress-item.done .progress-dot { border-color: var(--success); color: var(--success); }
+    .tip-box { margin-top: auto; padding: 14px; border-radius: 18px; background: var(--soft-purple); border: 1px solid #c4b5fd; color: #4c1d95; line-height: 1.5; font-weight: 800; }
+    .question-card { padding: 24px; min-width: 0; display: flex; flex-direction: column; }
+    .question-meta { margin-bottom: 8px; color: var(--primary); font-weight: 950; }
+    .attempt-pill { width: fit-content; max-width: 100%; display: inline-block; margin-bottom: 10px; padding: 8px 13px; border-radius: 999px; background: var(--soft-yellow); color: #92400e; font-weight: 950; border: 1px solid #fcd34d; }
+    .question-title { margin: 0 0 8px; font-size: clamp(1.25rem, 4vw, 1.9rem); color: var(--primary-dark); line-height: 1.25; }
+    .instruction { margin: 0 0 18px; color: var(--muted); line-height: 1.5; font-weight: 700; }
+    .main-btn { min-height: 52px; min-width: 150px; max-width: 100%; border: none; border-radius: var(--radius-md); padding: 14px 22px; cursor: pointer; color: white; font-size: 1.02rem; font-weight: 950; background: linear-gradient(135deg, var(--primary), var(--secondary)); box-shadow: 0 8px 18px rgba(5,150,105,0.25); }
+    .dark-btn { background: linear-gradient(135deg, #475569, #0f172a); }
+    .main-btn:active, .tile:active, .pin-card:active, .switch-card:active, .step-card:active, .dial-btn:active { transform: scale(0.98); }
+    #questionContent { min-width: 0; }
+    .feedback { display: none; margin-top: 16px; padding: 15px; border-radius: 16px; font-weight: 850; line-height: 1.45; }
+    .feedback.show { display: block; }
+    .feedback.correct { background: var(--soft-green); border: 1px solid #bbf7d0; color: #166534; }
+    .feedback.wrong { background: var(--soft-red); border: 1px solid #fecaca; color: #991b1b; }
+    .feedback.try { background: var(--soft-yellow); border: 1px solid #fcd34d; color: #92400e; }
+    .actions { margin-top: auto; padding-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    .info-box { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, #ecfdf5, #f5f3ff); border: 2px dashed #34d399; color: var(--text); font-weight: 850; line-height: 1.55; margin-bottom: 14px; }
+    .tile, .pin-card, .switch-card, .step-card, .dial-btn { border: 2px solid var(--border); border-radius: 18px; background: white; color: var(--text); padding: 15px; cursor: pointer; font-weight: 900; line-height: 1.4; }
+    .tile small, .pin-card small, .switch-card small { display: block; margin-top: 7px; color: var(--muted); font-weight: 750; line-height: 1.35; }
+
+    .sensor-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; }
+    .sensor-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+    .pin-lab { display: grid; gap: 14px; }
+    .lcd-face { padding: 18px; border-radius: 22px; background: #1e293b; color: #6ee7b7; font-family: Consolas, Monaco, monospace; box-shadow: inset 0 0 0 2px rgba(110,231,183,0.15); }
+    .lcd-line { min-height: 26px; letter-spacing: 1px; }
+    .pin-row { display: grid; grid-template-columns: 100px 1fr; gap: 10px; align-items: center; padding: 12px; border-radius: 18px; background: var(--soft-green); border: 1px solid #6ee7b7; }
+    .pin-label { color: var(--primary-dark); font-weight: 950; font-family: Consolas, Monaco, monospace; font-size: 1.1rem; }
+    .pin-options { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pin-card { padding: 9px 13px; border-radius: 999px; }
+
+    .switch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+    .switch-card { min-height: 125px; text-align: left; }
+    .switch-card .status { display: inline-block; margin-top: 10px; padding: 7px 11px; border-radius: 999px; background: var(--soft-blue); color: #1e3a8a; font-weight: 950; }
+
+    .step-list { display: grid; gap: 11px; }
+    .step-card { display: flex; align-items: center; gap: 12px; text-align: left; }
+    .step-number { width: 36px; height: 36px; flex: 0 0 auto; border-radius: 999px; display: grid; place-items: center; background: var(--soft-green); color: var(--primary-dark); font-weight: 950; }
+
+    .dial-panel { display: grid; gap: 14px; text-align: center; }
+    .dial-display { padding: 24px; border-radius: 24px; background: radial-gradient(circle at center, #ffffff 0 34%, transparent 35%), conic-gradient(#059669, #7c3aed, #f59e0b, #059669); border: 1px solid #6ee7b7; }
+    .dial-value { margin: 0 auto; width: min(100%, 280px); padding: 20px; border-radius: 22px; background: white; color: var(--primary-dark); font-weight: 950; font-size: 1.4rem; box-shadow: 0 10px 24px rgba(15,23,42,0.14); }
+    .dial-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .dial-btn { min-width: 110px; background: white; }
+
+    .code-block { padding: 18px; border-radius: 22px; background: #1e293b; color: #e2e8f0; font-family: Consolas, Monaco, monospace; font-size: 0.95rem; line-height: 1.8; overflow-x: auto; }
+    .code-block .blank { display: inline-block; min-width: 60px; padding: 4px 12px; border-radius: 8px; background: #334155; border: 2px dashed #64748b; color: #94a3b8; text-align: center; cursor: pointer; font-weight: 900; }
+    .code-block .blank.filled { background: #374151; border-color: #34d399; color: #6ee7b7; }
+    .code-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .code-chip { padding: 9px 15px; border-radius: 999px; border: 2px solid var(--border); background: white; color: var(--text); font-weight: 900; cursor: pointer; font-family: Consolas, Monaco, monospace; }
+    .code-chip.used { opacity: 0.4; pointer-events: none; }
+
+    .selected { background: #d1fae5 !important; border-color: var(--primary) !important; color: var(--primary-dark) !important; box-shadow: 0 0 0 3px rgba(5,150,105,0.12); }
+    .correct-choice { background: var(--soft-green) !important; border-color: var(--success) !important; color: var(--success) !important; }
+    .wrong-choice { background: var(--soft-red) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
+
+    .result-card { padding: 28px; text-align: center; margin: auto; width: min(100%, 800px); }
+    .result-title { margin: 0 0 10px; color: var(--primary-dark); font-size: clamp(1.8rem, 5vw, 2.55rem); }
+    .result-score { font-size: 1.25rem; font-weight: 950; }
+    .result-message { display: inline-block; margin: 10px 0 18px; padding: 14px 18px; border-radius: 16px; font-size: 1.12rem; font-weight: 950; }
+    .good { background: var(--soft-green); color: var(--success); }
+    .review { background: var(--soft-yellow); color: #92400e; }
+    .practice { background: var(--soft-red); color: var(--danger); }
+    .summary { margin-top: 16px; padding: 16px; border-radius: 18px; background: var(--soft-cyan); color: var(--muted); text-align: left; line-height: 1.6; border: 1px solid #a5f3fc; font-weight: 700; }
+    .summary strong { color: #164e63; }
+
+    @media (max-width: 980px) { .activity-layout { grid-template-columns: 1fr; } .side-panel { order: 2; } .question-card { order: 1; } .progress-list { grid-template-columns: repeat(5, minmax(0,1fr)); } .progress-item { justify-content: center; padding: 10px 6px; } .progress-item span:last-child { display: none; } .tip-box { display: none; } }
+    @media (max-width: 760px) { .app { padding: 10px; } .intro-screen, .activity-screen { min-height: calc(100vh - 20px); } .intro-main { padding: 22px; } .intro-footer { padding: 0 22px 22px; } .detail-row { grid-template-columns: 1fr; gap: 5px; } .topbar { align-items: stretch; flex-wrap: wrap; border-radius: 18px; } .brand { flex: 1 1 100%; justify-content: center; text-align: center; } .score-pill, .type-pill { flex: 1 1 auto; text-align: center; } .question-card, .side-panel, .result-card { border-radius: 22px; padding: 16px; } .actions { flex-direction: column; } .main-btn { width: 100%; } .pin-row { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .app { padding: 8px; } .intro-screen, .activity-screen { min-height: calc(100vh - 16px); } .intro-main { padding: 18px; } .intro-footer { padding: 0 18px 18px; } .intro-title { font-size: 1.75rem; } .intro-subtitle, .rule-card p { font-size: 0.9rem; } .sensor-board, .switch-grid { grid-template-columns: 1fr; } .progress-list { grid-template-columns: repeat(5, 1fr); gap: 5px; } .progress-item { padding: 7px 3px; border-radius: 12px; } .progress-dot { width: 24px; height: 24px; font-size: 0.78rem; } .question-title { font-size: 1.15rem; } .tile, .pin-card, .switch-card, .step-card, .dial-btn, .main-btn, .code-chip { font-size: 0.9rem; } .info-box, .summary, .feedback, .lcd-face, .code-block { padding: 12px; font-size: 0.9rem; } .step-card { align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <div id="splashScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #064e3b; display: flex; justify-content: center; align-items: center; z-index: 9999;">
+    <img src="assets/innovine-logo.png" alt="Innovine Logo" style="max-width: 80%; max-height: 80%; object-fit: contain;">
+  </div>
+
+  <main class="app">
+    <section id="introScreen" class="intro-screen">
+      <div class="intro-main">
+        <div>
+          <div class="intro-badge">ICT Activity • Grade 8 • Escape Sequences • Control Statements • Java</div>
+          <h1 class="intro-title">Escape Sequences and Control Statements in Java</h1>
+          <p class="intro-subtitle">Practise important concepts about escape sequences, their meanings, and control statements used in Java programming.</p>
+          <div class="intro-details">
+            <div class="detail-row"><span class="detail-label">Subject</span><span class="detail-value">ICT</span></div>
+            <div class="detail-row"><span class="detail-label">Grade</span><span class="detail-value">Grade 8</span></div>
+            <div class="detail-row"><span class="detail-label">Chapter 12</span><span class="detail-value">Escape Sequences and Control Statements in Java</span></div>
+           
+            <div class="detail-row"><span class="detail-label">Questions</span><span class="detail-value">5 interactive questions with shuffled choices</span></div>
+            <div class="detail-row"><span class="detail-label">Attempts</span><span class="detail-value">Two attempts are allowed for every question</span></div>
+          </div>
+          <br />
+          <button class="main-btn" type="button" onclick="startGame()">Start Activity</button>
+        </div>
+      </div>
+     
+    </section>
+
+    <section id="activityScreen" class="activity-screen hidden">
+      <header class="topbar">
+        <div class="brand"><div class="brand-icon">⌨️</div><div class="brand-text">Escape Sequences & Control Statements</div></div>
+        <div id="scoreTracker" class="score-pill">Score: 0 / 5</div>
+        <div id="questionTypePill" class="type-pill">Question Type</div>
+      </header>
+      <div class="activity-layout">
+        <aside class="side-panel">
+          <h3>Progress</h3>
+          <p>Complete all five questions. Each question gives two attempts.</p>
+          <div id="progressList" class="progress-list"></div>
+          <div class="tip-box">💡 Tip: An escape sequence starts with a backslash (\). For example, \n = newline, \t = tab, \\ = backslash character.</div>
+        </aside>
+        <section class="question-card">
+          <div id="questionNumber" class="question-meta"></div>
+          <div id="attemptBox" class="attempt-pill">Attempt 1 of 2</div>
+          <h2 id="questionTitle" class="question-title"></h2>
+          <p id="questionInstruction" class="instruction"></p>
+          <div id="questionContent"></div>
+          <div id="feedback" class="feedback"></div>
+          <div class="actions">
+            <button id="resetBtn" class="main-btn dark-btn hidden" type="button" onclick="resetQuestion()">Reset</button>
+            <button id="checkBtn" class="main-btn" type="button" onclick="checkAnswer()">Check Answer</button>
+            <button id="nextBtn" class="main-btn hidden" type="button" onclick="nextQuestion()">Next</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="result-card hidden">
+      <h2 class="result-title">Activity Complete!</h2>
+      <p id="finalScore" class="result-score"></p>
+      <div id="resultMessage" class="result-message"></div>
+      <div class="summary"><strong>Quick Revision:</strong> An escape sequence in Java is a character preceded by a backslash (\) with a special meaning. Key sequences: \t (tab), \n (newline), \b (backspace), \r (carriage return), \f (form feed), \' (single quote), \" (double quote), \\ (backslash). These are used inside strings to format output in Java programs.</div>
+      <br />
+      <button class="main-btn" type="button" onclick="startGame()">Play Again</button>
+    </section>
+  </main>
+
+  <script>
+    setTimeout(() => {
+      const splash = document.getElementById("splashScreen");
+      if (splash) splash.remove();
+    }, 5000);
+
+    const correctAudio = new Audio('assets/correct.mp3');
+    const wrongAudio = new Audio('assets/wrong.mp3');
+
+    const questions = [
+      {
+        type: "escapeMatch",
+        typeLabel: "Escape Matcher",
+        title: "Match escape sequences to their descriptions",
+        instruction: "First, click an escape sequence row to select it, then click its correct description from the options pool below.",
+        rows: [
+          { label: "\\n", answer: "newline" },
+          { label: "\\t", answer: "tab" },
+          { label: "\\\\", answer: "backslash character" },
+          { label: "\\\"", answer: "double quote character" }
+        ],
+        choices: ["newline", "tab", "backslash character", "double quote character"],
+        firstHint: "Try again. Hint: \\n creates a new line, \\t inserts a tab space, \\\\ prints a backslash, and \\\" prints a double quote.",
+        finalHint: "Correct: \\n → newline, \\t → tab, \\\\ → backslash character, \\\" → double quote character."
+      },
+      {
+        type: "outputPredictor",
+        typeLabel: "Output Predictor",
+        title: "Predict the output of this Java code",
+        instruction: "Read the code and select what will be printed on screen.",
+        code: 'System.out.println("Hello\\nWorld");',
+        options: [
+          { text: "Hello\\nWorld (on one line)", value: "oneline" },
+          { text: "Hello\nWorld (on two lines)", value: "twolines" },
+          { text: "HelloWorld (no space)", value: "nospace" },
+          { text: "Error — code won't compile", value: "error" }
+        ],
+        answer: "twolines",
+        firstHint: "Try again. Hint: The \\n escape sequence creates a newline — it moves the cursor to the next line.",
+        finalHint: "The correct answer is Hello on one line and World on the next line. The \\n escape sequence inserts a newline."
+      },
+      {
+        type: "factSwitch",
+        typeLabel: "Fact Checker",
+        title: "Identify correct facts about escape sequences",
+        instruction: "Toggle ON the correct statements. Leave incorrect ones OFF.",
+        statements: [
+          { text: "An escape sequence in Java is a character preceded by a backslash (\\).", correct: true },
+          { text: "\\t required twice in options. This inserts a tab space.", correct: true },
+          { text: "\\b moves the cursor to the next line.", correct: false },
+          { text: "\\' is used to print a single quote character.", correct: true },
+          { text: "Escape sequences do not need to be inside quotation marks.", correct: false }
+        ],
+        firstHint: "Try again. Hint: \\b is backspace (not newline). Escape sequences must be inside string literals (quotation marks).",
+        finalHint: "Correct: Escape sequences start with \\; \\t = tab; \\' = single quote. \\b is backspace (not newline), and escape sequences are used inside strings."
+      },
+      {
+        type: "codeFill",
+        typeLabel: "Code Completer",
+        title: "Complete the escape sequence code",
+        instruction: "Click each blank in the code, then choose the correct escape sequence to produce the described output.",
+        codeTemplate: [
+          { text: "// Output: Price:\t$5.99", blank: false },
+          { text: "\nSystem.out.println(\"Price:", blank: false },
+          { text: "___", blank: true, id: "b1", answer: "\\t" },
+          { text: "$5.99\");", blank: false },
+          { text: "\n// Output: She said \"Hi\"", blank: false },
+          { text: "\nSystem.out.println(\"She said ", blank: false },
+          { text: "___", blank: true, id: "b2", answer: "\\\"" },
+          { text: "Hi", blank: false },
+          { text: "___", blank: true, id: "b3", answer: "\\\"" },
+          { text: "\");", blank: false }
+        ],
+        choices: ["\\t", "\\\"", "\\n", "\\b", "\\\\"],
+        firstHint: "Try again. Hint: \\t adds a tab between Price: and $5.99. To print double quotes inside a string, use \\\" before and after Hi.",
+        finalHint: "Correct: Use \\t for tab spacing and \\\" to print literal double quote characters inside the string."
+      },
+      {
+        type: "sequenceIdentifier",
+        typeLabel: "Decision Control",
+        title: "Choose the Control Statement",
+        instruction: "Select the correct structure for the menu selection scenario below.",
+        prompt: "An ATM application executes an operation based on an integer input (1 for Withdraw, 2 for Deposit). Which control structure matches a single variable cleanly against specific precise constants?",
+        options: [
+          { label: "switch structure", value: "switch" },
+          { label: "if statement", value: "if" },
+          { label: "while loop", value: "while" },
+          { label: "for loop", value: "for" }
+        ],
+        answer: "switch",
+        firstHint: "Try again. Hint: Think of a structured mapping statement ideal for numerical menu option handling.",
+        finalHint: "The correct answer is the switch structure. It routes multi-way control options effectively across explicit constant matches."
+      }
+    ];
+
+    let currentQuestionIndex = 0, score = 0, attempts = 0, selectedAnswer = null, locked = false;
+    let pinAnswers = {}, switchAnswers = {}, codeAnswers = {}, activeBlank = null;
+
+    const introScreen = document.getElementById("introScreen");
+    const activityScreen = document.getElementById("activityScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const scoreTracker = document.getElementById("scoreTracker");
+    const questionTypePill = document.getElementById("questionTypePill");
+    const progressList = document.getElementById("progressList");
+    const questionNumber = document.getElementById("questionNumber");
+    const attemptBox = document.getElementById("attemptBox");
+    const questionTitle = document.getElementById("questionTitle");
+    const questionInstruction = document.getElementById("questionInstruction");
+    const questionContent = document.getElementById("questionContent");
+    const feedback = document.getElementById("feedback");
+    const checkBtn = document.getElementById("checkBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    function startGame() { currentQuestionIndex = 0; score = 0; introScreen.classList.add("hidden"); resultScreen.classList.add("hidden"); activityScreen.classList.remove("hidden"); updateScore(); renderProgress(); loadQuestion(); }
+    function updateScore() { scoreTracker.textContent = `Score: ${score} / ${questions.length}`; }
+    function shuffleArray(array) { const c=[...array]; for(let i=c.length-1;i>0;i--){const r=Math.floor(Math.random()*(i+1));[c[i],c[r]]=[c[r],c[i]];} return c; }
+    function resetState() { attempts=0; selectedAnswer=null; locked=false; pinAnswers={}; switchAnswers={}; codeAnswers={}; activeBlank=null; feedback.className="feedback"; feedback.textContent=""; checkBtn.classList.remove("hidden"); nextBtn.classList.add("hidden"); resetBtn.classList.add("hidden"); }
+    function renderProgress() { progressList.innerHTML=""; questions.forEach((q,i)=>{ const item=document.createElement("div"); item.className="progress-item"; if(i===currentQuestionIndex)item.classList.add("active"); if(i<currentQuestionIndex)item.classList.add("done"); item.innerHTML=`<span class="progress-dot">${i<currentQuestionIndex?"✓":i+1}</span><span>Q${i+1}</span>`; progressList.appendChild(item); }); }
+
+    function loadQuestion() {
+      resetState(); const q=questions[currentQuestionIndex];
+      questionNumber.textContent=`Question ${currentQuestionIndex+1} of ${questions.length}`;
+      questionTypePill.textContent=q.typeLabel; attemptBox.textContent=`Attempt ${attempts+1} of 2`;
+      questionTitle.textContent=q.title; questionInstruction.textContent=q.instruction; questionContent.innerHTML="";
+      if(q.type==="escapeMatch") renderEscapeMatch(q);
+      else if(q.type==="outputPredictor") renderOutputPredictor(q);
+      else if(q.type==="factSwitch") renderFactSwitch(q);
+      else if(q.type==="codeFill") renderCodeFill(q);
+      else if(q.type==="sequenceIdentifier") renderSequenceIdentifier(q);
+      renderProgress();
+    }
+
+    function renderEscapeMatch(q) {
+      resetBtn.classList.remove("hidden");
+      const lab = document.createElement("div"); lab.className = "pin-lab";
+      const hdr = document.createElement("div"); hdr.className = "lcd-face";
+      hdr.innerHTML = `<div class="lcd-line">JAVA ESCAPE SEQUENCES</div><div class="lcd-line">\\n \\t \\\\ \\" \\' \\b \\r \\f</div>`;
+      lab.appendChild(hdr);
+      
+      let activeRow = null;
+      
+      q.rows.forEach(row => {
+        pinAnswers[row.label] = "";
+        const pr = document.createElement("div"); pr.className = "pin-row"; pr.id = `pinRow-${row.label}`;
+        pr.style.cursor = "pointer";
+        const lbl = document.createElement("div"); lbl.className = "pin-label"; lbl.textContent = row.label;
+        const val = document.createElement("div"); val.className = "pin-value"; val.style.fontWeight = "800"; val.textContent = "Click here to assign description...";
+        
+        pr.onclick = () => {
+          if (locked) return;
+          activeRow = row.label;
+          document.querySelectorAll(".pin-row").forEach(x => x.classList.remove("selected"));
+          pr.classList.add("selected");
+        };
+        
+        pr.appendChild(lbl); pr.appendChild(val); lab.appendChild(pr);
+      });
+      questionContent.appendChild(lab);
+      
+      const opts = document.createElement("div"); opts.className = "code-options"; opts.style.marginTop = "14px";
+      shuffleArray(q.choices).forEach(ch => {
+        const btn = document.createElement("button"); btn.type = "button"; btn.className = "code-chip"; btn.textContent = ch;
+        btn.onclick = () => {
+          if (locked) return;
+          if (!activeRow) { showFeedback("Click on an escape sequence above first.", "try"); return; }
+          pinAnswers[activeRow] = ch;
+          const pr = document.getElementById(`pinRow-${activeRow}`);
+          pr.querySelector(".pin-value").textContent = ch;
+          activeRow = null;
+          pr.classList.remove("selected");
+        };
+        opts.appendChild(btn);
+      });
+      questionContent.appendChild(opts);
+    }
+
+    function renderOutputPredictor(q) {
+      const box=document.createElement("div"); box.className="info-box";
+      const code=document.createElement("div"); code.className="code-block"; code.textContent=q.code;
+      box.appendChild(code); questionContent.appendChild(box);
+      const list=document.createElement("div"); list.className="step-list";
+      shuffleArray(q.options).forEach(opt=>{
+        const card=document.createElement("button"); card.type="button"; card.className="step-card"; card.dataset.value=opt.value;
+        card.innerHTML=`<span class="step-number">?</span><span>${opt.text}</span>`;
+        card.onclick=()=>{ if(locked)return; selectedAnswer=opt.value; document.querySelectorAll(".step-card").forEach(x=>x.classList.remove("selected")); card.classList.add("selected"); };
+        list.appendChild(card);
+      });
+      questionContent.appendChild(list);
+    }
+
+    function renderFactSwitch(q) {
+      resetBtn.classList.remove("hidden");
+      const grid=document.createElement("div"); grid.className="switch-grid";
+      shuffleArray(q.statements).forEach((st,i)=>{
+        const id=`s${i}-${Math.random().toString(16).slice(2)}`;
+        switchAnswers[id]={selected:false,correct:st.correct,text:st.text};
+        const card=document.createElement("button"); card.type="button"; card.className="switch-card"; card.dataset.id=id;
+        card.innerHTML=`${st.text}<span class="status">OFF</span>`;
+        card.onclick=()=>{ if(locked)return; switchAnswers[id].selected=!switchAnswers[id].selected; const s=card.querySelector(".status"); if(switchAnswers[id].selected){card.classList.add("selected");s.textContent="ON";}else{card.classList.remove("selected");s.textContent="OFF";} };
+        grid.appendChild(card);
+      });
+      questionContent.appendChild(grid);
+    }
+
+    function renderCodeFill(q) {
+      resetBtn.classList.remove("hidden");
+      const wrapper=document.createElement("div"); wrapper.className="pin-lab";
+      const cb=document.createElement("div"); cb.className="code-block"; cb.id="codeBlock";
+      let html="";
+      q.codeTemplate.forEach(p=>{ if(p.blank){codeAnswers[p.id]=""; html+=`<span class="blank" id="${p.id}" onclick="selectBlank('${p.id}')">${p.text}</span>`;} else{ html+=p.text.replace(/\n/g,"<br>");} });
+      cb.innerHTML=html; wrapper.appendChild(cb);
+      const opts=document.createElement("div"); opts.className="code-options"; opts.id="codeOptions";
+      shuffleArray(q.choices).forEach(ch=>{
+        const chip=document.createElement("button"); chip.type="button"; chip.className="code-chip"; chip.textContent=ch; chip.dataset.value=ch;
+        chip.onclick=()=>{
+          if(locked)return; if(!activeBlank){showFeedback("Click on a blank (___) in the code first.","try");return;}
+          codeAnswers[activeBlank]=ch; const el=document.getElementById(activeBlank); el.textContent=ch; el.classList.add("filled");
+          updateCodeChips(); activeBlank=null; document.querySelectorAll(".blank").forEach(b=>b.style.outline="");
+        };
+        opts.appendChild(chip);
+      });
+      wrapper.appendChild(opts); questionContent.appendChild(wrapper);
+    }
+
+    function selectBlank(id){if(locked)return;activeBlank=id;document.querySelectorAll(".blank").forEach(b=>b.style.outline="");document.getElementById(id).style.outline="2px solid #34d399";}
+    function updateCodeChips(){}
+
+    function renderSequenceIdentifier(q) {
+      const box=document.createElement("div"); box.className="info-box"; box.textContent=q.prompt;
+      const panel=document.createElement("div"); panel.className="dial-panel";
+      const display=document.createElement("div"); display.className="dial-display";
+      display.innerHTML=`<div id="dialValue" class="dial-value">Selected: --</div>`;
+      const actions=document.createElement("div"); actions.className="dial-actions";
+      shuffleArray(q.options).forEach(opt=>{
+        const btn=document.createElement("button"); btn.type="button"; btn.className="dial-btn"; btn.dataset.value=opt.value; btn.textContent=opt.label;
+        btn.onclick=()=>{ if(locked)return; selectedAnswer=opt.value; document.getElementById("dialValue").textContent=`Selected: ${opt.label}`; document.querySelectorAll(".dial-btn").forEach(x=>x.classList.remove("selected")); btn.classList.add("selected"); };
+        actions.appendChild(btn);
+      });
+      panel.appendChild(display); panel.appendChild(actions);
+      questionContent.appendChild(box); questionContent.appendChild(panel);
+    }
+
+    function checkAnswer() {
+      if(locked)return; const q=questions[currentQuestionIndex];
+      if(q.type==="escapeMatch") checkEscapeMatch(q);
+      else if(q.type==="outputPredictor"||q.type==="sequenceIdentifier") checkSingle(q);
+      else if(q.type==="factSwitch") checkFact(q);
+      else if(q.type==="codeFill") checkCode(q);
+    }
+
+    function checkEscapeMatch(q){const un=q.rows.some(r=>pinAnswers[r.label]==="");if(un){showFeedback("Please select a description for every escape sequence.","try");return;} const ok=q.rows.every(r=>pinAnswers[r.label]===r.answer);processAnswer(ok,q);}
+    function checkSingle(q){if(!selectedAnswer){showFeedback("Please select an answer before checking.","try");return;} processAnswer(selectedAnswer===q.answer,q);}
+    function checkFact(q){const ok=Object.values(switchAnswers).every(x=>x.selected===x.correct);processAnswer(ok,q);}
+    function checkCode(q){const blanks=q.codeTemplate.filter(p=>p.blank);if(blanks.some(b=>codeAnswers[b.id]==="")){showFeedback("Please fill in all blanks.","try");return;} const ok=blanks.every(b=>codeAnswers[b.id]===b.answer);processAnswer(ok,q);}
+
+    function processAnswer(isCorrect,q){
+      attempts++;
+      if(isCorrect){correctAudio.play().catch(e => console.log(e)); score++;updateScore();locked=true;markChoices(q);showFeedback("Correct! Excellent work.","correct");showNextButton();}
+      else if(attempts<2){wrongAudio.play().catch(e => console.log(e)); attemptBox.textContent=`Attempt ${attempts+1} of 2`;showFeedback(q.firstHint,"try");}
+      else{wrongAudio.play().catch(e => console.log(e)); locked=true;markChoices(q);showFeedback(q.finalHint,"wrong");showNextButton();}
+    }
+
+    function markChoices(q){
+      if(q.type==="escapeMatch"){q.rows.forEach(r=>{const el=document.getElementById(`pinRow-${r.label}`);if(pinAnswers[r.label]===r.answer)el.classList.add("correct-choice");else el.classList.add("wrong-choice");});}
+      else if(q.type==="outputPredictor"){document.querySelectorAll(".step-card").forEach(c=>{if(c.dataset.value===q.answer)c.classList.add("correct-choice");if(c.dataset.value===selectedAnswer&&c.dataset.value!==q.answer)c.classList.add("wrong-choice");});}
+      else if(q.type==="factSwitch"){document.querySelectorAll(".switch-card").forEach(c=>{const d=switchAnswers[c.dataset.id];if(d.selected===d.correct)c.classList.add("correct-choice");else c.classList.add("wrong-choice");});}
+      else if(q.type==="codeFill"){q.codeTemplate.filter(p=>p.blank).forEach(b=>{const el=document.getElementById(b.id);if(codeAnswers[b.id]===b.answer){el.style.borderColor="#16a34a";el.style.color="#86efac";}else{el.style.borderColor="#dc2626";el.style.color="#fca5a5";}});}
+      else if(q.type==="sequenceIdentifier"){document.querySelectorAll(".dial-btn").forEach(c=>{if(c.dataset.value===q.answer)c.classList.add("correct-choice");if(c.dataset.value===selectedAnswer&&c.dataset.value!==q.answer)c.classList.add("wrong-choice");});}
+    }
+
+    function showFeedback(msg,type){feedback.className=`feedback show ${type}`;feedback.textContent=msg;}
+    function showNextButton(){checkBtn.classList.add("hidden");resetBtn.classList.add("hidden");nextBtn.textContent=currentQuestionIndex===questions.length-1?"Show Result":"Next";nextBtn.classList.remove("hidden");}
+    function resetQuestion(){loadQuestion();}
+    function mergeOptions(q){}
+    function nextQuestion(){currentQuestionIndex++;if(currentQuestionIndex<questions.length)loadQuestion();else showResult();}
+    function showResult(){
+      activityScreen.classList.add("hidden");resultScreen.classList.remove("hidden");
+      document.getElementById("finalScore").textContent=`Your final score is ${score} out of ${questions.length}.`;
+      const rm=document.getElementById("resultMessage");
+      if(score>=4){rm.textContent="Excellent! You understand escape sequences very well.";rm.className="result-message good";}
+      else if(score>=3){rm.textContent="Good effort! Revise escape sequences and their meanings.";rm.className="result-message review";}
+      else{rm.textContent="Keep practising. Review all escape sequences and their outputs.";rm.className="result-message practice";}
+    }
+  </script>
+</body>
+</html>
