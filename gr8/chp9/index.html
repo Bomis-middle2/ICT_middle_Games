@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Coding Quest - Chapter 9</title>
+    <style>
+        :root {
+            --bg-color: #1e1e24;
+            --container-bg: #2a2a35;
+            --poly-blue: #306998;
+            --poly-yellow: #ffd43b;
+            --text-color: #f8f9fa;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            background-color: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--poly-blue);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: var(--poly-yellow);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .btn {
+            background-color: var(--poly-blue);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background-color: #245175;
+        }
+
+        .btn-yellow {
+            background-color: var(--poly-yellow);
+            color: #111;
+            font-weight: bold;
+        }
+
+        .btn-yellow:hover {
+            background-color: #e5be33;
+        }
+
+        /* Level 1: IDLE Window layout */
+        .idle-window {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #999;
+            font-family: monospace;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .idle-component {
+            padding: 8px;
+            border: 2px dashed #ccc;
+            margin: 4px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+        }
+        .idle-component.selected {
+            border-color: var(--poly-blue);
+            background-color: #e6f2ff;
+        }
+        .idle-component.matched {
+            border-style: solid;
+            border-color: var(--success-color);
+            background-color: #e8f5e9;
+            pointer-events: none;
+        }
+
+        /* Level 2: Sorting game */
+        .sorting-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .bin {
+            background-color: #3a3a4a;
+            border: 2px dashed var(--poly-blue);
+            border-radius: 8px;
+            width: 30%;
+            min-height: 150px;
+            padding: 10px;
+            text-align: center;
+        }
+        .item-to-sort {
+            background-color: var(--poly-yellow);
+            color: #000;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 15px auto;
+            width: fit-content;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: grab;
+        }
+
+        /* Feedback styling */
+        .feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 24px;
+        }
+        .success { color: var(--success-color); }
+        .error { color: var(--error-color); }
+
+        /* Code input styles */
+        .code-box {
+            background-color: #15151a;
+            color: #a9b7c6;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 15px;
+        }
+        .code-input {
+            background: #2b2b2b;
+            color: #a5c261;
+            border: 1px solid #4e4e4e;
+            padding: 8px;
+            font-family: monospace;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* Logo Splash Screen Specifics */
+        .logo-splash {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .logo-splash img {
+            max-width: 250px;
+            height: auto;
+        }
+        .meta-tags {
+            background: #3a3a4a;
+            padding: 8px 15px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--poly-yellow);
+        }
+
+        /* Level 2 Option Container Style */
+        .quiz-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container" style="background-color: transparent; box-shadow: none;">
+    <div class="header" id="main-header" style="display: none;">
+        <h1>🐍 Python Coding Quest</h1>
+        <p>Master Chapter 9: Introduction to Python</p>
+    </div>
+
+    <!-- Splash Screen -->
+    <div id="screen-splash" class="screen active">
+        <div class="logo-splash">
+            <img src="assets/innovine-logo.png" alt="Innovine Logo">
+        </div>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="screen-start" class="screen">
+        <div class="meta-tags">Subject: ICT | Grade: 8</div>
+        <h2>Welcome, Future Programmer!</h2>
+        <p>Test your Knowledge on Python IDLE components, working modes, data types, and syntax rules through this interactive review game.</p>
+        <button class="btn btn-yellow" onclick="nextScreen('screen-l1')">Start Quest</button>
+    </div>
+
+    <!-- Level 1: IDLE UI Matcher -->
+    <div id="screen-l1" class="screen">
+        <h2>Level 1: IDLE Window Architecture</h2>
+        <p>Match the layout locations to their correct Python IDLE Component names!</p>
+        
+        <div class="idle-window">
+            <div id="comp-title" class="idle-component" onclick="selectComponent('comp-title')">[ Slot A ] Python 3.12.6 Shell</div>
+            <div id="comp-menu" class="idle-component" onclick="selectComponent('comp-menu')">[ Slot B ] File &nbsp; Edit &nbsp; Shell &nbsp; Debug &nbsp; Options &nbsp; Window &nbsp; Help</div>
+            <div id="comp-script" class="idle-component" onclick="selectComponent('comp-script')" style="min-height: 80px; padding-top: 30px;">[ Slot C ] &gt;&gt;&gt; print("Hello World")</div>
+            <div id="comp-status" class="idle-component" onclick="selectComponent('comp-status')">[ Slot D ] Ln: 1 | Col: 4</div>
+        </div>
+
+        <div id="l1-options">
+            <button class="btn" onclick="matchComponent('Menu Bar')">Menu Bar</button>
+            <button class="btn" onclick="matchComponent('Title Bar')">Title Bar</button>
+            <button class="btn" onclick="matchComponent('Status Bar')">Status Bar</button>
+            <button class="btn" onclick="matchComponent('Script Area / Shell')">Script Area / Shell</button>
+        </div>
+        <div id="l1-feedback" class="feedback"></div>
+        <button id="l1-next" class="btn btn-yellow" style="display:none;" onclick="nextScreen('screen-l3')">Advance to Level 2</button>
+    </div>
+
+    <!-- Level 2: Data Type Sorter -->
+    <div id="screen-l3" class="screen">
+        <h2>Level 2: Data Type Sorter</h2>
+        <p>Sort the python data item into its respective Data Type container below.</p>
+        
+        <div id="item-box">
+            <div id="active-sort-item" class="item-to-sort">Loading...</div>
+        </div>
+
+        <div class="sorting-container">
+            <div class="bin" onclick="dropItem('List')"><h3>List [ ]</h3><div id="list-bin"></div></div>
+            <div class="bin" onclick="dropItem('Tuple')"><h3>Tuple ( )</h3><div id="tuple-bin"></div></div>
+            <div class="bin" onclick="dropItem('Dictionary')"><h3>Dict { }</h3><div id="dict-bin"></div></div>
+        </div>
+        <div id="l3-feedback" class="feedback"></div>
+        <button id="l3-next" class="btn btn-yellow" style="display:none;" onclick="nextScreen('screen-l4')">Advance to Final Level</button>
+    </div>
+
+    <!-- Level 3: Code Repair Shop -->
+    <div id="screen-l4" class="screen">
+        <h2>Level 3: Code Repair Shop</h2>
+        <p>Correct the python code syntax errors based on logic to make the script functional!</p>
+        
+        <div id="repair-area">
+            <p><strong>Broken Code:</strong></p>
+            <div id="broken-code-display" class="code-box"></div>
+            <p><strong>Type the completely corrected line below:</strong></p>
+            <input type="text" id="repaired-code-input" class="code-input" autofocus>
+            <button class="btn" onclick="checkRepairedCode()">Run Fix</button>
+        </div>
+        <div id="l4-feedback" class="feedback"></div>
+        <button id="l4-next" class="btn btn-yellow" style="display:none;" onclick="showVictory()">Finish Quest</button>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="screen-victory" class="screen">
+        <h2>🏆 Quest Complete!</h2>
+        <p>Brilliant job! You've successfully managed Python IDLE layouts, resolved runtime conceptual problems, classified mutable/immutable structures, and debugged syntax statements correctly!</p>
+        <button class="btn btn-yellow" onclick="resetGame()">Play Again</button>
+    </div>
+</div>
+
+<script>
+    // Audio Elements
+    const audioCorrect = new Audio('assets/correct.mp3');
+    const audioWrong = new Audio('assets/wrong.mp3');
+
+    function playFeedbackSound(isCorrect) {
+        if (isCorrect) {
+            audioCorrect.currentTime = 0;
+            audioCorrect.play().catch(e => console.log("Audio play blocked until interaction"));
+        } else {
+            audioWrong.currentTime = 0;
+            audioWrong.play().catch(e => console.log("Audio play blocked until interaction"));
+        }
+    }
+
+    // Attempt Limit Global State
+    let attemptCounter = 0;
+
+    // Global State management
+    let currentSelectedComp = null;
+    let l1Matches = 0;
+
+    // Level 1 Definitions
+    const l1Mapping = {
+        'comp-title': 'Title Bar',
+        'comp-menu': 'Menu Bar',
+        'comp-script': 'Script Area / Shell',
+        'comp-status': 'Status Bar'
+    };
+
+    // Level 2 Items
+    const l3Items = [
+        { value: "[1, 'apple', 2.14]", type: "List" },
+        { value: "(1, 2, 3, 4)", type: "Tuple" },
+        { value: "{'a': 1, 'b': 2}", type: "Dictionary" },
+        { value: "['banana', 'orange']", type: "List" },
+        { value: "('Anita', 2, 80.9)", type: "Tuple" }
+    ];
+    let l3Index = 0;
+
+    // Level 3 Items
+    const l4Items = [
+        { broken: "print(Hello World)", fixed: "print(\"Hello World\")" },
+        { broken: "print(\"Value is\" + 5)", fixed: "print(\"Value is\" + \"5\")" },
+        { broken: "if x = 10:", fixed: "if x == 10:" }
+    ];
+    let l4Index = 0;
+
+    // Splash Timer Initializer
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.getElementById('game-container').style.backgroundColor = 'var(--container-bg)';
+            document.getElementById('game-container').style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
+            document.getElementById('main-header').style.display = 'block';
+            nextScreen('screen-start');
+        }, 5000);
+    });
+
+    function nextScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        attemptCounter = 0; // Reset question attempt counters on transition
+        if(screenId === 'screen-l3') loadL3Item();
+        if(screenId === 'screen-l4') loadL4Item();
+    }
+
+    // --- LEVEL 1 SYSTEM ---
+    function selectComponent(id) {
+        if(document.getElementById(id).classList.contains('matched')) return;
+        if(currentSelectedComp) document.getElementById(currentSelectedComp).classList.remove('selected');
+        currentSelectedComp = id;
+        document.getElementById(id).classList.add('selected');
+    }
+
+    function matchComponent(componentName) {
+        if(!currentSelectedComp) {
+            alert("Please select a Slot in the IDLE UI first!");
+            return;
+        }
+        let feedback = document.getElementById('l1-feedback');
+        if(l1Mapping[currentSelectedComp] === componentName) {
+            playFeedbackSound(true);
+            document.getElementById(currentSelectedComp).className = "idle-component matched";
+            document.getElementById(currentSelectedComp).innerText = componentName + " Connected!";
+            feedback.innerHTML = "<span class='success'>Correct Map!</span>";
+            l1Matches++;
+            currentSelectedComp = null;
+            attemptCounter = 0;
+            if(l1Matches === 4) {
+                document.getElementById('l1-next').style.display = 'block';
+            }
+        } else {
+            attemptCounter++;
+            playFeedbackSound(false);
+            if (attemptCounter >= 2) {
+                feedback.innerHTML = `<span class='error'>Incorrect. Moving to next layout segment.</span>`;
+                document.getElementById(currentSelectedComp).classList.remove('selected');
+                currentSelectedComp = null;
+                attemptCounter = 0;
+                l1Matches++; 
+                if(l1Matches === 4) document.getElementById('l1-next').style.display = 'block';
+            } else {
+                feedback.innerHTML = "<span class='error'>Incorrect slot component placement. 1 attempt left!</span>";
+            }
+        }
+    }
+
+    // --- LEVEL 2 SYSTEM ---
+    function loadL3Item() {
+        attemptCounter = 0;
+        if(l3Index < l3Items.length) {
+            document.getElementById('active-sort-item').innerText = l3Items[l3Index].value;
+            document.getElementById('l3-feedback').innerHTML = '';
+        } else {
+            document.getElementById('item-box').style.display = 'none';
+            document.getElementById('l3-feedback').innerHTML = "<span class='success'>All elements sorted correctly!</span>";
+            document.getElementById('l3-next').style.display = 'block';
+        }
+    }
+
+    function dropItem(binName) {
+        let feedback = document.getElementById('l3-feedback');
+        if(l3Items[l3Index].type === binName) {
+            playFeedbackSound(true);
+            feedback.innerHTML = "<span class='success'>Correct Structure Classification!</span>";
+            l3Index++;
+            setTimeout(loadL3Item, 1000);
+        } else {
+            attemptCounter++;
+            playFeedbackSound(false);
+            if(attemptCounter >= 2) {
+                feedback.innerHTML = `<span class='error'>Failed 2 attempts. Correct type was: ${l3Items[l3Index].type}</span>`;
+                l3Index++;
+                setTimeout(loadL3Item, 2000);
+            } else {
+                feedback.innerHTML = "<span class='error'>Wrong container! Final attempt remaining.</span>";
+            }
+        }
+    }
+
+    // --- LEVEL 3 SYSTEM ---
+    function loadL4Item() {
+        attemptCounter = 0;
+        if(l4Index < l4Items.length) {
+            document.getElementById('broken-code-display').innerText = l4Items[l4Index].broken;
+            document.getElementById('repaired-code-input').value = '';
+            document.getElementById('l4-feedback').innerHTML = '';
+        } else {
+            document.getElementById('repair-area').style.display = 'none';
+            document.getElementById('l4-feedback').innerHTML = "<span class='success'>All Syntax errors successfully fixed!</span>";
+            document.getElementById('l4-next').style.display = 'block';
+        }
+    }
+
+    function checkRepairedCode() {
+        let userFix = document.getElementById('repaired-code-input').value.trim().replace(/\s+/g, '');
+        let trueFix = l4Items[l4Index].fixed.replace(/\s+/g, '');
+        let feedback = document.getElementById('l4-feedback');
+
+        if(userFix === trueFix) {
+            playFeedbackSound(true);
+            feedback.innerHTML = "<span class='success'>Syntax Verified! Logic clean.</span>";
+            l4Index++;
+            setTimeout(loadL4Item, 1000);
+        } else {
+            attemptCounter++;
+            playFeedbackSound(false);
+            if(attemptCounter >= 2) {
+                feedback.innerHTML = `<span class='error'>Incorrect structural pattern. Proper Fix: ${l4Items[l4Index].fixed}</span>`;
+                l4Index++;
+                setTimeout(loadL4Item, 2000);
+            } else {
+                feedback.innerHTML = `<span class='error'>SyntaxError. Final patch window remaining!</span>`;
+            }
+        }
+    }
+
+    function showVictory() {
+        nextScreen('screen-victory');
+    }
+
+    function resetGame() {
+        l1Matches = 0;
+        l3Index = 0;
+        l4Index = 0;
+        location.reload();
+    }
+</script>
+</body>
+</html>
