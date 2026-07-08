@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Chatbots and ChatGPT Interactive Activity</title>
+
+  <style>
+    :root {
+      --primary: #0891b2;
+      --primary-dark: #155e75;
+      --secondary: #ec4899;
+      --accent: #f59e0b;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --text: #1f2937;
+      --muted: #64748b;
+      --border: #cffafe;
+      --card: #ffffff;
+      --soft-cyan: #ecfeff;
+      --soft-pink: #fdf2f8;
+      --soft-blue: #f0f9ff;
+      --soft-yellow: #fffbeb;
+      --soft-green: #ecfdf5;
+      --soft-red: #fef2f2;
+      --shadow: 0 18px 45px rgba(8, 145, 178, 0.16);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(8, 145, 178, 0.14), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.12), transparent 35%),
+        linear-gradient(135deg, #ecfeff, #fdf2f8);
+      overflow-x: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app {
+      width: min(100%, 1180px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* INTRO SCREEN */
+
+    .intro-screen {
+      min-height: calc(100vh - 32px);
+      width: 100%;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      color: white;
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.15), transparent 28%),
+        linear-gradient(135deg, #155e75, #0891b2 46%, #ec4899);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .intro-main {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 34px;
+    }
+
+    .intro-main > div {
+      width: min(100%, 900px);
+    }
+
+    .intro-badge {
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto 16px;
+      padding: 9px 15px;
+      border-radius: 999px;
+      font-weight: 900;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(8px);
+    }
+
+    .intro-title {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 2vw, 3.55rem);
+      line-height: 1.05;
+      letter-spacing: -0.8px;
+      text-align: center;
+    }
+
+    .intro-subtitle {
+      margin: 0 auto 22px;
+      max-width: 760px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 1.05rem;
+      line-height: 1.65;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .intro-details {
+      width: 100%;
+      border-radius: 22px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.97);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      box-shadow: 0 18px 34px rgba(15, 23, 42, 0.22);
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 175px 1fr;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #cffafe;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: var(--primary-dark);
+      font-weight: 950;
+    }
+
+    .detail-value {
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .intro-main .main-btn {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .intro-footer {
+      display: grid;
+      grid-template-columns: minmax(0, 420px);
+      justify-content: center;
+      gap: 14px;
+      padding: 0 34px 34px;
+    }
+
+    .rule-card {
+      display: flex;
+      gap: 12px;
+      min-width: 0;
+      padding: 17px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.97);
+      color: var(--text);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.15);
+    }
+
+    .rule-icon {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      background: #ecfeff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.45rem;
+    }
+
+    .rule-card h3 {
+      margin: 0 0 5px;
+      color: var(--primary-dark);
+      font-size: 1.05rem;
+    }
+
+    .rule-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    /* ACTIVITY SCREEN */
+
+    .activity-screen {
+      min-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 16px;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      color: var(--primary-dark);
+      font-weight: 950;
+    }
+
+    .brand-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 1.3rem;
+      flex: 0 0 auto;
+    }
+
+    .brand-text {
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .score-pill,
+    .type-pill {
+      min-height: 44px;
+      border-radius: 999px;
+      padding: 10px 15px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .score-pill {
+      background: var(--soft-yellow);
+      color: #92400e;
+      border: 1px solid #fcd34d;
+    }
+
+    .type-pill {
+      background: var(--soft-cyan);
+      color: var(--primary-dark);
+      border: 1px solid #67e8f9;
+    }
+
+    .activity-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 285px 1fr;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .side-panel,
+    .question-card,
+    .result-card {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .side-panel {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .side-panel h3 {
+      margin: 0;
+      color: var(--primary-dark);
+      font-size: 1.25rem;
+    }
+
+    .side-panel p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .progress-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 8px;
+    }
+
+    .progress-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px;
+      border-radius: 16px;
+      background: var(--soft-cyan);
+      border: 1px solid #67e8f9;
+      color: var(--primary-dark);
+      font-weight: 900;
+    }
+
+    .progress-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: white;
+      border: 2px solid #22d3ee;
+      font-size: 0.88rem;
+      flex: 0 0 auto;
+    }
+
+    .progress-item.active {
+      background: linear-gradient(135deg, #cffafe, #fce7f3);
+      border-color: var(--primary);
+    }
+
+    .progress-item.done {
+      background: var(--soft-green);
+      border-color: #86efac;
+      color: #166534;
+    }
+
+    .progress-item.done .progress-dot {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .tip-box {
+      margin-top: auto;
+      padding: 14px;
+      border-radius: 18px;
+      background: var(--soft-pink);
+      border: 1px solid #fbcfe8;
+      color: #831843;
+      line-height: 1.5;
+      font-weight: 800;
+    }
+
+    .question-card {
+      padding: 24px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .question-meta {
+      margin-bottom: 8px;
+      color: var(--primary);
+      font-weight: 950;
+    }
+
+    .attempt-pill {
+      width: fit-content;
+      max-width: 100%;
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: var(--soft-yellow);
+      color: #92400e;
+      font-weight: 950;
+      border: 1px solid #fcd34d;
+    }
+
+    .question-title {
+      margin: 0 0 8px;
+      font-size: clamp(1.25rem, 4vw, 1.9rem);
+      color: var(--primary-dark);
+      line-height: 1.25;
+    }
+
+    .instruction {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .main-btn {
+      min-height: 52px;
+      min-width: 150px;
+      max-width: 100%;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 14px 22px;
+      cursor: pointer;
+      color: white;
+      font-size: 1.02rem;
+      font-weight: 950;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 8px 18px rgba(8, 145, 178, 0.25);
+    }
+
+    .dark-btn {
+      background: linear-gradient(135deg, #475569, #0f172a);
+    }
+
+    .main-btn:active,
+    .tile:active,
+    .pin-card:active,
+    .switch-card:active,
+    .step-card:active,
+    .dial-btn:active {
+      transform: scale(0.98);
+    }
+
+    #questionContent {
+      min-width: 0;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 16px;
+      padding: 15px;
+      border-radius: 16px;
+      font-weight: 850;
+      line-height: 1.45;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.correct {
+      background: var(--soft-green);
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    .feedback.wrong {
+      background: var(--soft-red);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .feedback.try {
+      background: var(--soft-yellow);
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .actions {
+      margin-top: auto;
+      padding-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* QUESTION UI TYPES */
+
+    .info-box {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #ecfeff, #fdf2f8);
+      border: 2px dashed #22d3ee;
+      color: var(--text);
+      font-weight: 850;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .tile,
+    .pin-card,
+    .switch-card,
+    .step-card,
+    .dial-btn {
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      color: var(--text);
+      padding: 15px;
+      cursor: pointer;
+      font-weight: 900;
+      line-height: 1.4;
+    }
+
+    .tile small,
+    .pin-card small,
+    .switch-card small {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    /* CHAT BOARD */
+
+    .chat-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .chat-icon {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* CONNECTOR / MATCHER */
+
+    .pin-lab {
+      display: grid;
+      gap: 14px;
+    }
+
+    .lcd-face {
+      padding: 18px;
+      border-radius: 22px;
+      background: #0f172a;
+      color: #67e8f9;
+      font-family: Consolas, Monaco, monospace;
+      box-shadow: inset 0 0 0 2px rgba(103, 232, 249, 0.15);
+    }
+
+    .lcd-line {
+      min-height: 26px;
+      letter-spacing: 1px;
+    }
+
+    .pin-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      background: var(--soft-cyan);
+      border: 1px solid #67e8f9;
+    }
+
+    .pin-label {
+      color: var(--primary-dark);
+      font-weight: 950;
+    }
+
+    .pin-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pin-card {
+      padding: 9px 13px;
+      border-radius: 999px;
+    }
+
+    /* SWITCH QUESTION */
+
+    .switch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+    }
+
+    .switch-card {
+      min-height: 125px;
+      text-align: left;
+    }
+
+    .switch-card .status {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--soft-blue);
+      color: #1e3a8a;
+      font-weight: 950;
+    }
+
+    /* EXAMPLE GRID */
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 14px;
+    }
+
+    /* STEP HUNT */
+
+    .step-list {
+      display: grid;
+      gap: 11px;
+    }
+
+    .step-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .step-number {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--soft-cyan);
+      color: var(--primary-dark);
+      font-weight: 950;
+    }
+
+    /* DIAL QUESTION */
+
+    .dial-panel {
+      display: grid;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .dial-display {
+      padding: 24px;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at center, #ffffff 0 34%, transparent 35%),
+        conic-gradient(#0891b2, #ec4899, #f59e0b, #0891b2);
+      border: 1px solid #67e8f9;
+    }
+
+    .dial-value {
+      margin: 0 auto;
+      width: min(100%, 280px);
+      padding: 20px;
+      border-radius: 22px;
+      background: white;
+      color: var(--primary-dark);
+      font-weight: 950;
+      font-size: 1.4rem;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+    }
+
+    .dial-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .dial-btn {
+      min-width: 110px;
+      background: white;
+    }
+
+    /* CHAT BUBBLE BUILDER */
+
+    .chat-window {
+      padding: 18px;
+      border-radius: 22px;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .chat-bubble {
+      max-width: 85%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .chat-bubble.bot {
+      background: var(--soft-cyan);
+      border: 1px solid #67e8f9;
+      color: var(--primary-dark);
+      justify-self: start;
+      border-bottom-left-radius: 6px;
+    }
+
+    .chat-bubble.user {
+      background: var(--soft-pink);
+      border: 1px solid #fbcfe8;
+      color: #831843;
+      justify-self: end;
+      border-bottom-right-radius: 6px;
+    }
+
+    .chat-bubble.blank-bubble {
+      background: white;
+      border: 2px dashed #94a3b8;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .chat-bubble.blank-bubble.filled {
+      border-color: var(--primary);
+      color: var(--primary-dark);
+      border-style: solid;
+    }
+
+    .word-bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .word-chip {
+      padding: 9px 15px;
+      border-radius: 999px;
+      border: 2px solid var(--border);
+      background: white;
+      color: var(--text);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .word-chip.used {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .selected {
+      background: #cffafe !important;
+      border-color: var(--primary) !important;
+      color: var(--primary-dark) !important;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+    }
+
+    .correct-choice {
+      background: var(--soft-green) !important;
+      border-color: var(--success) !important;
+      color: var(--success) !important;
+    }
+
+    .wrong-choice {
+      background: var(--soft-red) !important;
+      border-color: var(--danger) !important;
+      color: var(--danger) !important;
+    }
+
+    /* RESULT */
+
+    .result-card {
+      padding: 28px;
+      text-align: center;
+      margin: auto;
+      width: min(100%, 800px);
+    }
+
+    .result-title {
+      margin: 0 0 10px;
+      color: var(--primary-dark);
+      font-size: clamp(1.8rem, 5vw, 2.55rem);
+    }
+
+    .result-score {
+      font-size: 1.25rem;
+      font-weight: 950;
+    }
+
+    .result-message {
+      display: inline-block;
+      margin: 10px 0 18px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 1.12rem;
+      font-weight: 950;
+    }
+
+    .good {
+      background: var(--soft-green);
+      color: var(--success);
+    }
+
+    .review {
+      background: var(--soft-yellow);
+      color: #92400e;
+    }
+
+    .practice {
+      background: var(--soft-red);
+      color: var(--danger);
+    }
+
+    .summary {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      background: var(--soft-cyan);
+      color: var(--muted);
+      text-align: left;
+      line-height: 1.6;
+      border: 1px solid #a5f3fc;
+      font-weight: 700;
+    }
+
+    .summary strong {
+      color: #164e63;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 980px) {
+      .activity-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side-panel {
+        order: 2;
+      }
+
+      .question-card {
+        order: 1;
+      }
+
+      .progress-list {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .progress-item {
+        justify-content: center;
+        padding: 10px 6px;
+      }
+
+      .progress-item span:last-child {
+        display: none;
+      }
+
+      .tip-box {
+        display: none;
+      }
+
+      .intro-footer {
+        grid-template-columns: minmax(0, 420px);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 10px;
+      }
+
+      .intro-screen,
+      .activity-screen {
+        min-height: calc(100vh - 20px);
+      }
+
+      .intro-main {
+        padding: 22px;
+      }
+
+      .intro-footer {
+        padding: 0 22px 22px;
+      }
+
+      .detail-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+
+      .topbar {
+        align-items: stretch;
+        flex-wrap: wrap;
+        border-radius: 18px;
+      }
+
+      .brand {
+        flex: 1 1 100%;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .score-pill,
+      .type-pill {
+        flex: 1 1 auto;
+        text-align: center;
+      }
+
+      .question-card,
+      .side-panel,
+      .result-card {
+        border-radius: 22px;
+        padding: 16px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .main-btn {
+        width: 100%;
+      }
+
+      .pin-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        padding: 8px;
+      }
+
+      .intro-screen,
+      .activity-screen {
+        min-height: calc(100vh - 16px);
+      }
+
+      .intro-main {
+        padding: 18px;
+      }
+
+      .intro-footer {
+        padding: 0 18px 18px;
+      }
+
+      .intro-title {
+        font-size: 1.75rem;
+      }
+
+      .intro-subtitle,
+      .rule-card p {
+        font-size: 0.9rem;
+      }
+
+      .chat-board,
+      .example-grid,
+      .switch-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .progress-list {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 5px;
+      }
+
+      .progress-item {
+        padding: 7px 3px;
+        border-radius: 12px;
+      }
+
+      .progress-dot {
+        width: 24px;
+        height: 24px;
+        font-size: 0.78rem;
+      }
+
+      .question-title {
+        font-size: 1.15rem;
+      }
+
+      .tile,
+      .pin-card,
+      .switch-card,
+      .step-card,
+      .dial-btn,
+      .main-btn,
+      .word-chip {
+        font-size: 0.9rem;
+      }
+
+      .info-box,
+      .summary,
+      .feedback,
+      .lcd-face,
+      .chat-window {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
+
+      .step-card {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- SPLASH SCREEN FOR LOGO DISPLAY -->
+  <div id="splashScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; align-items: center; justify-content: center; z-index: 99999;">
+    <img src="assets/innovine-logo.png" alt="Logo" style="max-width: 80%; max-height: 80%; object-fit: contain;">
+  </div>
+
+  <main class="app">
+
+    <!-- INTRODUCTORY SCREEN -->
+    <section id="introScreen" class="intro-screen">
+      <div class="intro-main">
+        <div>
+          <div class="intro-badge">
+            ICT Activity • Grade 8 • Chatbots • ChatGPT • PictoBlox
+          </div>
+
+          <h1 class="intro-title">
+            Chatbots and ChatGPT
+          </h1>
+
+          <p class="intro-subtitle">
+            Practise important concepts about chatbots, types of chatbots,
+            conversational AI examples, rule-based vs AI-powered chatbots, and
+            creating chatbots in PictoBlox.
+          </p>
+
+          <div class="intro-details">
+            <div class="detail-row">
+              <span class="detail-label">Subject</span>
+              <span class="detail-value">ICT</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Grade</span>
+              <span class="detail-value">Grade 8</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">SBL Chapter 2</span>
+              <span class="detail-value">Chatbots and ChatGPT</span>
+            </div>
+
+           
+            <div class="detail-row">
+              <span class="detail-label">Questions</span>
+              <span class="detail-value">5 interactive questions with shuffled choices</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Attempts</span>
+              <span class="detail-value">Two attempts are allowed for every question</span>
+            </div>
+          </div>
+
+          <br />
+
+          <button class="main-btn" type="button" onclick="startGame()">
+            Start Activity
+          </button>
+        </div>F
+      </div>
+
+     </section>
+
+    <!-- SEPARATE ACTIVITY SCREEN -->
+    <section id="activityScreen" class="activity-screen hidden">
+
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-icon">🤖</div>
+          <div class="brand-text">
+            Chatbots and ChatGPT Activity
+          </div>
+        </div>
+
+        <div id="scoreTracker" class="score-pill">Score: 0 / 5</div>
+        <div id="questionTypePill" class="type-pill">Question Type</div>
+      </header>
+
+      <div class="activity-layout">
+
+        <aside class="side-panel">
+          <h3>Progress</h3>
+          <p>Complete all five questions. Each question gives two attempts.</p>
+
+          <div id="progressList" class="progress-list"></div>
+
+          <div class="tip-box">
+            💡 Tip: A chatbot uses AI to simulate conversation. Rule-based
+            chatbots use if/then logic while AI-powered ones use NLP to learn
+            and improve.
+          </div>
+        </aside>
+
+        <section class="question-card">
+          <div id="questionNumber" class="question-meta"></div>
+
+          <div id="attemptBox" class="attempt-pill">
+            Attempt 1 of 2
+          </div>
+
+          <h2 id="questionTitle" class="question-title"></h2>
+
+          <p id="questionInstruction" class="instruction"></p>
+
+          <div id="questionContent"></div>
+
+          <div id="feedback" class="feedback"></div>
+
+          <div class="actions">
+            <button id="resetBtn" class="main-btn dark-btn hidden" type="button" onclick="resetQuestion()">
+              Reset
+            </button>
+
+            <button id="checkBtn" class="main-btn" type="button" onclick="checkAnswer()">
+              Check Answer
+            </button>
+
+            <button id="nextBtn" class="main-btn hidden" type="button" onclick="nextQuestion()">
+              Next
+            </button>
+          </div>
+        </section>
+
+      </div>
+    </section>
+
+    <!-- RESULT SCREEN -->
+    <section id="resultScreen" class="result-card hidden">
+      <h2 class="result-title">Activity Complete!</h2>
+
+      <p id="finalScore" class="result-score"></p>
+
+      <div id="resultMessage" class="result-message"></div>
+
+      <div class="summary">
+        <strong>Quick Revision:</strong>
+        A chatbot is an AI-driven computer program that simulates human-like
+        conversation through voice commands or text. Google Assistant, Siri and
+        Alexa are examples of conversational AI. Rule-based chatbots use if/then
+        logic with pre-defined question and answer combinations (like FAQ bots).
+        AI-powered chatbots use Natural Language Processing (NLP) to understand
+        and generate human-like responses, and they learn from interactions over
+        time. Chatbots can be created in PictoBlox using programming blocks.
+      </div>
+
+      <br />
+
+      <button class="main-btn" type="button" onclick="startGame()">
+        Play Again
+      </button>
+    </section>
+
+  </main>
+
+  <script>
+    // SPLASH SCREEN MANAGEMENT
+    setTimeout(() => {
+      const splash = document.getElementById("splashScreen");
+      if (splash) {
+        splash.style.display = "none";
+      }
+    }, 5000);
+
+    const questions = [
+      {
+        type: "chatClassifier",
+        typeLabel: "Chat Classifier",
+        title: "Identify the type of chatbot",
+        instruction: "Read the description and select which type of chatbot it describes.",
+        prompt: "A customer service bot on a website answers common questions like 'What are your hours?' and 'How do I reset my password?' using pre-defined question and answer combinations with if/then logic.",
+        options: [
+          {
+            text: "Rule-Based Chatbot",
+            value: "rule-based",
+            desc: "Uses if/then logic and pre-defined FAQ responses."
+          },
+          {
+            text: "AI-Powered Chatbot",
+            value: "ai-powered",
+            desc: "Uses NLP to learn and generate human-like responses."
+          },
+          {
+            text: "Voice-Only Assistant",
+            value: "voice-only",
+            desc: "Only works with voice commands."
+          },
+          {
+            text: "Search Engine Bot",
+            value: "search-bot",
+            desc: "Only indexes web pages for search results."
+          }
+        ],
+        answer: "rule-based",
+        firstHint: "Try again. Hint: This chatbot uses pre-defined combinations and if/then logic — it does not learn or improve on its own.",
+        finalHint: "The correct answer is Rule-Based Chatbot. It uses if/then logic to build conversation automation flows with pre-defined FAQ responses."
+      },
+      {
+        type: "featureLinker",
+        typeLabel: "Feature Linker",
+        title: "Match chatbot types to their features",
+        instruction: "Select a row, then click an option from the bank below to match it.",
+        rows: [
+          {
+            label: "Rule-Based",
+            answer: "Uses if/then logic and pre-defined answers"
+          },
+          {
+            label: "AI-Powered",
+            answer: "Uses NLP and learns from interactions"
+          },
+          {
+            label: "Conversational AI",
+            answer: "Understands queries and responds automatically"
+          }
+        ],
+        choices: ["Uses if/then logic and pre-defined answers", "Uses NLP and learns from interactions", "Understands queries and responds automatically"],
+        firstHint: "Try again. Hint: Rule-based uses if/then logic, AI-powered uses NLP and learns, conversational AI understands and auto-responds.",
+        finalHint: "Correct: Rule-Based → Uses if/then logic and pre-defined answers, AI-Powered → Uses NLP and learns from interactions, Conversational AI → Understands queries and responds automatically."
+      },
+      {
+        type: "factFilter",
+        typeLabel: "Fact Filter",
+        title: "Filter the correct facts about chatbots",
+        instruction: "Toggle ON the correct statements. Leave incorrect ones OFF.",
+        statements: [
+          {
+            text: "A chatbot is an AI-driven computer program that simulates human-like conversation.",
+            correct: true
+          },
+          {
+            text: "Google Assistant, Siri and Alexa are examples of conversational AI.",
+            correct: true
+          },
+          {
+            text: "Rule-based chatbots use Natural Language Processing to learn and improve.",
+            correct: false
+          },
+          {
+            text: "AI-powered chatbots can learn from interactions and improve over time.",
+            correct: true
+          },
+          {
+            text: "Chatbots can only communicate through text and never through voice.",
+            correct: false
+          }
+        ],
+        firstHint: "Try again. Hint: Rule-based chatbots use if/then logic (not NLP). Chatbots can work through both voice AND text.",
+        finalHint: "Correct facts: Chatbot is AI-driven for human-like conversation; Google Assistant/Siri/Alexa are conversational AI; AI-powered chatbots learn over time. Rule-based uses if/then logic (not NLP), and chatbots work with both voice and text."
+      },
+      {
+        type: "exampleFinder",
+        typeLabel: "Example Finder",
+        title: "Select all examples of conversational AI",
+        instruction: "Tap ALL the items that are examples of conversational AI chatbots.",
+        options: [
+          { text: "Google Assistant", value: "google", correct: true },
+          { text: "Siri", value: "siri", correct: true },
+          { text: "Alexa", value: "alexa", correct: true },
+          { text: "Microsoft Excel", value: "excel", correct: false },
+          { text: "USB Cable", value: "usb", correct: false }
+        ],
+        firstHint: "Try again. Hint: Think about which items can understand your voice/text and respond like a conversation partner.",
+        finalHint: "Correct answers: Google Assistant, Siri and Alexa are all examples of conversational AI. Excel is a spreadsheet and USB cable is hardware — not chatbots."
+      },
+      {
+        type: "definitionBuilder",
+        typeLabel: "Definition Builder",
+        title: "Build the chatbot definition",
+        instruction: "Fill in the blanks to complete the definition of a chatbot.",
+        chatFlow: [
+          { type: "bot", text: "Let me test your knowledge! Complete this definition:" },
+          { type: "blank", id: "b1", placeholder: "A chatbot is a/an _____-driven computer program.", answer: "AI" },
+          { type: "bot", text: "Great! And what does it simulate?" },
+          { type: "blank", id: "b2", placeholder: "It simulates human-like ___.", answer: "conversation" }
+        ],
+        choices: ["AI", "conversation", "hardware", "spreadsheet", "printer"],
+        firstHint: "Try again. Hint: A chatbot is driven by Artificial Intelligence and it simulates human-like conversation.",
+        finalHint: "The correct answers are: 'AI' (AI-driven computer program) and 'conversation' (simulates human-like conversation)."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let attempts = 0;
+    let selectedAnswer = null;
+    let locked = false;
+
+    let pinAnswers = {};
+    let switchAnswers = {};
+    let exampleAnswers = {};
+    let chatAnswers = {};
+    let activeChatBlank = null;
+    let activeRowLabel = null;
+
+    const introScreen = document.getElementById("introScreen");
+    const activityScreen = document.getElementById("activityScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const scoreTracker = document.getElementById("scoreTracker");
+    const questionTypePill = document.getElementById("questionTypePill");
+    const progressList = document.getElementById("progressList");
+
+    const questionNumber = document.getElementById("questionNumber");
+    const attemptBox = document.getElementById("attemptBox");
+    const questionTitle = document.getElementById("questionTitle");
+    const questionInstruction = document.getElementById("questionInstruction");
+    const questionContent = document.getElementById("questionContent");
+    const feedback = document.getElementById("feedback");
+
+    const checkBtn = document.getElementById("checkBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    function startGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+
+      introScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      activityScreen.classList.remove("hidden");
+
+      updateScore();
+      renderProgress();
+      loadQuestion();
+    }
+
+    function updateScore() {
+      scoreTracker.textContent = `Score: ${score} / ${questions.length}`;
+    }
+
+    function shuffleArray(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[randomIndex]] = [copy[randomIndex], copy[i]];
+      }
+      return copy;
+    }
+
+    function resetState() {
+      attempts = 0;
+      selectedAnswer = null;
+      locked = false;
+      pinAnswers = {};
+      switchAnswers = {};
+      exampleAnswers = {};
+      chatAnswers = {};
+      activeChatBlank = null;
+      activeRowLabel = null;
+
+      feedback.className = "feedback";
+      feedback.textContent = "";
+
+      checkBtn.classList.remove("hidden");
+      nextBtn.classList.add("hidden");
+      resetBtn.classList.add("hidden");
+    }
+
+    function renderProgress() {
+      progressList.innerHTML = "";
+      questions.forEach((question, index) => {
+        const item = document.createElement("div");
+        item.className = "progress-item";
+        if (index === currentQuestionIndex) item.classList.add("active");
+        if (index < currentQuestionIndex) item.classList.add("done");
+        item.innerHTML = `
+          <span class="progress-dot">${index < currentQuestionIndex ? "✓" : index + 1}</span>
+          <span>Q${index + 1}</span>
+        `;
+        progressList.appendChild(item);
+      });
+    }
+
+    function loadQuestion() {
+      resetState();
+      const question = questions[currentQuestionIndex];
+
+      questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+      questionTypePill.textContent = question.typeLabel;
+      attemptBox.textContent = `Attempt ${attempts + 1} of 2`;
+      questionTitle.textContent = question.title;
+      questionInstruction.textContent = question.instruction;
+      questionContent.innerHTML = "";
+
+      if (question.type === "chatClassifier") {
+        renderChatClassifier(question);
+      } else if (question.type === "featureLinker") {
+        renderFeatureLinker(question);
+      } else if (question.type === "factFilter") {
+        renderFactFilter(question);
+      } else if (question.type === "exampleFinder") {
+        renderExampleFinder(question);
+      } else if (question.type === "definitionBuilder") {
+        renderDefinitionBuilder(question);
+      }
+
+      renderProgress();
+    }
+
+    function renderChatClassifier(question) {
+      const box = document.createElement("div");
+      box.className = "info-box";
+      box.textContent = question.prompt;
+
+      const board = document.createElement("div");
+      board.className = "chat-board";
+
+      const icons = {
+        "rule-based": "📋",
+        "ai-powered": "🧠",
+        "voice-only": "🎙️",
+        "search-bot": "🔍"
+      };
+
+      shuffleArray(question.options).forEach(option => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "tile";
+        card.dataset.value = option.value;
+
+        card.innerHTML = `
+          <span class="chat-icon">${icons[option.value] || "💬"}</span>
+          ${option.text}
+          <small>${option.desc}</small>
+        `;
+
+        card.onclick = () => {
+          if (locked) return;
+          selectedAnswer = option.value;
+          document.querySelectorAll(".tile").forEach(item => item.classList.remove("selected"));
+          card.classList.add("selected");
+        };
+
+        board.appendChild(card);
+      });
+
+      questionContent.appendChild(box);
+      questionContent.appendChild(board);
+    }
+
+    function renderFeatureLinker(question) {
+      resetBtn.classList.remove("hidden");
+
+      const lab = document.createElement("div");
+      lab.className = "pin-lab";
+
+      const header = document.createElement("div");
+      header.className = "lcd-face";
+      header.innerHTML = `
+        <div class="lcd-line">CHATBOT TYPES MATCHING</div>
+        <div class="lcd-line">Click a row first, then select its description from below.</div>
+      `;
+      lab.appendChild(header);
+
+      // Render Rows
+      question.rows.forEach(row => {
+        pinAnswers[row.label] = "";
+
+        const pinRow = document.createElement("div");
+        pinRow.className = "pin-row";
+        pinRow.id = `pinRow-${row.label}`;
+        pinRow.style.cursor = "pointer";
+
+        const label = document.createElement("div");
+        label.className = "pin-label";
+        label.textContent = row.label;
+
+        const container = document.createElement("div");
+        container.className = "pin-value-container";
+        container.id = `pinValue-${row.label}`;
+        container.style.fontWeight = "800";
+        container.style.color = "var(--muted)";
+        container.textContent = "(Tap here to select and match)";
+
+        pinRow.appendChild(label);
+        pinRow.appendChild(container);
+        
+        pinRow.onclick = () => {
+          if (locked) return;
+          activeRowLabel = row.label;
+          document.querySelectorAll(".pin-row").forEach(r => r.style.outline = "");
+          pinRow.style.outline = "2px solid var(--primary)";
+        };
+
+        lab.appendChild(pinRow);
+      });
+
+      // Render single set of global choices
+      const choicesBlock = document.createElement("div");
+      choicesBlock.className = "word-bank";
+      choicesBlock.style.marginTop = "14px";
+
+      shuffleArray(question.choices).forEach(choice => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "word-chip";
+        btn.textContent = choice;
+        btn.dataset.choice = choice;
+
+        btn.onclick = () => {
+          if (locked) return;
+          if (!activeRowLabel) {
+            showFeedback("Click on a Chatbot Type row first, then choose a matching feature description.", "try");
+            return;
+          }
+
+          // Clear choice from any previous rows
+          Object.keys(pinAnswers).forEach(key => {
+            if (pinAnswers[key] === choice) {
+              pinAnswers[key] = "";
+              document.getElementById(`pinValue-${key}`).textContent = "(Tap here to select and match)";
+            }
+          });
+
+          pinAnswers[activeRowLabel] = choice;
+          document.getElementById(`pinValue-${activeRowLabel}`).textContent = choice;
+
+          // Update active layout indicators
+          document.querySelectorAll(".word-chip").forEach(c => c.classList.remove("selected"));
+          document.querySelectorAll(".pin-row").forEach(r => r.style.outline = "");
+          activeRowLabel = null;
+        };
+
+        choicesBlock.appendChild(btn);
+      });
+
+      lab.appendChild(choicesBlock);
+      questionContent.appendChild(lab);
+    }
+
+    function renderFactFilter(question) {
+      resetBtn.classList.remove("hidden");
+
+      const grid = document.createElement("div");
+      grid.className = "switch-grid";
+
+      shuffleArray(question.statements).forEach((statement, index) => {
+        const id = `s${index}-${Math.random().toString(16).slice(2)}`;
+        switchAnswers[id] = {
+          selected: false,
+          correct: statement.correct,
+          text: statement.text
+        };
+
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "switch-card";
+        card.dataset.id = id;
+
+        card.innerHTML = `
+          ${statement.text}
+          <span class="status">OFF</span>
+        `;
+
+        card.onclick = () => {
+          if (locked) return;
+          switchAnswers[id].selected = !switchAnswers[id].selected;
+          const status = card.querySelector(".status");
+          if (switchAnswers[id].selected) {
+            card.classList.add("selected");
+            status.textContent = "ON";
+          } else {
+            card.classList.remove("selected");
+            status.textContent = "OFF";
+          }
+        };
+
+        grid.appendChild(card);
+      });
+
+      questionContent.appendChild(grid);
+    }
+
+    function renderExampleFinder(question) {
+      resetBtn.classList.remove("hidden");
+
+      const box = document.createElement("div");
+      box.className = "info-box";
+      box.textContent = "Select ALL the items below that are examples of conversational AI. You can select multiple items.";
+
+      const grid = document.createElement("div");
+      grid.className = "example-grid";
+
+      const icons = {
+        google: "🗣️",
+        siri: "📱",
+        alexa: "🔊",
+        excel: "📊",
+        usb: "🔌"
+      };
+
+      shuffleArray(question.options).forEach(option => {
+        exampleAnswers[option.value] = { selected: false, correct: option.correct };
+
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "tile";
+        card.dataset.value = option.value;
+
+        card.innerHTML = `
+          <span class="chat-icon">${icons[option.value] || "💬"}</span>
+          ${option.text}
+          <small>Click to select</small>
+        `;
+
+        card.onclick = () => {
+          if (locked) return;
+          exampleAnswers[option.value].selected = !exampleAnswers[option.value].selected;
+
+          if (exampleAnswers[option.value].selected) {
+            card.classList.add("selected");
+            card.querySelector("small").textContent = "✓ Selected";
+          } else {
+            card.classList.remove("selected");
+            card.querySelector("small").textContent = "Click to select";
+          }
+        };
+
+        grid.appendChild(card);
+      });
+
+      questionContent.appendChild(box);
+      questionContent.appendChild(grid);
+    }
+
+    function renderDefinitionBuilder(question) {
+      resetBtn.classList.remove("hidden");
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "pin-lab";
+
+      const chatWindow = document.createElement("div");
+      chatWindow.className = "chat-window";
+
+      question.chatFlow.forEach(item => {
+        const bubble = document.createElement("div");
+
+        if (item.type === "bot") {
+          bubble.className = "chat-bubble bot";
+          bubble.textContent = item.text;
+        } else if (item.type === "blank") {
+          chatAnswers[item.id] = "";
+          bubble.className = "chat-bubble user blank-bubble";
+          bubble.id = item.id;
+          bubble.textContent = item.placeholder;
+          bubble.onclick = () => {
+            if (locked) return;
+            activeChatBlank = item.id;
+            document.querySelectorAll(".blank-bubble").forEach(b => b.style.outline = "");
+            bubble.style.outline = "2px solid #0891b2";
+          };
+        }
+
+        chatWindow.appendChild(bubble);
+      });
+
+      wrapper.appendChild(chatWindow);
+
+      const wordBank = document.createElement("div");
+      wordBank.className = "word-bank";
+
+      shuffleArray(question.choices).forEach(choice => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "word-chip";
+        chip.textContent = choice;
+        chip.dataset.value = choice;
+
+        chip.onclick = () => {
+          if (locked) return;
+          if (!activeChatBlank) {
+            showFeedback("Click on a blank bubble first, then choose a word.", "try");
+            return;
+          }
+
+          // Remove previous assignment
+          Object.keys(chatAnswers).forEach(key => {
+            if (chatAnswers[key] === choice) {
+              chatAnswers[key] = "";
+              const blankEl = document.getElementById(key);
+              if (blankEl) {
+                const original = question.chatFlow.find(f => f.id === key);
+                blankEl.textContent = original.placeholder;
+                blankEl.classList.remove("filled");
+              }
+            }
+          });
+
+          chatAnswers[activeChatBlank] = choice;
+          const blankEl = document.getElementById(activeChatBlank);
+          const original = question.chatFlow.find(f => f.id === activeChatBlank);
+          blankEl.textContent = original.placeholder.replace("___", choice);
+          blankEl.classList.add("filled");
+
+          updateWordChips();
+          activeChatBlank = null;
+          document.querySelectorAll(".blank-bubble").forEach(b => b.style.outline = "");
+        };
+
+        wordBank.appendChild(chip);
+      });
+
+      wrapper.appendChild(wordBank);
+      questionContent.appendChild(wrapper);
+    }
+
+    function updateWordChips() {
+      const usedValues = Object.values(chatAnswers).filter(v => v !== "");
+      document.querySelectorAll(".word-chip").forEach(chip => {
+        if (usedValues.includes(chip.dataset.value)) {
+          chip.classList.add("used");
+        } else {
+          chip.classList.remove("used");
+        }
+      });
+    }
+
+    function checkAnswer() {
+      if (locked) return;
+      const question = questions[currentQuestionIndex];
+
+      if (question.type === "chatClassifier") {
+        checkSingleAnswer(question);
+      } else if (question.type === "featureLinker") {
+        checkFeatureLinker(question);
+      } else if (question.type === "factFilter") {
+        checkFactFilter(question);
+      } else if (question.type === "exampleFinder") {
+        checkExampleFinder(question);
+      } else if (question.type === "definitionBuilder") {
+        checkDefinitionBuilder(question);
+      }
+    }
+
+    function checkSingleAnswer(question) {
+      if (!selectedAnswer) {
+        showFeedback("Please select an answer before checking.", "try");
+        return;
+      }
+      const isCorrect = selectedAnswer === question.answer;
+      processAnswer(isCorrect, question);
+    }
+
+    function checkFeatureLinker(question) {
+      const unanswered = question.rows.some(row => pinAnswers[row.label] === "");
+      if (unanswered) {
+        showFeedback("Please match a description for every chatbot type row.", "try");
+        return;
+      }
+      const isCorrect = question.rows.every(row => pinAnswers[row.label] === row.answer);
+      processAnswer(isCorrect, question);
+    }
+
+    function checkFactFilter(question) {
+      const answers = Object.values(switchAnswers);
+      const isCorrect = answers.every(item => item.selected === item.correct);
+      processAnswer(isCorrect, question);
+    }
+
+    function checkExampleFinder(question) {
+      const answers = Object.values(exampleAnswers);
+      const anySelected = answers.some(a => a.selected);
+
+      if (!anySelected) {
+        showFeedback("Please select at least one example.", "try");
+        return;
+      }
+
+      const isCorrect = answers.every(item => item.selected === item.correct);
+      processAnswer(isCorrect, question);
+    }
+
+    function checkDefinitionBuilder(question) {
+      const blanks = question.chatFlow.filter(f => f.type === "blank");
+      const unanswered = blanks.some(b => chatAnswers[b.id] === "");
+
+      if (unanswered) {
+        showFeedback("Please fill in all the blanks in the chat.", "try");
+        return;
+      }
+
+      const isCorrect = blanks.every(b => chatAnswers[b.id] === b.answer);
+      processAnswer(isCorrect, question);
+    }
+
+    function processAnswer(isCorrect, question) {
+      attempts++;
+
+      if (isCorrect) {
+        score++;
+        updateScore();
+        locked = true;
+        markChoices(question);
+        showFeedback("Correct! Excellent work.", "correct");
+        showNextButton();
+        new Audio('assets/correct.mp3').play().catch(() => {});
+      } else if (attempts < 2) {
+        attemptBox.textContent = `Attempt ${attempts + 1} of 2`;
+        showFeedback(question.firstHint, "try");
+        new Audio('assets/wrong.mp3').play().catch(() => {});
+      } else {
+        locked = true;
+        markChoices(question);
+        showFeedback(question.finalHint, "wrong");
+        showNextButton();
+        new Audio('assets/wrong.mp3').play().catch(() => {});
+      }
+    }
+
+    function markChoices(question) {
+      if (question.type === "chatClassifier") {
+        document.querySelectorAll(".tile").forEach(item => {
+          const value = item.dataset.value;
+          if (value === question.answer) item.classList.add("correct-choice");
+          if (value === selectedAnswer && value !== question.answer) item.classList.add("wrong-choice");
+        });
+      } else if (question.type === "featureLinker") {
+        question.rows.forEach(row => {
+          const rowElement = document.getElementById(`pinRow-${row.label}`);
+          if (pinAnswers[row.label] === row.answer) {
+            rowElement.classList.add("correct-choice");
+          } else {
+            rowElement.classList.add("wrong-choice");
+          }
+        });
+      } else if (question.type === "factFilter") {
+        document.querySelectorAll(".switch-card").forEach(card => {
+          const data = switchAnswers[card.dataset.id];
+          if (data.selected === data.correct) {
+            card.classList.add("correct-choice");
+          } else {
+            card.classList.add("wrong-choice");
+          }
+        });
+      } else if (question.type === "exampleFinder") {
+        document.querySelectorAll(".tile").forEach(card => {
+          const val = card.dataset.value;
+          const data = exampleAnswers[val];
+          if (data.selected === data.correct) {
+            card.classList.add("correct-choice");
+          } else {
+            card.classList.add("wrong-choice");
+          }
+        });
+      } else if (question.type === "definitionBuilder") {
+        const blanks = question.chatFlow.filter(f => f.type === "blank");
+        blanks.forEach(b => {
+          const el = document.getElementById(b.id);
+          if (chatAnswers[b.id] === b.answer) {
+            el.style.borderColor = "#16a34a";
+            el.style.background = "#ecfdf5";
+            el.style.color = "#166534";
+          } else {
+            el.style.borderColor = "#dc2626";
+            el.style.background = "#fef2f2";
+            el.style.color = "#991b1b";
+          }
+        });
+      }
+    }
+
+    function showFeedback(message, type) {
+      feedback.className = `feedback show ${type}`;
+      feedback.textContent = message;
+    }
+
+    function showNextButton() {
+      checkBtn.classList.add("hidden");
+      resetBtn.classList.add("hidden");
+
+      if (currentQuestionIndex === questions.length - 1) {
+        nextBtn.textContent = "Show Result";
+      } else {
+        nextBtn.textContent = "Next";
+      }
+
+      nextBtn.classList.remove("hidden");
+    }
+
+    function resetQuestion() {
+      loadQuestion();
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      activityScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      document.getElementById("finalScore").textContent =
+        `Your final score is ${score} out of ${questions.length}.`;
+
+      const resultMessage = document.getElementById("resultMessage");
+
+      if (score >= 4) {
+        resultMessage.textContent = "Excellent! You understand chatbots and conversational AI very well.";
+        resultMessage.className = "result-message good";
+      } else if (score >= 3) {
+        resultMessage.textContent = "Good effort! Revise the types of chatbots and their features once more.";
+        resultMessage.className = "result-message review";
+      } else {
+        resultMessage.textContent = "Keep practising. Review chatbot types, examples and definitions.";
+        resultMessage.className = "result-message practice";
+      }
+    }
+  </script>
+</body>
+</html>
